@@ -69,7 +69,6 @@ RCT_EXPORT_METHOD(stat:(NSString*)filepath callback:(RCTResponseSenderBlock)call
 }
 
 RCT_EXPORT_METHOD(writeFile:(NSString*)filepath contents:(NSString*)base64Content attributes:(NSDictionary*)attributes callback:(RCTResponseSenderBlock)callback){
-
   NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
   BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
 
@@ -80,10 +79,28 @@ RCT_EXPORT_METHOD(writeFile:(NSString*)filepath contents:(NSString*)base64Conten
   callback(@[[NSNull null], [NSNumber numberWithBool:success]]);
 }
 
+RCT_EXPORT_METHOD(unlink:(NSString*)filepath callback:(RCTResponseSenderBlock)callback) {
+  NSFileManager *manager = [NSFileManager defaultManager];
+  BOOL exists = [manager fileExistsAtPath:filepath isDirectory:false];
+
+  if (!exists) {
+    return callback(@[[NSString stringWithFormat:@"File at path %@ does not exist", filepath]]);
+  }
+  NSError *error;
+  BOOL success = [manager removeItemAtPath:filepath error:&error];
+
+  if (!success) {
+    NSLog(@"%@", error);
+    return callback([self makeErrorPayload:error]);
+  }
+
+  callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
+}
+
 RCT_EXPORT_METHOD(readFile:(NSString*)filepath callback:(RCTResponseSenderBlock)callback){
   NSData *content = [[NSFileManager defaultManager] contentsAtPath:filepath];
   NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
-  NSLog(@"%@", base64Content);
+
   if (!base64Content) {
     return callback(@[[NSString stringWithFormat:@"Could not read file at path %@", filepath]]);
   }
