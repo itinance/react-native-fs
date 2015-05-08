@@ -4,7 +4,7 @@ Native filesystem access for react-native
 
 Note: this project is under development and functionality will improve over time. Currently it provides only the bare minimum of functionality.
 
-Renaming, copying, and creating files will follow soon.
+Creating, renaming, copying, etc. of files will follow soon.
 
 ## Usage
 
@@ -54,6 +54,17 @@ RNFS.readDir('/', RNFS.MainBundle)
 ```
 
 ## API
+
+### Constants
+
+The following constants are available on the `RNFS` export:
+
+`MainBundle` (`Number`) The identifier for the main bundle  
+`CachesDirectory` (`Number`) The identifier for the caches  directory  
+`DocumentDirectory` (`Number`) The identifier for the document directory
+
+`CachesDirectoryPath` (`String`) The absolute path to the caches directory
+`DocumentDirectoryPath`  (`String`) The absolute path to the document directory
 
 ### `promise readDir(path, directory)`
 
