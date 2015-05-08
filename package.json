@@ -1,0 +1,27 @@
+{
+  "name": "react-native-fs",
+  "version": "0.1.0",
+  "description": "Native filesystem access for react-native",
+  "main": "FS.ios.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:johanneslumpe/react-native-fs.git"
+  },
+  "keywords": [
+    "react-component",
+    "react-native",
+    "ios",
+    "fs",
+    "filesystem"
+  ],
+  "author": "Johannes Lumpe <johannes@lum.pe> (https://github.com/johanneslumpe)",
+  "license": "MIT",
+  "dependencies": {
+    "base-64": "^0.1.0",
+    "bluebird": "^2.9.25",
+    "react-native": ">=0.3.4 <0.5.0"
+  }
+}
