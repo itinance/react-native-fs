@@ -30,27 +30,65 @@ var RNFS = require('react-native-fs');
 
 // get a list of files and directories in the main bundle
 RNFS.readDir('/', RNFS.MainBundle)
-.then((result) => {
-  console.log('GOT RESULT', result);
+  .then((result) => {
+    console.log('GOT RESULT', result);
 
-  // stat the first file
-  return Promise.all([RNFS.stat(result[0].path), result[0].path]);
-})
-.then((statResult) => {
-  if (statResult[0].isFile()) {
-    // if we have a file, read it
-    return RNFS.readFile(statResult[1]);
-  }
+    // stat the first file
+    return Promise.all([RNFS.stat(result[0].path), result[0].path]);
+  })
+  .then((statResult) => {
+    if (statResult[0].isFile()) {
+      // if we have a file, read it
+      return RNFS.readFile(statResult[1]);
+    }
 
-  return 'no file';
-})
-.then((contents) => {
-  // log the file contents
-  console.log(contents);
-})
-.catch((err) => {
-  console.log(err.message, err.code);
-});
+    return 'no file';
+  })
+  .then((contents) => {
+    // log the file contents
+    console.log(contents);
+  })
+  .catch((err) => {
+    console.log(err.message, err.code);
+  });
+```
+
+### File creation
+
+```javascript
+// require the module
+var RNFS = require('react-native-fs');
+
+// create a path you want to write to
+var path = RNFS.DocumentDirectoryPath + '/test.txt';
+
+// write the file
+RNFS.writeFile(path, 'Lorem ipsum dolor sit amet')
+  .then((success) => {
+    console.log('FILE WRITTEN!');
+  })
+  .catch((err) => {
+    console.log(err.message);
+  });
+
+```
+
+### File deletion
+```javascript
+// create a path you want to delete
+var path = RNFS.DocumentDirectoryPath + '/test.txt';
+
+return RNFS.unlink(path)
+  // spread is a method offered by bluebird to allow for more than a
+  // single return value of a promise. If you use `then`, you will receive
+  // the values inside of an array
+  .spread((success, path) => {
+  console.log('FILE DELETED', success, path);
+  })
+  // `unlink` will throw an error, if the item to unlink does not exist
+  .catch((err) => {
+    console.log(err.message);
+  });
 ```
 
 ## API
@@ -92,3 +130,15 @@ The promise resolves with an object with the following properties:
 Reads the file at `path` and - by default - decodes the transferred base64 string. If `shouldDecode` is `false`, the base64 encoded string is returned
 
 Note: you will take quite a performance hit if you are reading big files
+
+### `promise writeFile(filepath, contents [, options])`
+
+Write the `contents` to `filepath`. `options` optionally takes an object specifying the file's properties, like mode etc.
+
+The promise resolves with a boolean.
+
+### `promise unlink(filepath)`
+
+Unlinks the item at `filepath`. If the item does not exists, an error will be thrown.
+
+The promise resolves with an array, which contains a boolean and the path that has been unlinked. Tip: use `spread` to receive the two arguments instead of a single array in your handler.
