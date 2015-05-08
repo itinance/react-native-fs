@@ -90,7 +90,6 @@ RCT_EXPORT_METHOD(unlink:(NSString*)filepath callback:(RCTResponseSenderBlock)ca
   BOOL success = [manager removeItemAtPath:filepath error:&error];
 
   if (!success) {
-    NSLog(@"%@", error);
     return callback([self makeErrorPayload:error]);
   }
 
