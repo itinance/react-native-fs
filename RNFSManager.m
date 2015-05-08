@@ -91,9 +91,16 @@ RCT_EXPORT_METHOD(readFile:(NSString*)filepath callback:(RCTResponseSenderBlock)
   }];
 }
 
+- (NSString*) getPathForDirectory:(int)directory {
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(directory, NSUserDomainMask, YES);
+  return [paths objectAtIndex:0];
+}
+
 - (NSDictionary *)constantsToExport
 {
   return @{
+    @"NSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
+    @"NSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
     @"NSCachesDirectory": [NSNumber numberWithInteger:NSCachesDirectory],
     @"NSDocumentDirectory": [NSNumber numberWithInteger:NSDocumentDirectory],
     @"MainBundleDirectory": [NSNumber numberWithInteger:MainBundleDirectory],

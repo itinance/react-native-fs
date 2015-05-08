@@ -52,7 +52,9 @@ var RNFS = {
 
   MainBundle: RNFSManager.MainBundleDirectory,
   CachesDirectory: RNFSManager.NSCachesDirectory,
-  DocumentDirectory: RNFSManager.NSDocumentDirectory
+  DocumentDirectory: RNFSManager.NSDocumentDirectory,
+  CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
+  DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
 };
 
 module.exports = RNFS;
