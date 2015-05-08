@@ -22,7 +22,7 @@ RCT_EXPORT_MODULE();
 RCT_EXPORT_METHOD(readDir:(NSString*)directory inFolder:(NSNumber*)folder callback:(RCTResponseSenderBlock)callback){
   NSString *path;
   int folderInt = [folder integerValue];
-  //NSLog(@"%d %d", folderInt, MainBundleDirectory);
+
   if (folderInt == MainBundleDirectory) {
     path = [[NSBundle mainBundle] bundlePath];
   } else {
