@@ -139,6 +139,6 @@ The promise resolves with a boolean.
 
 ### `promise unlink(filepath)`
 
-Unlinks the item at `filepath`. If the item does not exists, an error will be thrown.
+Unlinks the item at `filepath`. If the item does not exist, an error will be thrown.
 
 The promise resolves with an array, which contains a boolean and the path that has been unlinked. Tip: use `spread` to receive the two arguments instead of a single array in your handler.
