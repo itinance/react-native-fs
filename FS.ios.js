@@ -31,6 +31,7 @@ var RNFS = {
         'ctime': new Date(result.ctime*1000),
         'mtime': new Date(result.mtime*1000),
         'size': result.size,
+        'mode': result.mode,
         isFile: () => result.type === NSFileTypeRegular,
         isDirectory: () => result.type === NSFileTypeDirectory,
       };
