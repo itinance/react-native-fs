@@ -29,44 +29,55 @@ RCT_EXPORT_METHOD(readDir:(NSString*)directory inFolder:(NSNumber*)folder callba
     NSArray *paths = NSSearchPathForDirectoriesInDomains(folderInt, NSUserDomainMask, YES);
     path = [paths objectAtIndex:0];
   }
-  
+
   NSFileManager *fileManager = [NSFileManager defaultManager];
   NSError *error;
   NSString * dirPath = [path stringByAppendingPathComponent:directory];
   NSArray *contents = [fileManager contentsOfDirectoryAtPath:dirPath error:&error];
-  
+
   contents = [contents mapObjectsUsingBlock:^id(id obj, NSUInteger idx) {
     return @{
       @"name": (NSString*)obj,
       @"path": [dirPath stringByAppendingPathComponent:(NSString*)obj]
     };
   }];
-  
+
   if (error) {
     return callback([self makeErrorPayload:error]);
   }
-  
+
   callback(@[[NSNull null], contents]);
 }
 
 RCT_EXPORT_METHOD(stat:(NSString*)filepath callback:(RCTResponseSenderBlock)callback){
   NSError *error;
   NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
-  //  NSLog(@"%@", attributes);
-  
+
   if (error) {
     return callback([self makeErrorPayload:error]);
   }
-  
+
   attributes = @{
-                 @"ctime": [self dateToTimeIntervalNumber:(NSDate*)[attributes objectForKey:NSFileCreationDate]],
-                 @"mtime": [self dateToTimeIntervalNumber:(NSDate*)[attributes objectForKey:NSFileModificationDate]],
-                 @"size": [attributes objectForKey:NSFileSize],
-                 @"type": [attributes objectForKey:NSFileType],
-                 @"mode": [NSNumber numberWithInteger:[[NSString stringWithFormat:@"%o", [(NSNumber*)[attributes objectForKey:NSFilePosixPermissions] integerValue]] integerValue]]
-                 };
-  
+    @"ctime": [self dateToTimeIntervalNumber:(NSDate*)[attributes objectForKey:NSFileCreationDate]],
+    @"mtime": [self dateToTimeIntervalNumber:(NSDate*)[attributes objectForKey:NSFileModificationDate]],
+    @"size": [attributes objectForKey:NSFileSize],
+    @"type": [attributes objectForKey:NSFileType],
+    @"mode": [NSNumber numberWithInteger:[[NSString stringWithFormat:@"%o", [(NSNumber*)[attributes objectForKey:NSFilePosixPermissions] integerValue]] integerValue]]
+  };
+
   callback(@[[NSNull null], attributes]);
+}
+
+RCT_EXPORT_METHOD(writeFile:(NSString*)filepath contents:(NSString*)base64Content attributes:(NSDictionary*)attributes callback:(RCTResponseSenderBlock)callback){
+
+  NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
+  BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
+
+  if (!success) {
+    return callback(@[[NSString stringWithFormat:@"Could not write file at path %@", filepath]]);
+  }
+
+  callback(@[[NSNull null], [NSNumber numberWithBool:success]]);
 }
 
 RCT_EXPORT_METHOD(readFile:(NSString*)filepath callback:(RCTResponseSenderBlock)callback){
@@ -76,7 +87,7 @@ RCT_EXPORT_METHOD(readFile:(NSString*)filepath callback:(RCTResponseSenderBlock)
   if (!base64Content) {
     return callback(@[[NSString stringWithFormat:@"Could not read file at path %@", filepath]]);
   }
-  
+
   callback(@[[NSNull null], base64Content]);
 }
 

@@ -7,6 +7,7 @@ var base64 = require('base-64');
 var _readDir = Promise.promisify(RNFSManager.readDir);
 var _stat = Promise.promisify(RNFSManager.stat);
 var _readFile = Promise.promisify(RNFSManager.readFile);
+var _writeFile = Promise.promisify(RNFSManager.writeFile);
 
 var convertError = (err) => {
   var error = new Error(err.description);
@@ -21,22 +22,22 @@ var RNFS = {
 
   readDir(path, rootDir) {
     return _readDir(path, rootDir)
-    .catch(convertError);
+      .catch(convertError);
   },
 
   stat(filepath) {
     return _stat(filepath)
-    .then((result) => {
-      return {
-        'ctime': new Date(result.ctime*1000),
-        'mtime': new Date(result.mtime*1000),
-        'size': result.size,
-        'mode': result.mode,
-        isFile: () => result.type === NSFileTypeRegular,
-        isDirectory: () => result.type === NSFileTypeDirectory,
-      };
-    })
-    .catch(convertError);
+      .then((result) => {
+        return {
+          'ctime': new Date(result.ctime*1000),
+          'mtime': new Date(result.mtime*1000),
+          'size': result.size,
+          'mode': result.mode,
+          isFile: () => result.type === NSFileTypeRegular,
+          isDirectory: () => result.type === NSFileTypeDirectory,
+        };
+      })
+      .catch(convertError);
   },
 
   readFile(filepath, shouldDecode) {
@@ -49,6 +50,11 @@ var RNFS = {
     }
 
     return p.catch(convertError);
+  },
+
+  writeFile(filepath, contents, options) {
+    return _writeFile(filepath, base64.encode(contents), options)
+      .catch(convertError);
   },
 
   MainBundle: RNFSManager.MainBundleDirectory,
