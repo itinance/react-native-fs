@@ -7,7 +7,6 @@
 //
 
 #import "RNFSManager.h"
-#import "RCTConvert.h"
 #import "RCTBridge.h"
 #import "NSArray+Map.h"
 
@@ -18,6 +17,9 @@ static int MainBundleDirectory = 999;
 @synthesize bridge = _bridge;
 RCT_EXPORT_MODULE();
 
+- (dispatch_queue_t)methodQueue {
+  return dispatch_queue_create("pe.lum.rnfs", DISPATCH_QUEUE_SERIAL);
+}
 
 RCT_EXPORT_METHOD(readDir:(NSString*)directory inFolder:(NSNumber*)folder callback:(RCTResponseSenderBlock)callback){
   NSString *path;
@@ -31,11 +33,11 @@ RCT_EXPORT_METHOD(readDir:(NSString*)directory inFolder:(NSNumber*)folder callba
   }
 
   NSFileManager *fileManager = [NSFileManager defaultManager];
-  NSError *error;
+  NSError *error = nil;
   NSString * dirPath = [path stringByAppendingPathComponent:directory];
   NSArray *contents = [fileManager contentsOfDirectoryAtPath:dirPath error:&error];
 
-  contents = [contents mapObjectsUsingBlock:^id(id obj, NSUInteger idx) {
+  contents = [contents rnfs_mapObjectsUsingBlock:^id(id obj, NSUInteger idx) {
     return @{
       @"name": (NSString*)obj,
       @"path": [dirPath stringByAppendingPathComponent:(NSString*)obj]
@@ -50,7 +52,7 @@ RCT_EXPORT_METHOD(readDir:(NSString*)directory inFolder:(NSNumber*)folder callba
 }
 
 RCT_EXPORT_METHOD(stat:(NSString*)filepath callback:(RCTResponseSenderBlock)callback){
-  NSError *error;
+  NSError *error = nil;
   NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
 
   if (error) {
@@ -86,7 +88,7 @@ RCT_EXPORT_METHOD(unlink:(NSString*)filepath callback:(RCTResponseSenderBlock)ca
   if (!exists) {
     return callback(@[[NSString stringWithFormat:@"File at path %@ does not exist", filepath]]);
   }
-  NSError *error;
+  NSError *error = nil;
   BOOL success = [manager removeItemAtPath:filepath error:&error];
 
   if (!success) {

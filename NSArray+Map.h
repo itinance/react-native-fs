@@ -8,6 +8,6 @@
 
 @interface NSArray (Map)
 
-- (NSArray *)mapObjectsUsingBlock:(id (^)(id obj, NSUInteger idx))block;
+- (NSArray *)rnfs_mapObjectsUsingBlock:(id (^)(id obj, NSUInteger idx))block;
 
 @end
