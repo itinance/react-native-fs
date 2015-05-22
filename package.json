@@ -1,6 +1,6 @@
 {
   "name": "react-native-fs",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Native filesystem access for react-native",
   "main": "FS.ios.js",
   "scripts": {
@@ -21,7 +21,9 @@
   "license": "MIT",
   "dependencies": {
     "base-64": "^0.1.0",
-    "bluebird": "^2.9.25",
+    "bluebird": "^2.9.25"
+  },
+  "peerDependencies": {
     "react-native": ">=0.3.4 <0.5.0"
   }
 }
