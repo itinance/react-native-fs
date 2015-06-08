@@ -51,13 +51,13 @@ function testWriteAndReadFile() {
     .then((contents) => {
       updateMessage('FILE READ! Contents:');
       readText = contents;
-      updateMessage(readText);
       expectEqual(text, readText, 'testWriteAndReadFile');
+      updateMessage('readFile correctly returned' + readText);
+    })
+    .finally(() => {
       runTestCase('testCreateAndDeleteFile', testCreateAndDeleteFile);
     })
-    .catch((err) => {
-      updateMessage(err.message, err.code);
-    });
+    .done();//promise done needed to throw exception so that in case test fails,error is propagated
 }
 
 
@@ -84,9 +84,12 @@ function testCreateAndDeleteFile() {
     })
     .catch((err) => {
       updateMessage('catch' + err);
-      expectTrue(true,'File is deleted');
-      done();      
-    });
+      expectTrue(true,'File is deleted');      
+    })
+    .finally(() => {
+      done(); //testrunners done
+    })
+    .done(); //promise done needed to throw exception so that in case test fails,error is propagated
 }
 
 
