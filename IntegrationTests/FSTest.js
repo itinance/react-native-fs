@@ -1,4 +1,3 @@
-
 'use strict';
 
 var RCTTestModule = require('NativeModules').TestModule;
@@ -7,7 +6,7 @@ var {
   Text,
   View,
 } = React;
-var RNFS = require('react-native-fs');
+var fs = require('react-native-fs');
 var DEBUG = false;
 
 
@@ -37,87 +36,124 @@ function expectFSNoError(err) {
   expectTrue(err === null, 'Unexpected FS error: ' + JSON.stringify(err));
 }
 
+
 function testWriteAndReadFile() {
-  var path = RNFS.DocumentDirectoryPath + '/test.txt';
-
+  var path = 'Documents/test.txt';
   var text = 'Lorem ipsum dolor sit amet';
-  var readText;
-
-  RNFS.writeFile(path, text)
-    .then((success) => {
-      updateMessage('FILE WRITTEN!');
-      return RNFS.readFile(path);
-    })
-    .then((contents) => {
-      updateMessage('FILE READ! Contents:');
-      readText = contents;
-      expectEqual(text, readText, 'testWriteAndReadFile');
-      updateMessage('readFile correctly returned' + readText);
-    })
-    .finally(() => {
-      runTestCase('testCreateAndDeleteFile', testCreateAndDeleteFile);
-    })
-    .done();//promise done needed to throw exception so that in case test fails,error is propagated
+  fs.writeFile(path, text, function(err) {
+    if (err) {
+      updateMessage('testWriteAndReadFile failed' + err);
+      throw err;
+    }
+    fs.readFile(path, function(err, contents) {
+      if (err) {
+        throw err;
+      }
+      expectEqual(contents, text, 'testWriteAndReadFile');
+      fs.unlink(path, function(err) {
+        if (err) {
+          throw err;
+        }
+        runTestCase('\ntestCreateAndDeleteFile', testCreateAndDeleteFile);
+      });
+    });
+  })
 }
-
-
 
 function testCreateAndDeleteFile() {
-  var path = RNFS.DocumentDirectoryPath + '/test.txt';
+  var path = 'Documents/test.txt';
   var text = 'Lorem ipsum dolor sit amet';
   var readText;
 
-  RNFS.writeFile(path, text)
-    .then((success) => {
-      updateMessage('FILE CREATED!');
-      return RNFS.unlink(path);
-    })
-    .spread((success, path) => {
-      updateMessage('FILE DELETED!' + success + ',' + path);
-      return RNFS.stat(path);
-    })
-    .then((statResult) => {
-      updateMessage('*****' + statResult);
-      if (statResult.isFile()) {
-        updateMessage('FILE STILL EXISTS');
+  fs.writeFile(path, text, function(err) {
+    if (err) {
+      throw err;
+    }
+    fs.unlink(path, function(err) {
+      if (err) {
+        throw err;
       }
-    })
-    .catch((err) => {
-      updateMessage('catch' + err);
-      expectTrue(true,'File is deleted');      
-    })
-    .finally(() => {
-      done(); //testrunners done
-    })
-    .done(); //promise done needed to throw exception so that in case test fails,error is propagated
+      fs.readFile(path, function(err, res) {
+        if (err) {
+          expectTrue(true, 'testCreateAndDeleteFile');
+        }
+        runTestCase('\ntestMkdirAndReaddir', testMkdirAndReaddir);
+      });
+    });
+  });
 }
 
 
+function testMkdirAndReaddir() {
+  var dirPath = 'Documents/testDir/';
+  var fileName = 'hello.txt';
+  var text = 'testing Read Dir';
+  fs.mkdir(dirPath, function(err) {
+    if (err) {
+      updateMessage('mkdir failed');
+      throw err;
+    } else {
+      fs.writeFile(dirPath + fileName, text, function(err) {
+        if (err) {
+          updateMessage('testWriteFile failed' + err);
+          throw err;
+        }
+      });
+      fs.readdir(dirPath, function(err, files) {
+        if (err) {
+          throw err;
+        }
+        if (files.length === 1) {
+          expectEqual(files[0], fileName, 'testReadDir');
+        } else {
+          expectTrue(false, 'testReadDir');
+        }
+        runTestCase('\ntestStat',testStat);
+      });
+    }
+  });
+}
 
+function testStat() {
+  var file = "Documents/stat.txt";
+  var text = 'hello world';
+  fs.writeFile(file,text, function(err){
+    if(err){
+      throw err;
+    }
+    fs.stat(file,function(err,stats){
+      expectEqual(stats.isFile(),true,'testStat');
+      expectEqual(stats.size,11,'testStat');
+      expectEqual(stats.mode,644,'testStat');
+    });
+    done();
+  });
+}
 
 var FSTest = React.createClass({
   getInitialState() {
-      return {
-        messages: 'Initializing...',
-        done: false,
-      };
-    },
+    return {
+      messages: 'Initializing...',
+      done: false,
+    };
+  },
 
-    componentDidMount() {
-      done = () => this.setState({
-        done: true
-      }, RCTTestModule.markTestCompleted);
-      updateMessage = (msg) => {
-        this.setState({
-          messages: this.state.messages.concat('\n' + msg)
-        });
-        DEBUG && console.log(msg);
-      };
-      testWriteAndReadFile();
-    },
+  componentDidMount() {
+    done = () => this.setState({
+      done: true
+    }, RCTTestModule.markTestCompleted);
+    updateMessage = (msg) => {
+      this.setState({
+        messages: this.state.messages.concat('\n' + msg)
+      });
+      DEBUG && console.log(msg);
+    };
+    runTestCase('\ntestWriteAndReadFile', testWriteAndReadFile);
+  },
 
-    render() {
-      return (
+
+  render() {
+    return (
       <View style={{backgroundColor: 'white', padding: 40}}>
         <Text>
           {this.constructor.displayName + ': '}
@@ -125,8 +161,8 @@ var FSTest = React.createClass({
           {'\n\n' + this.state.messages}
         </Text>
       </View>
-      );
-    }
+    );
+  }
 });
 
 module.exports = FSTest;

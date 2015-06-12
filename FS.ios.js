@@ -2,13 +2,7 @@
 
 var RNFSManager = require('NativeModules').RNFSManager;
 var Promise = require('bluebird');
-var base64 = require('base-64');
 
-var _readDir = Promise.promisify(RNFSManager.readDir);
-var _stat = Promise.promisify(RNFSManager.stat);
-var _readFile = Promise.promisify(RNFSManager.readFile);
-var _writeFile = Promise.promisify(RNFSManager.writeFile);
-var _unlink = Promise.promisify(RNFSManager.unlink);
 
 var convertError = (err) => {
   if (err.isOperational) {
@@ -23,55 +17,143 @@ var convertError = (err) => {
 var NSFileTypeRegular = RNFSManager.NSFileTypeRegular;
 var NSFileTypeDirectory = RNFSManager.NSFileTypeDirectory;
 
-var RNFS = {
+/**
+ * This function converts the relative path to application home specific directory
+ * Ex: Documents/hello.txt -> <DocumentsDirForApp>/hello.txt
+ * Caches/hello.txt -> <CacheDirForApp>/hello.txt
+ * tmp/hello.txt -> <TmpDirForApp>/hello.txt
+ * @param  {String}
+ * @return {String}
+ */
+function processFilePath(filepath) {
+  var found = filepath.indexOf('/');
+  if (found !== 0) {
+    //relative path, check where is it relative to
+    var splitPath = filepath.split('/');
+    if (splitPath[0] === 'Documents') {
+      splitPath[0] = RNFSManager.NSDocumentDirectoryPath;
+      return splitPath.join('/');
+    } else if (splitPath[0] === 'Caches') {
+      splitPath[0] = RNFSManager.NSCachesDirectoryPath;
+      return splitPath.join('/');
+    } else if (splitPath[0] === 'tmp') {
+      splitPath[0] = RNFSManager.NSTmpDirectoryPath;
+      return splitPath.join('/');
+    } else {
+      //treat it as relative to Documents directory
+      return RNFSManager.NSDocumentDirectoryPath + '/' + filepath;
+    }
+  } else { //absolute path
+    return filepath;
+  }
+}
 
-  readDir(path, rootDir) {
-    return _readDir(path, rootDir)
-      .catch(convertError);
+var RNFS = {
+  writeFile(filepath, contents) {
+      var processedFilePath = processFilePath(filepath);
+      if (arguments.length === 4) {
+        RNFSManager.writeFile(processedFilePath, contents, arguments[2], arguments[3]);
+      } else {
+        RNFSManager.writeFile(processedFilePath, contents, {}, arguments[2]);
+      }
+    },
+
+    readFile(filepath) {
+      var processedFilePath = processFilePath(filepath);
+      if (arguments.length === 3) {
+        var options = arguments[1];
+        var callback = arguments[2];
+        RNFSManager.readFile(processedFilePath, options, callback);
+      } else {
+        var callback = arguments[1];
+        RNFSManager.readFile(processedFilePath, {
+          encoding: 'null',
+          flag: 'r'
+        }, callback);
+      }
+    },
+
+    readdir(filepath, callback) {
+      var processedFilePath = processFilePath(filepath);
+      RNFSManager.readdir(processedFilePath, callback);
+    },
+
+    mkdir(filepath) {
+      var processedFilePath = processFilePath(filepath);
+      if (arguments.length === 3) {
+        var mode = arguments[1];
+        var callback = arguments[2];
+        RNFSManager.mkdir(processedFilePath, mode, callback);
+      } else {
+        var callback = arguments[1];
+        RNFSManager.mkdir(processedFilePath, '0777', callback);
+      }
+    },
+
+    stat(filepath, callback) {
+      var processedFilePath = processFilePath(filepath);
+      RNFSManager.stat(processedFilePath, function(err, result) {
+        if (!err) {
+          var stats = {
+            ctime: new Date(result.ctime * 1000),
+            mtime: new Date(result.mtime * 1000),
+            size: result.size,
+            mode: result.mode,
+            isFile: () => result.type === NSFileTypeRegular,
+            isDirectory: () => result.type === NSFileTypeDirectory,
+          };
+        }
+        callback(err, stats);
+      });
+    },
+
+    unlink(filepath, callback) {
+      var processedFilePath = processFilePath(filepath);
+      RNFSManager.unlink(processedFilePath, callback);
+    },
+
+    MainBundle: RNFSManager.MainBundleDirectory,
+    CachesDirectory: RNFSManager.NSCachesDirectory,
+    DocumentDirectory: RNFSManager.NSDocumentDirectory,
+    CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
+    DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
+
+};
+
+var Promisify = {
+
+  readdir(path) {
+      var p = Promise.promisify(RNFS.readdir);
+      return p.apply(null, arguments)
   },
 
   stat(filepath) {
-    return _stat(filepath)
-      .then((result) => {
-        return {
-          'ctime': new Date(result.ctime*1000),
-          'mtime': new Date(result.mtime*1000),
-          'size': result.size,
-          'mode': result.mode,
-          isFile: () => result.type === NSFileTypeRegular,
-          isDirectory: () => result.type === NSFileTypeDirectory,
-        };
-      })
-      .catch(convertError);
+    var p = Promise.promisify(RNFS.stat);
+    return p.apply(null, arguments);
   },
 
-  readFile(filepath, shouldDecode) {
-    var p = _readFile(filepath);
-
-    if (shouldDecode !== false) {
-      p = p.then((data) => {
-        return base64.decode(data);
-      });
-    }
-
-    return p.catch(convertError);
+  readFile(filepath) {
+    var p = Promise.promisify(RNFS.readFile);
+    return p.apply(null, arguments)
   },
 
-  writeFile(filepath, contents, options) {
-    return _writeFile(filepath, base64.encode(contents), options)
-      .catch(convertError);
+  writeFile(filepath, contents) {
+    var p = Promise.promisify(RNFS.writeFile);
+    return p.apply(null, arguments)
   },
 
   unlink(filepath) {
-    return _unlink(filepath)
-      .catch(convertError);
+    var p = Promise.promisify(RNFS.unlink);
+    return p.apply(null, arguments)
   },
 
-  MainBundle: RNFSManager.MainBundleDirectory,
-  CachesDirectory: RNFSManager.NSCachesDirectory,
-  DocumentDirectory: RNFSManager.NSDocumentDirectory,
-  CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
-  DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
+  mkdir(filepath) {
+    var p = Promise.promisify(RNFS.mkdir);
+    return p.apply(null, arguments)
+  }
 };
 
+
+
+RNFS.Promisify = Promisify;
 module.exports = RNFS;

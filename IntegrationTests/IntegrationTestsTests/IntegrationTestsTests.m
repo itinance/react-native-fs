@@ -63,7 +63,13 @@
 
 - (void)testFS
 {
-  [_runner runTest:_cmd module:@"FSTest"];
+  [_runner runTest:_cmd
+            module:@"FSTest"];
+}
+
+- (void)testFSPromisifiedAPI
+{
+  [_runner runTest:_cmd module:@"FSPromisifiedAPITest"];
 }
 
 - (void)testZZZ_NotInRecordMode

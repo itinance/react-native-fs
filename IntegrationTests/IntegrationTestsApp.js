@@ -23,7 +23,8 @@ var {
 
 var TESTS = [
   require('./IntegrationTestHarnessTest'),
-  require('./FSTest')
+  require('./FSTest'),
+  require('./FSPromisifiedAPITest')
 ];
 
 TESTS.forEach(
