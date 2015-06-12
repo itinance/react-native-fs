@@ -3,7 +3,6 @@
 var RNFSManager = require('NativeModules').RNFSManager;
 var Promise = require('bluebird');
 
-
 var convertError = (err) => {
   if (err.isOperational) {
     err = err.cause;
@@ -39,16 +38,16 @@ function processFilePath(filepath) {
     } else if (splitPath[0] === 'tmp') {
       splitPath[0] = RNFSManager.NSTmpDirectoryPath;
       return splitPath.join('/');
-    } else {
-      //treat it as relative to Documents directory
-      return RNFSManager.NSDocumentDirectoryPath + '/' + filepath;
     }
-  } else { //absolute path
-    return filepath;
+    //treat it as relative to Documents directory
+    return RNFSManager.NSDocumentDirectoryPath + '/' + filepath;
   }
+  //absolute path
+  return filepath;
 }
 
 var RNFS = {
+
   writeFile(filepath, contents) {
       var processedFilePath = processFilePath(filepath);
       if (arguments.length === 4) {
@@ -117,7 +116,6 @@ var RNFS = {
     DocumentDirectory: RNFSManager.NSDocumentDirectory,
     CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
     DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
-
 };
 
 var Promisify = {
@@ -125,35 +123,39 @@ var Promisify = {
   readdir(path) {
       var p = Promise.promisify(RNFS.readdir);
       return p.apply(null, arguments)
-  },
+    },
 
-  stat(filepath) {
-    var p = Promise.promisify(RNFS.stat);
-    return p.apply(null, arguments);
-  },
+    stat(filepath) {
+      var p = Promise.promisify(RNFS.stat);
+      return p.apply(null, arguments);
+    },
 
-  readFile(filepath) {
-    var p = Promise.promisify(RNFS.readFile);
-    return p.apply(null, arguments)
-  },
+    readFile(filepath) {
+      var p = Promise.promisify(RNFS.readFile);
+      return p.apply(null, arguments)
+    },
 
-  writeFile(filepath, contents) {
-    var p = Promise.promisify(RNFS.writeFile);
-    return p.apply(null, arguments)
-  },
+    writeFile(filepath, contents) {
+      var p = Promise.promisify(RNFS.writeFile);
+      return p.apply(null, arguments)
+    },
 
-  unlink(filepath) {
-    var p = Promise.promisify(RNFS.unlink);
-    return p.apply(null, arguments)
-  },
+    unlink(filepath) {
+      var p = Promise.promisify(RNFS.unlink);
+      return p.apply(null, arguments)
+    },
 
-  mkdir(filepath) {
-    var p = Promise.promisify(RNFS.mkdir);
-    return p.apply(null, arguments)
-  }
+    mkdir(filepath) {
+      var p = Promise.promisify(RNFS.mkdir);
+      return p.apply(null, arguments)
+    },
+
+    MainBundle: RNFSManager.MainBundleDirectory,
+    CachesDirectory: RNFSManager.NSCachesDirectory,
+    DocumentDirectory: RNFSManager.NSDocumentDirectory,
+    CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
+    DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
 };
-
-
 
 RNFS.Promisify = Promisify;
 module.exports = RNFS;
