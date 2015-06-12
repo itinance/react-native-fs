@@ -23,7 +23,5 @@
     "base-64": "^0.1.0",
     "bluebird": "^2.9.25"
   },
-  "peerDependencies": {
-    "react-native": ">=0.3.4 <0.5.0"
-  }
+  "peerDependencies": {}
 }
