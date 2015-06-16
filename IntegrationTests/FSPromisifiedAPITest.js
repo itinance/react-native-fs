@@ -3,7 +3,7 @@
 var RCTTestModule = require('NativeModules').TestModule;
 var React = require('react-native');
 var {Text, View, } = React;
-var fs = require('react-native-fs');
+var fs = require('react-native-fs').Promisify;
 var DEBUG = false;
 
 
@@ -33,108 +33,103 @@ function expectFSNoError(err) {
   expectTrue(err === null, 'Unexpected FS error: ' + JSON.stringify(err));
 }
 
-
 function testWriteAndReadFile() {
   var path = 'Documents/test.txt';
+
   var text = 'Lorem ipsum dolor sit amet';
-  fs.writeFile(path, text, function(err) {
-    if (err) {
-      updateMessage('testWriteAndReadFile failed' + err);
-      throw err;
-    }
-    fs.readFile(path, function(err, contents) {
-      if (err) {
-        throw err;
-      }
-      expectEqual(contents, text, 'testWriteAndReadFile');
-      fs.unlink(path, function(err) {
-        if (err) {
-          throw err;
-        }
-        runTestCase('\ntestCreateAndDeleteFile', testCreateAndDeleteFile);
-      });
-    });
-  })
+  var readText;
+
+  fs.writeFile(path, text)
+    .then((success) => {
+      return fs.readFile(path);
+    })
+    .then((contents) => {
+      readText = contents;
+      expectEqual(text, readText, 'testWriteAndReadFile');
+    })
+    .finally(() => {
+      runTestCase('\ntestCreateAndDeleteFile', testCreateAndDeleteFile);
+    })
+    .done(); //promise done needed to throw exception so that in case test fails,error is propagated
 }
+
+
 
 function testCreateAndDeleteFile() {
   var path = 'Documents/test.txt';
   var text = 'Lorem ipsum dolor sit amet';
   var readText;
 
-  fs.writeFile(path, text, function(err) {
-    if (err) {
-      throw err;
-    }
-    fs.unlink(path, function(err) {
-      if (err) {
-        throw err;
-      }
-      fs.readFile(path, function(err, res) {
-        if (err) {
-          expectTrue(true, 'testCreateAndDeleteFile');
-        }
-        runTestCase('\ntestMkdirAndReaddir', testMkdirAndReaddir);
-      });
-    });
-  });
-}
+  fs.writeFile(path, text)
+    .then((success) => {
+      return fs.unlink(path);
+    })
+    .then((success) => {
+      return fs.readFile(path);
+    })
+    .then((contents) => {
 
+    })
+    .catch((err) => {
+      if (err) {
+        expectTrue(true, 'testMkdirAndReaddir');
+      }
+    })
+    .finally(() => {
+      runTestCase('\ntestMkdirAndReaddir', testMkdirAndReaddir);
+    })
+    .done(); //promise done needed to throw exception so that in case test fails,error is propagated
+}
 
 function testMkdirAndReaddir() {
   var dirPath = 'Documents/testDir/';
   var fileName = 'hello.txt';
   var text = 'testing Read Dir';
-  fs.mkdir(dirPath, function(err) {
-    if (err) {
-      updateMessage('mkdir failed');
-      throw err;
-    } else {
-      fs.writeFile(dirPath + fileName, text, function(err) {
-        if (err) {
-          updateMessage('testWriteFile failed' + err);
-          throw err;
-        }
-      });
-      fs.readdir(dirPath, function(err, files) {
-        if (err) {
-          throw err;
-        }
-        if (files.length === 1) {
-          expectEqual(files[0], fileName, 'testReadDir');
-        } else {
-          expectTrue(false, 'testReadDir');
-        }
-        runTestCase('\ntestStat', testStat);
-      });
-    }
-  });
+  fs.mkdir(dirPath)
+    .then((success) => {
+      return fs.writeFile(dirPath + fileName, text);
+    })
+    .then((success) => {
+      return fs.readdir(dirPath);
+    })
+    .then((files) => {
+      if (files.length === 1) {
+        expectEqual(files[0], fileName, 'testReadDir');
+      } else {
+        expectTrue(false, 'testReadDir');
+      }
+    })
+    .finally(() => {
+      runTestCase('\ntestStat', testStat);
+    })
+    .done(); //promise done needed to throw exception so that in case test fails,error is propagated
 }
 
 function testStat() {
   var file = "Documents/stat.txt";
   var text = 'hello world';
-  fs.writeFile(file, text, function(err) {
-    if (err) {
-      throw err;
-    }
-    fs.stat(file, function(err, stats) {
+  fs.writeFile(file, text)
+    .then(() => {
+      return fs.stat(file);
+    })
+    .then((stats) => {
       expectEqual(stats.isFile(), true, 'testStat');
       expectEqual(stats.size, 11, 'testStat');
       expectEqual(stats.mode, 644, 'testStat');
-    });
-    done();
-  });
+    })
+    .finally(() => {
+      done(); //testrunners done
+    })
+    .done(); //promise done needed to throw exception so that in case test fails,error is propagated
 }
 
-var FSTest = React.createClass({
+var FSPromisifiedAPITest = React.createClass({
   getInitialState() {
     return {
       messages: 'Initializing...',
       done: false,
     };
   },
-
   componentDidMount() {
     done = () => this.setState({
         done: true
@@ -147,7 +142,6 @@ var FSTest = React.createClass({
     };
     runTestCase('\ntestWriteAndReadFile', testWriteAndReadFile);
   },
-
 
   render() {
     return (
@@ -165,4 +159,4 @@ var FSTest = React.createClass({
   }
 });
 
-module.exports = FSTest;
+module.exports = FSPromisifiedAPITest;
