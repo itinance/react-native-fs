@@ -49,112 +49,112 @@ function processFilePath(filepath) {
 var RNFS = {
 
   writeFile(filepath, contents) {
-      var processedFilePath = processFilePath(filepath);
-      if (arguments.length === 4) {
-        RNFSManager.writeFile(processedFilePath, contents, arguments[2], arguments[3]);
-      } else {
-        RNFSManager.writeFile(processedFilePath, contents, {}, arguments[2]);
+    var processedFilePath = processFilePath(filepath);
+    if (arguments.length === 4) {
+      RNFSManager.writeFile(processedFilePath, contents, arguments[2], arguments[3]);
+    } else {
+      RNFSManager.writeFile(processedFilePath, contents, {}, arguments[2]);
+    }
+  },
+
+  readFile(filepath) {
+    var processedFilePath = processFilePath(filepath);
+    if (arguments.length === 3) {
+      var options = arguments[1];
+      var callback = arguments[2];
+      RNFSManager.readFile(processedFilePath, options, callback);
+    } else {
+      var callback = arguments[1];
+      RNFSManager.readFile(processedFilePath, {
+        encoding: 'null',
+        flag: 'r'
+      }, callback);
+    }
+  },
+
+  readdir(filepath, callback) {
+    var processedFilePath = processFilePath(filepath);
+    RNFSManager.readdir(processedFilePath, callback);
+  },
+
+  mkdir(filepath) {
+    var processedFilePath = processFilePath(filepath);
+    if (arguments.length === 3) {
+      var mode = arguments[1];
+      var callback = arguments[2];
+      RNFSManager.mkdir(processedFilePath, mode, callback);
+    } else {
+      var callback = arguments[1];
+      RNFSManager.mkdir(processedFilePath, '0777', callback);
+    }
+  },
+
+  stat(filepath, callback) {
+    var processedFilePath = processFilePath(filepath);
+    RNFSManager.stat(processedFilePath, function(err, result) {
+      if (!err) {
+        var stats = {
+          ctime: new Date(result.ctime * 1000),
+          mtime: new Date(result.mtime * 1000),
+          size: result.size,
+          mode: result.mode,
+          isFile: () => result.type === NSFileTypeRegular,
+          isDirectory: () => result.type === NSFileTypeDirectory,
+        };
       }
-    },
+      callback(err, stats);
+    });
+  },
 
-    readFile(filepath) {
-      var processedFilePath = processFilePath(filepath);
-      if (arguments.length === 3) {
-        var options = arguments[1];
-        var callback = arguments[2];
-        RNFSManager.readFile(processedFilePath, options, callback);
-      } else {
-        var callback = arguments[1];
-        RNFSManager.readFile(processedFilePath, {
-          encoding: 'null',
-          flag: 'r'
-        }, callback);
-      }
-    },
+  unlink(filepath, callback) {
+    var processedFilePath = processFilePath(filepath);
+    RNFSManager.unlink(processedFilePath, callback);
+  },
 
-    readdir(filepath, callback) {
-      var processedFilePath = processFilePath(filepath);
-      RNFSManager.readdir(processedFilePath, callback);
-    },
-
-    mkdir(filepath) {
-      var processedFilePath = processFilePath(filepath);
-      if (arguments.length === 3) {
-        var mode = arguments[1];
-        var callback = arguments[2];
-        RNFSManager.mkdir(processedFilePath, mode, callback);
-      } else {
-        var callback = arguments[1];
-        RNFSManager.mkdir(processedFilePath, '0777', callback);
-      }
-    },
-
-    stat(filepath, callback) {
-      var processedFilePath = processFilePath(filepath);
-      RNFSManager.stat(processedFilePath, function(err, result) {
-        if (!err) {
-          var stats = {
-            ctime: new Date(result.ctime * 1000),
-            mtime: new Date(result.mtime * 1000),
-            size: result.size,
-            mode: result.mode,
-            isFile: () => result.type === NSFileTypeRegular,
-            isDirectory: () => result.type === NSFileTypeDirectory,
-          };
-        }
-        callback(err, stats);
-      });
-    },
-
-    unlink(filepath, callback) {
-      var processedFilePath = processFilePath(filepath);
-      RNFSManager.unlink(processedFilePath, callback);
-    },
-
-    MainBundle: RNFSManager.MainBundleDirectory,
-    CachesDirectory: RNFSManager.NSCachesDirectory,
-    DocumentDirectory: RNFSManager.NSDocumentDirectory,
-    CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
-    DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
+  MainBundle: RNFSManager.MainBundleDirectory,
+  CachesDirectory: RNFSManager.NSCachesDirectory,
+  DocumentDirectory: RNFSManager.NSDocumentDirectory,
+  CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
+  DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
 };
 
 var Promisify = {
 
   readdir(path) {
-      var p = Promise.promisify(RNFS.readdir);
-      return p.apply(null, arguments)
-    },
+    var p = Promise.promisify(RNFS.readdir);
+    return p.apply(null, arguments)
+  },
 
-    stat(filepath) {
-      var p = Promise.promisify(RNFS.stat);
-      return p.apply(null, arguments);
-    },
+  stat(filepath) {
+    var p = Promise.promisify(RNFS.stat);
+    return p.apply(null, arguments);
+  },
 
-    readFile(filepath) {
-      var p = Promise.promisify(RNFS.readFile);
-      return p.apply(null, arguments)
-    },
+  readFile(filepath) {
+    var p = Promise.promisify(RNFS.readFile);
+    return p.apply(null, arguments)
+  },
 
-    writeFile(filepath, contents) {
-      var p = Promise.promisify(RNFS.writeFile);
-      return p.apply(null, arguments)
-    },
+  writeFile(filepath, contents) {
+    var p = Promise.promisify(RNFS.writeFile);
+    return p.apply(null, arguments)
+  },
 
-    unlink(filepath) {
-      var p = Promise.promisify(RNFS.unlink);
-      return p.apply(null, arguments)
-    },
+  unlink(filepath) {
+    var p = Promise.promisify(RNFS.unlink);
+    return p.apply(null, arguments)
+  },
 
-    mkdir(filepath) {
-      var p = Promise.promisify(RNFS.mkdir);
-      return p.apply(null, arguments)
-    },
+  mkdir(filepath) {
+    var p = Promise.promisify(RNFS.mkdir);
+    return p.apply(null, arguments)
+  },
 
-    MainBundle: RNFSManager.MainBundleDirectory,
-    CachesDirectory: RNFSManager.NSCachesDirectory,
-    DocumentDirectory: RNFSManager.NSDocumentDirectory,
-    CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
-    DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
+  MainBundle: RNFSManager.MainBundleDirectory,
+  CachesDirectory: RNFSManager.NSCachesDirectory,
+  DocumentDirectory: RNFSManager.NSDocumentDirectory,
+  CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
+  DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
 };
 
 RNFS.Promisify = Promisify;

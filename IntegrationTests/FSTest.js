@@ -2,10 +2,7 @@
 
 var RCTTestModule = require('NativeModules').TestModule;
 var React = require('react-native');
-var {
-  Text,
-  View,
-} = React;
+var {Text, View, } = React;
 var fs = require('react-native-fs');
 var DEBUG = false;
 
@@ -108,7 +105,7 @@ function testMkdirAndReaddir() {
         } else {
           expectTrue(false, 'testReadDir');
         }
-        runTestCase('\ntestStat',testStat);
+        runTestCase('\ntestStat', testStat);
       });
     }
   });
@@ -117,14 +114,14 @@ function testMkdirAndReaddir() {
 function testStat() {
   var file = "Documents/stat.txt";
   var text = 'hello world';
-  fs.writeFile(file,text, function(err){
-    if(err){
+  fs.writeFile(file, text, function(err) {
+    if (err) {
       throw err;
     }
-    fs.stat(file,function(err,stats){
-      expectEqual(stats.isFile(),true,'testStat');
-      expectEqual(stats.size,11,'testStat');
-      expectEqual(stats.mode,644,'testStat');
+    fs.stat(file, function(err, stats) {
+      expectEqual(stats.isFile(), true, 'testStat');
+      expectEqual(stats.size, 11, 'testStat');
+      expectEqual(stats.mode, 644, 'testStat');
     });
     done();
   });
@@ -140,8 +137,8 @@ var FSTest = React.createClass({
 
   componentDidMount() {
     done = () => this.setState({
-      done: true
-    }, RCTTestModule.markTestCompleted);
+        done: true
+      }, RCTTestModule.markTestCompleted);
     updateMessage = (msg) => {
       this.setState({
         messages: this.state.messages.concat('\n' + msg)
@@ -154,14 +151,17 @@ var FSTest = React.createClass({
 
   render() {
     return (
-      <View style={{backgroundColor: 'white', padding: 40}}>
+      <View style={{
+        backgroundColor: 'white',
+        padding: 40
+      }}>
         <Text>
           {this.constructor.displayName + ': '}
           {this.state.done ? 'Done' : 'Testing...'}
           {'\n\n' + this.state.messages}
         </Text>
       </View>
-    );
+      );
   }
 });
 
