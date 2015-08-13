@@ -21,7 +21,7 @@ RCT_EXPORT_MODULE();
   return dispatch_queue_create("pe.lum.rnfs", DISPATCH_QUEUE_SERIAL);
 }
 
-RCT_EXPORT_METHOD(readDir:(NSString*)directory inFolder:(NSNumber*)folder callback:(RCTResponseSenderBlock)callback){
+RCT_EXPORT_METHOD(readDir:(NSString*)directory inFolder:(nonnull NSNumber*)folder callback:(RCTResponseSenderBlock)callback){
   NSString *path;
   int folderInt = [folder integerValue];
 
