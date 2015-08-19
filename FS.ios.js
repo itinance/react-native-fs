@@ -62,10 +62,10 @@ var RNFS = {
     return _writeFile(filepath, base64.encode(contents), options)
       .catch(convertError);
   },
-  
+
   pathForBundle(bundleName) {
-  	return _pathForBundle(bundleName);
-  }
+    return _pathForBundle(bundleName);
+  },
 
   unlink(filepath) {
     return _unlink(filepath)
