@@ -14,33 +14,36 @@
 
 static int MainBundleDirectory = 999;
 
-@synthesize bridge = _bridge;
 RCT_EXPORT_MODULE();
 
-- (dispatch_queue_t)methodQueue {
+- (dispatch_queue_t)methodQueue
+{
   return dispatch_queue_create("pe.lum.rnfs", DISPATCH_QUEUE_SERIAL);
 }
 
-RCT_EXPORT_METHOD(readDir:(NSString*)directory inFolder:(nonnull NSNumber*)folder callback:(RCTResponseSenderBlock)callback){
+RCT_EXPORT_METHOD(readDir:(NSString *)directory
+                  inFolder:(nonnull NSNumber *)folder
+                  callback:(RCTResponseSenderBlock)callback)
+{
   NSString *path;
-  int folderInt = [folder integerValue];
+  NSInteger folderInt = [folder integerValue];
 
   if (folderInt == MainBundleDirectory) {
     path = [[NSBundle mainBundle] bundlePath];
   } else {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(folderInt, NSUserDomainMask, YES);
-    path = [paths objectAtIndex:0];
+    path = [paths firstObject];
   }
 
   NSFileManager *fileManager = [NSFileManager defaultManager];
   NSError *error = nil;
-  NSString * dirPath = [path stringByAppendingPathComponent:directory];
+  NSString *dirPath = [path stringByAppendingPathComponent:directory];
   NSArray *contents = [fileManager contentsOfDirectoryAtPath:dirPath error:&error];
 
-  contents = [contents rnfs_mapObjectsUsingBlock:^id(id obj, NSUInteger idx) {
+  contents = [contents rnfs_mapObjectsUsingBlock:^id(NSString *obj, NSUInteger idx) {
     return @{
-      @"name": (NSString*)obj,
-      @"path": [dirPath stringByAppendingPathComponent:(NSString*)obj]
+      @"name": obj,
+      @"path": [dirPath stringByAppendingPathComponent:obj]
     };
   }];
 
@@ -51,7 +54,9 @@ RCT_EXPORT_METHOD(readDir:(NSString*)directory inFolder:(nonnull NSNumber*)folde
   callback(@[[NSNull null], contents]);
 }
 
-RCT_EXPORT_METHOD(stat:(NSString*)filepath callback:(RCTResponseSenderBlock)callback){
+RCT_EXPORT_METHOD(stat:(NSString *)filepath
+                  callback:(RCTResponseSenderBlock)callback)
+{
   NSError *error = nil;
   NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
 
@@ -60,17 +65,21 @@ RCT_EXPORT_METHOD(stat:(NSString*)filepath callback:(RCTResponseSenderBlock)call
   }
 
   attributes = @{
-    @"ctime": [self dateToTimeIntervalNumber:(NSDate*)[attributes objectForKey:NSFileCreationDate]],
-    @"mtime": [self dateToTimeIntervalNumber:(NSDate*)[attributes objectForKey:NSFileModificationDate]],
+    @"ctime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileCreationDate]],
+    @"mtime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileModificationDate]],
     @"size": [attributes objectForKey:NSFileSize],
     @"type": [attributes objectForKey:NSFileType],
-    @"mode": [NSNumber numberWithInteger:[[NSString stringWithFormat:@"%o", [(NSNumber*)[attributes objectForKey:NSFilePosixPermissions] integerValue]] integerValue]]
+    @"mode": @([[NSString stringWithFormat:@"%ld", (long)[(NSNumber *)[attributes objectForKey:NSFilePosixPermissions] integerValue]] integerValue])
   };
 
   callback(@[[NSNull null], attributes]);
 }
 
-RCT_EXPORT_METHOD(writeFile:(NSString*)filepath contents:(NSString*)base64Content attributes:(NSDictionary*)attributes callback:(RCTResponseSenderBlock)callback){
+RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
+                  contents:(NSString *)base64Content
+                  attributes:(NSDictionary *)attributes
+                  callback:(RCTResponseSenderBlock)callback)
+{
   NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
   BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
 
@@ -81,7 +90,9 @@ RCT_EXPORT_METHOD(writeFile:(NSString*)filepath contents:(NSString*)base64Conten
   callback(@[[NSNull null], [NSNumber numberWithBool:success]]);
 }
 
-RCT_EXPORT_METHOD(unlink:(NSString*)filepath callback:(RCTResponseSenderBlock)callback) {
+RCT_EXPORT_METHOD(unlink:(NSString*)filepath
+                  callback:(RCTResponseSenderBlock)callback)
+{
   NSFileManager *manager = [NSFileManager defaultManager];
   BOOL exists = [manager fileExistsAtPath:filepath isDirectory:false];
 
@@ -98,7 +109,9 @@ RCT_EXPORT_METHOD(unlink:(NSString*)filepath callback:(RCTResponseSenderBlock)ca
   callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
 }
 
-RCT_EXPORT_METHOD(readFile:(NSString*)filepath callback:(RCTResponseSenderBlock)callback){
+RCT_EXPORT_METHOD(readFile:(NSString *)filepath
+                  callback:(RCTResponseSenderBlock)callback)
+{
   NSData *content = [[NSFileManager defaultManager] contentsAtPath:filepath];
   NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
 
@@ -109,20 +122,35 @@ RCT_EXPORT_METHOD(readFile:(NSString*)filepath callback:(RCTResponseSenderBlock)
   callback(@[[NSNull null], base64Content]);
 }
 
-- (NSNumber*) dateToTimeIntervalNumber:(NSDate*)date {
-  return [NSNumber numberWithDouble:[date timeIntervalSince1970]];
+RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
+                  callback:(RCTResponseSenderBlock)callback)
+{
+    NSString *path = [[NSBundle mainBundle].bundlePath stringByAppendingFormat:@"/%@.bundle", bundleNamed];
+    NSBundle *bundle = [NSBundle bundleWithPath:path];
+    if (!bundle.isLoaded) {
+        [bundle load];
+    }
+
+    callback(@[[NSNull null], path]);
 }
 
-- (NSArray*) makeErrorPayload:(NSError*)error {
+- (NSNumber *) dateToTimeIntervalNumber:(NSDate *)date
+{
+  return @([date timeIntervalSince1970]);
+}
+
+- (NSArray *)makeErrorPayload:(NSError *)error
+{
   return @[@{
     @"description": error.localizedDescription,
-    @"code": [NSNumber numberWithInteger:error.code]
+    @"code": @(error.code)
   }];
 }
 
-- (NSString*) getPathForDirectory:(int)directory {
+- (NSString *)getPathForDirectory:(int)directory
+{
   NSArray *paths = NSSearchPathForDirectoriesInDomains(directory, NSUserDomainMask, YES);
-  return [paths objectAtIndex:0];
+  return [paths firstObject];
 }
 
 - (NSDictionary *)constantsToExport

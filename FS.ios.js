@@ -9,6 +9,7 @@ var _stat = Promise.promisify(RNFSManager.stat);
 var _readFile = Promise.promisify(RNFSManager.readFile);
 var _writeFile = Promise.promisify(RNFSManager.writeFile);
 var _unlink = Promise.promisify(RNFSManager.unlink);
+var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
 
 var convertError = (err) => {
   if (err.isOperational) {
@@ -60,6 +61,10 @@ var RNFS = {
   writeFile(filepath, contents, options) {
     return _writeFile(filepath, base64.encode(contents), options)
       .catch(convertError);
+  },
+
+  pathForBundle(bundleName) {
+    return _pathForBundle(bundleName);
   },
 
   unlink(filepath) {
