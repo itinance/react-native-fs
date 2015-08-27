@@ -130,6 +130,7 @@ RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
 
     if (!bundle) {
         bundle = [NSBundle bundleForClass:NSClassFromString(bundleNamed)];
+        path = bundle.bundlePath;
     }
     
     if (!bundle.isLoaded) {
