@@ -127,6 +127,11 @@ RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
 {
     NSString *path = [[NSBundle mainBundle].bundlePath stringByAppendingFormat:@"/%@.bundle", bundleNamed];
     NSBundle *bundle = [NSBundle bundleWithPath:path];
+
+    if (!bundle) {
+        bundle = [NSBundle bundleForClass:NSClassFromString(bundleNamed)];
+    }
+    
     if (!bundle.isLoaded) {
         [bundle load];
     }
@@ -134,7 +139,7 @@ RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
     callback(@[[NSNull null], path]);
 }
 
-- (NSNumber *) dateToTimeIntervalNumber:(NSDate *)date
+- (NSNumber *)dateToTimeIntervalNumber:(NSDate *)date
 {
   return @([date timeIntervalSince1970]);
 }
