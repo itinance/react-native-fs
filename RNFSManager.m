@@ -137,7 +137,14 @@ RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
         [bundle load];
     }
 
-    callback(@[[NSNull null], path]);
+    if (path) {
+        callback(@[[NSNull null], path]);
+    } else {
+        callback(@[[NSError errorWithDomain:NSPOSIXErrorDomain
+                                       code:NSFileNoSuchFileError
+                                   userInfo:nil].localizedDescription,
+                   [NSNull null]]);
+    }
 }
 
 - (NSNumber *)dateToTimeIntervalNumber:(NSDate *)date
