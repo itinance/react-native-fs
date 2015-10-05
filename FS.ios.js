@@ -58,8 +58,12 @@ var RNFS = {
     return p.catch(convertError);
   },
 
-  writeFile(filepath, contents, options) {
-    return _writeFile(filepath, base64.encode(contents), options)
+  writeFile(filepath, contents, shouldEncode, options) {
+    var contents;
+    if (shouldEncode !== false) {
+      contents = base64.encode(contents);
+    }
+    return _writeFile(filepath, contents, options)
       .catch(convertError);
   },
 
