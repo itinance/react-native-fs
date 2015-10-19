@@ -1,5 +1,12 @@
 'use strict';
 
+// This file supports both iOS and Android
+
+// Stop bluebird going nuts because it can't find "self"
+if (typeof self === 'undefined') {
+  global.self = global;
+}
+
 var RNFSManager = require('react-native').NativeModules.RNFSManager;
 var Promise = require('bluebird');
 var base64 = require('base-64');

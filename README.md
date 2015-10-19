@@ -22,6 +22,64 @@ In XCode, in the project navigator, select your project. Add the lib*.a from the
 
 Run your project (Cmd+R)
 
+## Android
+
+Android support is still experimental. Currently only the `DocumentDirectory` is supported. This maps to the app's `files` directory.
+
+Make alterations to the following files:
+
+* `android/settings.gradle`
+
+```gradle
+...
+include ':react-native-fs'
+project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/react-native-fs/android')
+```
+
+* `android/app/build.gradle`
+
+```gradle
+...
+dependencies {
+    ...
+    compile project(':react-native-fs')
+}
+```
+
+* register module (in MainActivity.java)
+
+```java
+import com.rnfs.RNFSPackage;  // <--- import
+
+public class MainActivity extends Activity implements DefaultHardwareBackBtnHandler {
+
+  ......
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    mReactRootView = new ReactRootView(this);
+
+    mReactInstanceManager = ReactInstanceManager.builder()
+      .setApplication(getApplication())
+      .setBundleAssetName("index.android.bundle")
+      .setJSMainModuleName("index.android")
+      .addPackage(new MainReactPackage())
+      .addPackage(new RNFSPackage())      // <------- add package
+      .setUseDeveloperSupport(BuildConfig.DEBUG)
+      .setInitialLifecycleState(LifecycleState.RESUMED)
+      .build();
+
+    mReactRootView.startReactApplication(mReactInstanceManager, "ExampleRN", null);
+
+    setContentView(mReactRootView);
+  }
+
+  ......
+
+}
+```
+
 ## Examples
 
 ### Basic
