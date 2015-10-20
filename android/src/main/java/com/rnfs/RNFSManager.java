@@ -85,6 +85,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
       File file = new File(folderPath, directory);
 
+      if (!file.exists()) throw new Exception("File does not exist");
+
       File[] files = file.listFiles();
 
       WritableArray fileMaps = Arguments.createArray();
@@ -94,6 +96,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
         fileMap.putString("name", childFile.getName());
         fileMap.putString("path", childFile.getAbsolutePath());
+        fileMap.putInt("size", (int)childFile.length());
+        fileMap.putInt("type", childFile.isDirectory() ? 1 : 0);
 
         fileMaps.pushMap(fileMap);
       }
@@ -134,7 +138,33 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
       if (!file.exists()) throw new Exception("File does not exist");
 
-      boolean success = file.delete();
+      boolean success = DeleteRecursive(file);
+
+      callback.invoke(null, success, filepath);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      callback.invoke(makeErrorPayload(ex));
+    }
+  }
+
+  private boolean DeleteRecursive(File fileOrDirectory) {
+    if (fileOrDirectory.isDirectory()) {
+      for (File child : fileOrDirectory.listFiles()) {
+        DeleteRecursive(child);
+      }
+    }
+
+    return fileOrDirectory.delete();
+}
+
+  @ReactMethod
+  public void mkdir(String filepath, Callback callback) {
+    try {
+      File file = new File(filepath);
+
+      file.mkdirs();
+
+      boolean success = file.exists();
 
       callback.invoke(null, success, filepath);
     } catch (Exception ex) {

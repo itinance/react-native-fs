@@ -41,9 +41,14 @@ RCT_EXPORT_METHOD(readDir:(NSString *)directory
   NSArray *contents = [fileManager contentsOfDirectoryAtPath:dirPath error:&error];
 
   contents = [contents rnfs_mapObjectsUsingBlock:^id(NSString *obj, NSUInteger idx) {
+    NSString *path = [dirPath stringByAppendingPathComponent:obj];
+    NSDictionary *attributes = [fileManager attributesOfItemAtPath:path error:nil];
+
     return @{
       @"name": obj,
-      @"path": [dirPath stringByAppendingPathComponent:obj]
+      @"path": path,
+      @"size": [attributes objectForKey:NSFileSize],
+      @"type": [attributes objectForKey:NSFileType]
     };
   }];
 
@@ -109,6 +114,21 @@ RCT_EXPORT_METHOD(unlink:(NSString*)filepath
   callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
 }
 
+RCT_EXPORT_METHOD(mkdir:(NSString*)filepath
+                  callback:(RCTResponseSenderBlock)callback)
+{
+  NSFileManager *manager = [NSFileManager defaultManager];
+
+  NSError *error = nil;
+  BOOL success = [manager createDirectoryAtPath:filepath withIntermediateDirectories:YES attributes:nil error:&error];
+
+  if (!success) {
+    return callback([self makeErrorPayload:error]);
+  }
+
+  callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
+}
+
 RCT_EXPORT_METHOD(readFile:(NSString *)filepath
                   callback:(RCTResponseSenderBlock)callback)
 {
@@ -132,7 +152,7 @@ RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
         bundle = [NSBundle bundleForClass:NSClassFromString(bundleNamed)];
         path = bundle.bundlePath;
     }
-    
+
     if (!bundle.isLoaded) {
         [bundle load];
     }

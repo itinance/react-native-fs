@@ -16,10 +16,11 @@ var _stat = Promise.promisify(RNFSManager.stat);
 var _readFile = Promise.promisify(RNFSManager.readFile);
 var _writeFile = Promise.promisify(RNFSManager.writeFile);
 var _unlink = Promise.promisify(RNFSManager.unlink);
+var _mkdir = Promise.promisify(RNFSManager.mkdir);
 var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
 
 var convertError = (err) => {
-  if (err.isOperational) {
+  if (err.isOperational && err.cause) {
     err = err.cause;
   }
 
@@ -35,6 +36,15 @@ var RNFS = {
 
   readDir(path, rootDir) {
     return _readDir(path, rootDir)
+      .then(files => {
+        return files.map(file => ({
+          name: file.name,
+          path: file.path,
+          size: file.size,
+          isFile: () => file.type === NSFileTypeRegular,
+          isDirectory: () => file.type === NSFileTypeDirectory,
+        }));
+      })
       .catch(convertError);
   },
 
@@ -76,6 +86,11 @@ var RNFS = {
 
   unlink(filepath) {
     return _unlink(filepath)
+      .catch(convertError);
+  },
+
+  mkdir(filepath) {
+    return _mkdir(filepath)
       .catch(convertError);
   },
 
