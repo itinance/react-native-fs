@@ -142,6 +142,22 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
   callback(@[[NSNull null], base64Content]);
 }
 
+RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
+                  filepath:(NSString *)filepath
+                  callback:(RCTResponseSenderBlock)callback)
+{
+  NSURL *url = [NSURL URLWithString:urlStr];
+  NSData *urlData = [NSData dataWithContentsOfURL:url];
+
+  BOOL success = NO;
+
+  if (urlData) {
+    success = [urlData writeToFile:filepath atomically:YES];
+  }
+
+  callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
+}
+
 RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
                   callback:(RCTResponseSenderBlock)callback)
 {

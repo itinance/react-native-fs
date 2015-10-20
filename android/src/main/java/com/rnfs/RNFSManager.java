@@ -11,6 +11,11 @@ import android.content.Context;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
+import java.io.BufferedInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -165,6 +170,45 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       file.mkdirs();
 
       boolean success = file.exists();
+
+      callback.invoke(null, success, filepath);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      callback.invoke(makeErrorPayload(ex));
+    }
+  }
+
+  @ReactMethod
+  public void downloadFile(String urlStr, String filepath, Callback callback) {
+    try {
+      File file = new File(filepath);
+
+      URL url = new URL(urlStr);
+      URLConnection connection = url.openConnection();
+
+      connection.connect();
+
+      int lengthOfFile = connection.getContentLength();
+
+      InputStream input = new BufferedInputStream(url.openStream(), 8192);
+      OutputStream output = new FileOutputStream(filepath);
+
+      byte data[] = new byte[1024];
+      long total = 0;
+      int count;
+
+      while ((count = input.read(data)) != -1) {
+          total += count;
+          //int progress = (int)((total * 100) / lengthOfFile);
+          output.write(data, 0, count);
+      }
+
+      output.flush();
+
+      output.close();
+      input.close();
+
+      boolean success = true;
 
       callback.invoke(null, success, filepath);
     } catch (Exception ex) {
