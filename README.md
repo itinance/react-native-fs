@@ -99,7 +99,7 @@ RNFS.readDir('/', RNFS.MainBundle)
   .then((statResult) => {
     if (statResult[0].isFile()) {
       // if we have a file, read it
-      return RNFS.readFile(statResult[1]);
+      return RNFS.readFile(statResult[1], 'utf8');
     }
 
     return 'no file';
@@ -123,7 +123,7 @@ var RNFS = require('react-native-fs');
 var path = RNFS.DocumentDirectoryPath + '/test.txt';
 
 // write the file
-RNFS.writeFile(path, 'Lorem ipsum dolor sit amet')
+RNFS.writeFile(path, 'Lorem ipsum dolor sit amet', 'utf8')
   .then((success) => {
     console.log('FILE WRITTEN!');
   })
@@ -164,11 +164,9 @@ The following constants are available on the `RNFS` export:
 `CachesDirectoryPath` (`String`) The absolute path to the caches directory
 `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
 
-### `promise readDir(path, directory)`
+### `promise readDir(path)`
 
-Reads the contents of `path` in `directory`.  
-`path` is a string and `directory` is one of the following:  
-`RNFS.MainBundle`, `RNFS.CachesDirectory`, `RNFS.DocumentDirectory`
+Reads the contents of `path`. This must be an absolute path. Use the above path constants to form a usable file path.
 
 The returned promise resolves with an array of objects with the following properties:
 
@@ -176,7 +174,7 @@ The returned promise resolves with an array of objects with the following proper
 `path` (`String`), The absolute path to the item
 `size` (`Number`), Size in bytes
 
-### `promise readdir(path, directory)`
+### `promise readdir(path)`
 
 Node.js style version of `readDir` that returns only the names. Note the lowercase `d`.
 
