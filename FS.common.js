@@ -134,9 +134,7 @@ var RNFS = {
       .catch(convertError);
   },
 
-  MainBundle: RNFSManager.MainBundleDirectory,
-  CachesDirectory: RNFSManager.NSCachesDirectory,
-  DocumentDirectory: RNFSManager.NSDocumentDirectory,
+  MainBundlePath: RNFSManager.MainBundlePath,
   CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
   DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
 };

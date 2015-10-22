@@ -89,7 +89,7 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
 var RNFS = require('react-native-fs');
 
 // get a list of files and directories in the main bundle
-RNFS.readDir('/', RNFS.MainBundle)
+RNFS.readDir(RNFS.MainBundlePath)
   .then((result) => {
     console.log('GOT RESULT', result);
 
@@ -157,11 +157,8 @@ return RNFS.unlink(path)
 
 The following constants are available on the `RNFS` export:
 
-`MainBundle` (`Number`) The identifier for the main bundle  
-`CachesDirectory` (`Number`) The identifier for the caches  directory  
-`DocumentDirectory` (`Number`) The identifier for the document directory
-
-`CachesDirectoryPath` (`String`) The absolute path to the caches directory
+`MainBundlePath` (`String`) The absolute path to the main bundle directory  
+`CachesDirectoryPath` (`String`) The absolute path to the caches directory  
 `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
 
 ### `promise readDir(path)`
@@ -171,7 +168,7 @@ Reads the contents of `path`. This must be an absolute path. Use the above path 
 The returned promise resolves with an array of objects with the following properties:
 
 `name` (`String`), The name of the item  
-`path` (`String`), The absolute path to the item
+`path` (`String`), The absolute path to the item  
 `size` (`Number`), Size in bytes
 
 ### `promise readdir(path)`

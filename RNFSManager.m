@@ -12,8 +12,6 @@
 
 @implementation RNFSManager
 
-static int MainBundleDirectory = 999;
-
 RCT_EXPORT_MODULE();
 
 - (dispatch_queue_t)methodQueue
@@ -144,13 +142,19 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
                   filepath:(NSString *)filepath
                   callback:(RCTResponseSenderBlock)callback)
 {
+  NSError *error = nil;
+
   NSURL *url = [NSURL URLWithString:urlStr];
-  NSData *urlData = [NSData dataWithContentsOfURL:url];
+  NSData *urlData = [NSData dataWithContentsOfURL:url options:NSDataReadingUncached error:&error];
 
-  BOOL success = NO;
+  if (error) {
+    return callback([self makeErrorPayload:error]);
+  }
 
-  if (urlData) {
-    success = [urlData writeToFile:filepath atomically:YES];
+  BOOL success = [urlData writeToFile:filepath atomically:YES];
+
+  if (!success) {
+    return callback(@[[NSString stringWithFormat:@"Could not write downloaded data to file at path %@", filepath]]);
   }
 
   callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
@@ -203,11 +207,9 @@ RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
 - (NSDictionary *)constantsToExport
 {
   return @{
+    @"MainBundlePath": [[NSBundle mainBundle] bundlePath],
     @"NSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
     @"NSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
-    @"NSCachesDirectory": [NSNumber numberWithInteger:NSCachesDirectory],
-    @"NSDocumentDirectory": [NSNumber numberWithInteger:NSDocumentDirectory],
-    @"MainBundleDirectory": [NSNumber numberWithInteger:MainBundleDirectory],
     @"NSFileTypeRegular": NSFileTypeRegular,
     @"NSFileTypeDirectory": NSFileTypeDirectory
   };
