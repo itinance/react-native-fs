@@ -21,23 +21,12 @@ RCT_EXPORT_MODULE();
   return dispatch_queue_create("pe.lum.rnfs", DISPATCH_QUEUE_SERIAL);
 }
 
-RCT_EXPORT_METHOD(readDir:(NSString *)directory
-                  inFolder:(nonnull NSNumber *)folder
+RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
                   callback:(RCTResponseSenderBlock)callback)
 {
-  NSString *path;
-  NSInteger folderInt = [folder integerValue];
-
-  if (folderInt == MainBundleDirectory) {
-    path = [[NSBundle mainBundle] bundlePath];
-  } else {
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(folderInt, NSUserDomainMask, YES);
-    path = [paths firstObject];
-  }
-
   NSFileManager *fileManager = [NSFileManager defaultManager];
   NSError *error = nil;
-  NSString *dirPath = [path stringByAppendingPathComponent:directory];
+
   NSArray *contents = [fileManager contentsOfDirectoryAtPath:dirPath error:&error];
 
   contents = [contents rnfs_mapObjectsUsingBlock:^id(NSString *obj, NSUInteger idx) {
@@ -92,7 +81,7 @@ RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
     return callback(@[[NSString stringWithFormat:@"Could not write file at path %@", filepath]]);
   }
 
-  callback(@[[NSNull null], [NSNumber numberWithBool:success]]);
+  callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
 }
 
 RCT_EXPORT_METHOD(unlink:(NSString*)filepath
@@ -115,12 +104,21 @@ RCT_EXPORT_METHOD(unlink:(NSString*)filepath
 }
 
 RCT_EXPORT_METHOD(mkdir:(NSString*)filepath
+                  excludeFromBackup:(BOOL)excludeFromBackup
                   callback:(RCTResponseSenderBlock)callback)
 {
   NSFileManager *manager = [NSFileManager defaultManager];
 
   NSError *error = nil;
   BOOL success = [manager createDirectoryAtPath:filepath withIntermediateDirectories:YES attributes:nil error:&error];
+
+  if (!success) {
+    return callback([self makeErrorPayload:error]);
+  }
+
+  NSURL *url = [NSURL fileURLWithPath:filepath];
+
+  success = [url setResourceValue: [NSNumber numberWithBool: excludeFromBackup] forKey: NSURLIsExcludedFromBackupKey error: &error];
 
   if (!success) {
     return callback([self makeErrorPayload:error]);

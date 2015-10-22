@@ -54,7 +54,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       outputStream.write(bytes);
       outputStream.close();
 
-      callback.invoke();
+      callback.invoke(null, true, filepath);
     } catch (Exception ex) {
       ex.printStackTrace();
       callback.invoke(makeErrorPayload(ex));
@@ -72,7 +72,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       byte[] buffer = new byte[(int)file.length()];
       inputStream.read(buffer);
 
-      String base64Content = Base64.encodeToString(buffer, Base64.DEFAULT);
+      String base64Content = Base64.encodeToString(buffer, Base64.NO_WRAP);
 
       callback.invoke(null, base64Content);
     } catch (Exception ex) {
@@ -82,15 +82,11 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void readDir(String directory, Integer folder, Callback callback) {
+  public void readDir(String directory, Callback callback) {
     try {
-      if (folder != 0) throw new Exception("Only NSDocumentDirectory supported");
+      File file = new File(directory);
 
-      String folderPath = this.getReactApplicationContext().getFilesDir().getAbsolutePath();
-
-      File file = new File(folderPath, directory);
-
-      if (!file.exists()) throw new Exception("File does not exist");
+      if (!file.exists()) throw new Exception("Folder does not exist");
 
       File[] files = file.listFiles();
 
@@ -163,7 +159,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 }
 
   @ReactMethod
-  public void mkdir(String filepath, Callback callback) {
+  public void mkdir(String filepath, Boolean excludeFromBackup, Callback callback) {
     try {
       File file = new File(filepath);
 

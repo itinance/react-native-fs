@@ -10,6 +10,7 @@ if (typeof self === 'undefined') {
 var RNFSManager = require('react-native').NativeModules.RNFSManager;
 var Promise = require('bluebird');
 var base64 = require('base-64');
+var utf8 = require('utf8');
 
 var _readDir = Promise.promisify(RNFSManager.readDir);
 var _stat = Promise.promisify(RNFSManager.stat);
@@ -35,8 +36,8 @@ var NSFileTypeDirectory = RNFSManager.NSFileTypeDirectory;
 
 var RNFS = {
 
-  readDir(path, rootDir) {
-    return _readDir(path, rootDir)
+  readDir(dirpath) {
+    return _readDir(dirpath)
       .then(files => {
         return files.map(file => ({
           name: file.name,
@@ -47,6 +48,14 @@ var RNFS = {
         }));
       })
       .catch(convertError);
+  },
+
+  // Node style version (lowercase d). Returns just the names
+  readdir(dirpath) {
+    return RNFS.readDir(dirpath)
+      .then(files => {
+        return files.map(file => file.name);
+      });
   },
 
   stat(filepath) {
@@ -64,20 +73,44 @@ var RNFS = {
       .catch(convertError);
   },
 
-  readFile(filepath, shouldDecode) {
-    var p = _readFile(filepath);
+  readFile(filepath, encoding) {
+    if (!encoding) encoding = 'utf8';
 
-    if (shouldDecode !== false) {
-      p = p.then((data) => {
-        return base64.decode(data);
-      });
-    }
+    return _readFile(filepath)
+      .then((b64) => {
+        var contents;
 
-    return p.catch(convertError);
+        if (encoding === 'utf8') {
+          contents = utf8.decode(base64.decode(b64));
+        } else if (encoding === 'ascii') {
+          contents = base64.decode(b64);
+        } else if (encoding === 'base64') {
+          contents = b64;
+        } else {
+          throw new Error('Invalid encoding type "' + encoding + '"');
+        }
+
+        return contents;
+      })
+      .catch(convertError);
   },
 
-  writeFile(filepath, contents, options) {
-    return _writeFile(filepath, base64.encode(contents), options)
+  writeFile(filepath, contents, encoding, options) {
+    var b64;
+
+    if (!encoding) encoding = 'utf8';
+
+    if (encoding === 'utf8') {
+      b64 = base64.encode(utf8.encode(contents));
+    } else if (encoding === 'ascii') {
+      b64 = base64.encode(contents);
+    } else if (encoding === 'base64') {
+      b64 = contents;
+    } else {
+      throw new Error('Invalid encoding type "' + encoding + '"');
+    }
+
+    return _writeFile(filepath, b64, options)
       .catch(convertError);
   },
 
@@ -90,8 +123,9 @@ var RNFS = {
       .catch(convertError);
   },
 
-  mkdir(filepath) {
-    return _mkdir(filepath)
+  mkdir(filepath, excludeFromBackup) {
+    excludeFromBackup = !!excludeFromBackup;
+    return _mkdir(filepath, excludeFromBackup)
       .catch(convertError);
   },
 

@@ -174,6 +174,11 @@ The returned promise resolves with an array of objects with the following proper
 
 `name` (`String`), The name of the item  
 `path` (`String`), The absolute path to the item
+`size` (`Number`), Size in bytes
+
+### `promise readdir(path, directory)`
+
+Node.js style version of `readDir` that returns only the names. Note the lowercase `d`.
 
 ### `promise stat(path)`
 
@@ -185,15 +190,15 @@ The promise resolves with an object with the following properties:
 `isFile` (`Function`) - Returns true when the item is a file  
 `isDirectory` (`Function`) - Returns true when the item is a directory
 
-### `promise readFile(path, shouldDecode)`
+### `promise readFile(path [, encoding])`
 
-Reads the file at `path` and - by default - decodes the transferred base64 string. If `shouldDecode` is `false`, the base64 encoded string is returned
+Reads the file at `path` and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
 Note: you will take quite a performance hit if you are reading big files
 
-### `promise writeFile(filepath, contents [, options])`
+### `promise writeFile(filepath, contents [, encoding, options])`
 
-Write the `contents` to `filepath`. `options` optionally takes an object specifying the file's properties, like mode etc.
+Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
 
 The promise resolves with a boolean.
 
@@ -202,3 +207,15 @@ The promise resolves with a boolean.
 Unlinks the item at `filepath`. If the item does not exist, an error will be thrown.
 
 The promise resolves with an array, which contains a boolean and the path that has been unlinked. Tip: use `spread` to receive the two arguments instead of a single array in your handler.
+
+Also recursively deletes directories (works like Linux `rm -rf`).
+
+### `promise mkdir(filepath [, excludeFromBackup])`
+
+Create a directory at `filepath`. Automatically creates parents and does not throw if already exists (works like Linux `mkdir -p`).
+
+IOS only: If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` attribute will be set. Apple will *reject* apps for storing offline cache data that does not have this attribute.
+
+### `promise downloadFile(url, filepath)`
+
+Download file from `url` to `filepath`. Will overwrite any previously existing file.
