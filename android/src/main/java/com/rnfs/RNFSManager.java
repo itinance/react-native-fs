@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 
 import android.os.Environment;
+import android.os.AsyncTask;
 import android.util.Base64;
 import android.content.Context;
 
@@ -14,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -175,43 +177,92 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void downloadFile(String urlStr, String filepath, Callback callback) {
+  public void downloadFile(String urlStr, final String filepath, final Callback callback) {
     try {
       File file = new File(filepath);
-
       URL url = new URL(urlStr);
-      URLConnection connection = url.openConnection();
 
-      connection.connect();
+      DownloadParams params = new DownloadParams();
+      params.src = url;
+      params.dest = file;
+      params.onTaskCompleted = new OnTaskCompleted() {
+        public void onTaskCompleted(Exception ex) {
+          if (ex == null) {
+            boolean success = true;
+            callback.invoke(null, success, filepath);
+          } else {
+            callback.invoke(makeErrorPayload(ex));
+          }
+        }
+      };
 
-      int lengthOfFile = connection.getContentLength();
-
-      InputStream input = new BufferedInputStream(url.openStream(), 8192);
-      OutputStream output = new FileOutputStream(filepath);
-
-      byte data[] = new byte[1024];
-      long total = 0;
-      int count;
-
-      while ((count = input.read(data)) != -1) {
-          total += count;
-          //int progress = (int)((total * 100) / lengthOfFile);
-          output.write(data, 0, count);
-      }
-
-      output.flush();
-
-      output.close();
-      input.close();
-
-      boolean success = true;
-
-      callback.invoke(null, success, filepath);
+      DownloadTask downloadTask = new DownloadTask();
+      downloadTask.execute(params);
     } catch (Exception ex) {
       ex.printStackTrace();
       callback.invoke(makeErrorPayload(ex));
     }
   }
+
+  private class DownloadParams {
+    public URL src;
+    public File dest;
+    public OnTaskCompleted onTaskCompleted;
+  }
+
+  public interface OnTaskCompleted {
+    void onTaskCompleted(Exception ex);
+  }
+
+  private class DownloadTask extends AsyncTask<DownloadParams, Void, Exception> {
+    protected Exception doInBackground(DownloadParams... params) {
+      try {
+        this.download(params[0]);
+        params[0].onTaskCompleted.onTaskCompleted(null);
+      } catch (Exception ex) {
+        params[0].onTaskCompleted.onTaskCompleted(ex);
+        return ex;
+      }
+
+      return null;
+    }
+
+    private void download(DownloadParams param) throws IOException {
+      InputStream input = null;
+      OutputStream output = null;
+
+      try {
+        URLConnection connection = param.src.openConnection();
+
+        connection.setConnectTimeout(5000);
+        connection.connect();
+
+        int lengthOfFile = connection.getContentLength();
+
+        input = new BufferedInputStream(param.src.openStream(), 8192);
+        output = new FileOutputStream(param.dest);
+
+        byte data[] = new byte[1024];
+        long total = 0;
+        int count;
+
+        while ((count = input.read(data)) != -1) {
+          total += count;
+          //int progress = (int)((total * 100) / lengthOfFile);
+          output.write(data, 0, count);
+        }
+
+        output.flush();
+      } finally {
+        if (output != null) output.close();
+        if (input != null) input.close();
+      }
+    }
+
+    protected void onPostExecute(Exception ex) {
+
+    }
+ }
 
   @ReactMethod
   public void pathForBundle(String bundleNamed, Callback callback) {
