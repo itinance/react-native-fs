@@ -2,12 +2,6 @@
 
 Native filesystem access for react-native
 
-Note: this project is under development and functionality will improve over time. Currently it provides only the bare minimum of functionality.
-
-Creating, renaming, copying, etc. of files will follow soon.
-
-_Before version 1.0 an increment of the minor version **might** contain breaking changes_
-
 ## Usage
 
 First you need to install react-native-fs:
