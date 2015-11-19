@@ -9,6 +9,7 @@
 #import "RNFSManager.h"
 #import "RCTBridge.h"
 #import "NSArray+Map.h"
+#import "Downloader.h"
 
 @implementation RNFSManager
 
@@ -142,22 +143,22 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
                   filepath:(NSString *)filepath
                   callback:(RCTResponseSenderBlock)callback)
 {
-  NSError *error = nil;
 
-  NSURL *url = [NSURL URLWithString:urlStr];
-  NSData *urlData = [NSData dataWithContentsOfURL:url options:NSDataReadingUncached error:&error];
+  DownloaderCallback downloaderSuccessCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSNumber* bytesWritten) {
+    return callback(@[[NSNull null], [NSNumber numberWithBool:YES], filepath]);
+  };
 
-  if (error) {
+  ErrorCallback downloaderErrorCallback = ^(NSError* error) {
     return callback([self makeErrorPayload:error]);
-  }
+  };
 
-  BOOL success = [urlData writeToFile:filepath atomically:YES];
+  DownloaderCallback downloaderProgressCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSNumber* bytesWritten) {
 
-  if (!success) {
-    return callback(@[[NSString stringWithFormat:@"Could not write downloaded data to file at path %@", filepath]]);
-  }
+  };
 
-  callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
+  Downloader* downloader = [Downloader alloc];
+
+  [downloader downloadFile:urlStr toFile:filepath callback:downloaderSuccessCallback errorCallback:downloaderErrorCallback progressCallback:downloaderProgressCallback];
 }
 
 RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
