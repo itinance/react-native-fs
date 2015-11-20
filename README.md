@@ -161,9 +161,9 @@ Reads the contents of `path`. This must be an absolute path. Use the above path 
 
 The returned promise resolves with an array of objects with the following properties:
 
-`name` (`String`), The name of the item  
-`path` (`String`), The absolute path to the item  
-`size` (`Number`), Size in bytes
+`name` (`String`) - The name of the item  
+`path` (`String`) - The absolute path to the item  
+`size` (`Number`) - Size in bytes
 
 ### `promise readdir(path)`
 
@@ -172,9 +172,10 @@ Node.js style version of `readDir` that returns only the names. Note the lowerca
 ### `promise stat(path)`
 
 Stats an item at `path`.  
-The promise resolves with an object with the following properties:  
-`ctime` (`Date`) - The creation date of the item
-`mtime` (`Date`) - The modification date of the item
+The promise resolves with an object with the following properties:
+
+`ctime` (`Date`) - The creation date of the item  
+`mtime` (`Date`) - The modification date of the item  
 `size` (`Number`) - The size of the item in bytes  
 `isFile` (`Function`) - Returns true when the item is a file  
 `isDirectory` (`Function`) - Returns true when the item is a directory
@@ -209,9 +210,10 @@ IOS only: If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` at
 
 Download file from `url` to `filepath`. Will overwrite any previously existing file.
 
-If `progressCallback` is provided, it will be invoked continuously with the following data structure:
-`statusCode` (`number`) - The response code from the server
-`contentLength` (`number`) - The total size in bytes of the download resource
-`bytesWritten` (`number`) - The number of bytes written to the file so far
+If `progressCallback` is provided, it will be invoked continuously and passed a single argument with the following properties:
+
+`statusCode` (`Number`) - The response code from the server  
+`contentLength` (`Number`) - The total size in bytes of the download resource  
+`bytesWritten` (`Number`) - The number of bytes written to the file so far  
 
 Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
