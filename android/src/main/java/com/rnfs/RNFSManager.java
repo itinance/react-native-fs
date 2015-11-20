@@ -8,6 +8,7 @@ import android.os.Environment;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.content.Context;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,6 +19,7 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.HttpURLConnection;
 
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -29,6 +31,8 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
+
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 public class RNFSManager extends ReactContextBaseJavaModule {
 
@@ -158,7 +162,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     }
 
     return fileOrDirectory.delete();
-}
+  }
 
   @ReactMethod
   public void mkdir(String filepath, Boolean excludeFromBackup, Callback callback) {
@@ -176,8 +180,14 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     }
   }
 
+  private void sendEvent(ReactContext reactContext, String eventName, @Nullable WritableMap params) {
+    reactContext
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+      .emit(eventName, params);
+  }
+
   @ReactMethod
-  public void downloadFile(String urlStr, final String filepath, final Callback callback) {
+  public void downloadFile(String urlStr, final String filepath, final int jobId, final Callback callback) {
     try {
       File file = new File(filepath);
       URL url = new URL(urlStr);
@@ -195,6 +205,16 @@ public class RNFSManager extends ReactContextBaseJavaModule {
           }
         }
       };
+      params.onDownloadProgress = new OnDownloadProgress() {
+        public void onDownloadProgress(int statusCode, int contentLength, int bytesWritten) {
+          WritableMap data = Arguments.createMap();
+          data.putInt("statusCode", statusCode);
+          data.putInt("contentLength", contentLength);
+          data.putInt("bytesWritten", bytesWritten);
+
+          sendEvent(getReactApplicationContext(), "DownloadProgress-" + jobId, data);
+        }
+      };
 
       DownloadTask downloadTask = new DownloadTask();
       downloadTask.execute(params);
@@ -208,19 +228,28 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     public URL src;
     public File dest;
     public OnTaskCompleted onTaskCompleted;
+    public OnDownloadProgress onDownloadProgress;
   }
 
   public interface OnTaskCompleted {
     void onTaskCompleted(Exception ex);
   }
 
-  private class DownloadTask extends AsyncTask<DownloadParams, Void, Exception> {
+  public interface OnDownloadProgress {
+    void onDownloadProgress(int statusCode, int contentLength, int bytesWritten);
+  }
+
+  private class DownloadTask extends AsyncTask<DownloadParams, int[], Exception> {
+    private DownloadParams mParam;
+
     protected Exception doInBackground(DownloadParams... params) {
+      mParam = params[0];
+
       try {
-        this.download(params[0]);
-        params[0].onTaskCompleted.onTaskCompleted(null);
+        this.download(mParam);
+        mParam.onTaskCompleted.onTaskCompleted(null);
       } catch (Exception ex) {
-        params[0].onTaskCompleted.onTaskCompleted(ex);
+        mParam.onTaskCompleted.onTaskCompleted(ex);
         return ex;
       }
 
@@ -232,23 +261,24 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       OutputStream output = null;
 
       try {
-        URLConnection connection = param.src.openConnection();
+        HttpURLConnection connection = (HttpURLConnection)param.src.openConnection();
 
         connection.setConnectTimeout(5000);
         connection.connect();
 
+        int statusCode = connection.getResponseCode();
         int lengthOfFile = connection.getContentLength();
 
-        input = new BufferedInputStream(param.src.openStream(), 8192);
+        input = new BufferedInputStream(param.src.openStream(), 8 * 1024);
         output = new FileOutputStream(param.dest);
 
-        byte data[] = new byte[1024];
-        long total = 0;
+        byte data[] = new byte[8 * 1024];
+        int total = 0;
         int count;
 
         while ((count = input.read(data)) != -1) {
           total += count;
-          //int progress = (int)((total * 100) / lengthOfFile);
+          publishProgress(new int[] { statusCode, lengthOfFile, total });
           output.write(data, 0, count);
         }
 
@@ -259,10 +289,16 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       }
     }
 
+    @Override
+    protected void onProgressUpdate(int[]... values) {
+      super.onProgressUpdate(values);
+      mParam.onDownloadProgress.onDownloadProgress(values[0][0], values[0][1], values[0][2]);
+    }
+
     protected void onPostExecute(Exception ex) {
 
     }
- }
+  }
 
   @ReactMethod
   public void pathForBundle(String bundleNamed, Callback callback) {

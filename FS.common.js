@@ -8,6 +8,8 @@ if (typeof self === 'undefined') {
 }
 
 var RNFSManager = require('react-native').NativeModules.RNFSManager;
+var NativeAppEventEmitter = require('react-native').NativeAppEventEmitter;  // iOS
+var DeviceEventEmitter = require('react-native').DeviceEventEmitter;        // Android
 var Promise = require('bluebird');
 var base64 = require('base-64');
 var utf8 = require('utf8');
@@ -33,6 +35,13 @@ var convertError = (err) => {
 
 var NSFileTypeRegular = RNFSManager.NSFileTypeRegular;
 var NSFileTypeDirectory = RNFSManager.NSFileTypeDirectory;
+
+var jobId = 0;
+
+var getJobId = () => {
+  jobId += 1;
+  return jobId;
+};
 
 var RNFS = {
 
@@ -129,8 +138,24 @@ var RNFS = {
       .catch(convertError);
   },
 
-  downloadFile(url, filepath) {
-    return _downloadFile(url, filepath)
+  downloadFile(url, filepath, progress) {
+    var jobId = getJobId();
+    var subscriptionIos, subscriptionAndroid;
+
+    if (progress) {
+      // Two different styles of subscribing to events for different platforms, hmmm....
+      if (NativeAppEventEmitter.addListener)
+        subscriptionIos = NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, progress);
+      if (NativeAppEventEmitter.addListener)
+        subscriptionAndroid = DeviceEventEmitter.addListener('DownloadProgress-' + jobId, progress);
+    }
+
+    return _downloadFile(url, filepath, jobId)
+      .then(res => {
+        if (subscriptionIos) subscriptionIos.remove();
+        if (subscriptionAndroid) subscriptionAndroid.remove();
+        return res;
+      })
       .catch(convertError);
   },
 

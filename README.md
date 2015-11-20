@@ -2,7 +2,7 @@
 
 Native filesystem access for react-native
 
-## Usage
+## Usage (iOS)
 
 First you need to install react-native-fs:
 
@@ -16,9 +16,9 @@ In XCode, in the project navigator, select your project. Add the lib*.a from the
 
 Run your project (Cmd+R)
 
-## Android
+## Usage (Android)
 
-Android support is still experimental. Currently only the `DocumentDirectory` is supported. This maps to the app's `files` directory.
+Android support is currently limited to only the `DocumentDirectory`. This maps to the app's `files` directory.
 
 Make alterations to the following files:
 
@@ -205,6 +205,13 @@ Create a directory at `filepath`. Automatically creates parents and does not thr
 
 IOS only: If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` attribute will be set. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
-### `promise downloadFile(url, filepath)`
+### `promise downloadFile(url, filepath[, progressCallback])`
 
 Download file from `url` to `filepath`. Will overwrite any previously existing file.
+
+If `progressCallback` is provided, it will be invoked continuously with the following data structure:
+`statusCode` (`number`) - The response code from the server
+`contentLength` (`number`) - The total size in bytes of the download resource
+`bytesWritten` (`number`) - The number of bytes written to the file so far
+
+Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.

@@ -10,8 +10,11 @@
 #import "RCTBridge.h"
 #import "NSArray+Map.h"
 #import "Downloader.h"
+#import "RCTEventDispatcher.h"
 
 @implementation RNFSManager
+
+@synthesize bridge = _bridge;
 
 RCT_EXPORT_MODULE();
 
@@ -141,6 +144,7 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
 
 RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
                   filepath:(NSString *)filepath
+                  jobId:(nonnull NSNumber *)jobId
                   callback:(RCTResponseSenderBlock)callback)
 {
 
@@ -153,7 +157,10 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
   };
 
   DownloaderCallback downloaderProgressCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSNumber* bytesWritten) {
-
+    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadProgress-%@", jobId]
+                                                 body:@{@"statusCode": statusCode,
+                                                        @"contentLength": contentLength,
+                                                        @"bytesWritten": bytesWritten}];
   };
 
   Downloader* downloader = [Downloader alloc];
