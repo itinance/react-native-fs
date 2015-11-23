@@ -1,5 +1,6 @@
 package com.rnfs;
 
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import android.os.AsyncTask;
 import android.util.Base64;
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.util.SparseArray;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,7 +33,6 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
-
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 public class RNFSManager extends ReactContextBaseJavaModule {
@@ -41,6 +42,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private static final String NSFileTypeRegular = "NSFileTypeRegular";
   private static final String NSFileTypeDirectory = "NSFileTypeDirectory";
+  
+  private SparseArray<Downloader> downloaders = new SparseArray<Downloader>();
 
   public RNFSManager(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -182,8 +185,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private void sendEvent(ReactContext reactContext, String eventName, @Nullable WritableMap params) {
     reactContext
-      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-      .emit(eventName, params);
+    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+    .emit(eventName, params);
   }
 
   @ReactMethod
@@ -193,22 +196,48 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       URL url = new URL(urlStr);
 
       DownloadParams params = new DownloadParams();
+      
       params.src = url;
       params.dest = file;
-      params.onTaskCompleted = new OnTaskCompleted() {
-        public void onTaskCompleted(Exception ex) {
-          if (ex == null) {
-            boolean success = true;
-            callback.invoke(null, success, filepath);
+      
+      params.onTaskCompleted = new DownloadParams.OnTaskCompleted() {
+        public void onTaskCompleted(DownloadResult res) {
+          if (res.exception == null) {
+            WritableMap infoMap = Arguments.createMap();
+            
+            infoMap.putInt("jobId", jobId);
+            infoMap.putInt("statusCode", res.statusCode);
+            infoMap.putInt("bytesWritten", res.bytesWritten);
+            
+            callback.invoke(null, infoMap);
           } else {
-            callback.invoke(makeErrorPayload(ex));
+            callback.invoke(makeErrorPayload(res.exception));
           }
         }
       };
-      params.onDownloadProgress = new OnDownloadProgress() {
-        public void onDownloadProgress(int statusCode, int contentLength, int bytesWritten) {
+      
+      params.onDownloadBegin = new DownloadParams.OnDownloadBegin() {
+        public void onDownloadBegin(int statusCode, int contentLength, Map<String, String> headers) {
+          WritableMap headersMap = Arguments.createMap();
+          
+          for (Map.Entry<String, String> entry : headers.entrySet()) {
+            headersMap.putString(entry.getKey(), entry.getValue());
+          }
+          
           WritableMap data = Arguments.createMap();
+          
+          data.putInt("jobId", jobId);
           data.putInt("statusCode", statusCode);
+          data.putInt("contentLength", contentLength);
+          data.putMap("headers", headersMap);
+          
+          sendEvent(getReactApplicationContext(), "DownloadBegin-" + jobId, data);
+        }
+      };
+      
+      params.onDownloadProgress = new DownloadParams.OnDownloadProgress() {
+        public void onDownloadProgress(int contentLength, int bytesWritten) {
+          WritableMap data = Arguments.createMap();
           data.putInt("contentLength", contentLength);
           data.putInt("bytesWritten", bytesWritten);
 
@@ -216,87 +245,23 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         }
       };
 
-      DownloadTask downloadTask = new DownloadTask();
-      downloadTask.execute(params);
+      Downloader downloader = new Downloader();
+      
+      downloader.execute(params);
+      
+      this.downloaders.put(jobId, downloader);
     } catch (Exception ex) {
       ex.printStackTrace();
       callback.invoke(makeErrorPayload(ex));
     }
   }
-
-  private class DownloadParams {
-    public URL src;
-    public File dest;
-    public OnTaskCompleted onTaskCompleted;
-    public OnDownloadProgress onDownloadProgress;
-  }
-
-  public interface OnTaskCompleted {
-    void onTaskCompleted(Exception ex);
-  }
-
-  public interface OnDownloadProgress {
-    void onDownloadProgress(int statusCode, int contentLength, int bytesWritten);
-  }
-
-  private class DownloadTask extends AsyncTask<DownloadParams, int[], Exception> {
-    private DownloadParams mParam;
-
-    protected Exception doInBackground(DownloadParams... params) {
-      mParam = params[0];
-
-      try {
-        this.download(mParam);
-        mParam.onTaskCompleted.onTaskCompleted(null);
-      } catch (Exception ex) {
-        mParam.onTaskCompleted.onTaskCompleted(ex);
-        return ex;
-      }
-
-      return null;
-    }
-
-    private void download(DownloadParams param) throws IOException {
-      InputStream input = null;
-      OutputStream output = null;
-
-      try {
-        HttpURLConnection connection = (HttpURLConnection)param.src.openConnection();
-
-        connection.setConnectTimeout(5000);
-        connection.connect();
-
-        int statusCode = connection.getResponseCode();
-        int lengthOfFile = connection.getContentLength();
-
-        input = new BufferedInputStream(param.src.openStream(), 8 * 1024);
-        output = new FileOutputStream(param.dest);
-
-        byte data[] = new byte[8 * 1024];
-        int total = 0;
-        int count;
-
-        while ((count = input.read(data)) != -1) {
-          total += count;
-          publishProgress(new int[] { statusCode, lengthOfFile, total });
-          output.write(data, 0, count);
-        }
-
-        output.flush();
-      } finally {
-        if (output != null) output.close();
-        if (input != null) input.close();
-      }
-    }
-
-    @Override
-    protected void onProgressUpdate(int[]... values) {
-      super.onProgressUpdate(values);
-      mParam.onDownloadProgress.onDownloadProgress(values[0][0], values[0][1], values[0][2]);
-    }
-
-    protected void onPostExecute(Exception ex) {
-
+  
+  @ReactMethod
+  public void stopDownload(int jobId) {
+    Downloader downloader = this.downloaders.get(jobId);
+    
+    if (downloader != null) {
+      downloader.stop(); 
     }
   }
 
