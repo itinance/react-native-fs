@@ -206,14 +206,24 @@ Create a directory at `filepath`. Automatically creates parents and does not thr
 
 IOS only: If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` attribute will be set. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
-### `promise downloadFile(url, filepath[, progressCallback])`
+### `promise downloadFile(url, filepath [, beginCallback, progressCallback])`
 
 Download file from `url` to `filepath`. Will overwrite any previously existing file.
 
+If `beginCallback` is provided, it will be invoked once upon download starting when headers have been received and passed a single argument with the following properties:
+
+`jobId` (`Number`) - The download job ID, required if one wishes to cancel the download. See `stopDownload`.  
+`statusCode` (`Number`) - The HTTP status code  
+`contentLength` (`Number`) - The total size in bytes of the download resource  
+`headers` (`Map`) - The HTTP response headers from the server  
+
 If `progressCallback` is provided, it will be invoked continuously and passed a single argument with the following properties:
 
-`statusCode` (`Number`) - The response code from the server  
 `contentLength` (`Number`) - The total size in bytes of the download resource  
 `bytesWritten` (`Number`) - The number of bytes written to the file so far  
 
 Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
+
+### `promise stopDownload(jobId)`
+
+Abort the current download job with this ID. The partial file will remain on the filesystem.
