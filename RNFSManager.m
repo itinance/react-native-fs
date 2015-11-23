@@ -12,6 +12,12 @@
 #import "Downloader.h"
 #import "RCTEventDispatcher.h"
 
+@interface RNFSManager()
+
+@property (retain) Downloader* downloader;
+
+@end
+
 @implementation RNFSManager
 
 @synthesize bridge = _bridge;
@@ -163,9 +169,15 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
                                                         @"bytesWritten": bytesWritten}];
   };
 
-  Downloader* downloader = [Downloader alloc];
+  self.downloader = [Downloader alloc];
 
-  [downloader downloadFile:urlStr toFile:filepath callback:downloaderSuccessCallback errorCallback:downloaderErrorCallback progressCallback:downloaderProgressCallback];
+  [self.downloader downloadFile:urlStr toFile:filepath callback:downloaderSuccessCallback errorCallback:downloaderErrorCallback progressCallback:downloaderProgressCallback];
+}
+
+RCT_EXPORT_METHOD(stopDownload:(NSString *)url
+                  callback:(RCTResponseSenderBlock)callback)
+{
+    [self.downloader stopDownload];
 }
 
 RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed

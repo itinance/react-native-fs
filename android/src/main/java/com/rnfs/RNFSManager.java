@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.HttpURLConnection;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -41,6 +42,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private static final String NSFileTypeRegular = "NSFileTypeRegular";
   private static final String NSFileTypeDirectory = "NSFileTypeDirectory";
+
+  private DownloadTask downloadTask;
 
   public RNFSManager(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -187,6 +190,11 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void stopDownload(String url, final Callback callback) {
+    this.downloadTask.stop();
+  }
+
+  @ReactMethod
   public void downloadFile(String urlStr, final String filepath, final int jobId, final Callback callback) {
     try {
       File file = new File(filepath);
@@ -216,8 +224,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         }
       };
 
-      DownloadTask downloadTask = new DownloadTask();
-      downloadTask.execute(params);
+      this.downloadTask = new DownloadTask();
+      this.downloadTask.execute(params);
     } catch (Exception ex) {
       ex.printStackTrace();
       callback.invoke(makeErrorPayload(ex));
@@ -241,6 +249,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private class DownloadTask extends AsyncTask<DownloadParams, int[], Exception> {
     private DownloadParams mParam;
+    private AtomicBoolean abort = new AtomicBoolean(false);
 
     protected Exception doInBackground(DownloadParams... params) {
       mParam = params[0];
@@ -277,6 +286,9 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         int count;
 
         while ((count = input.read(data)) != -1) {
+          if ( abort.get() ) {
+             break;
+          }
           total += count;
           publishProgress(new int[] { statusCode, lengthOfFile, total });
           output.write(data, 0, count);
@@ -287,6 +299,10 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         if (output != null) output.close();
         if (input != null) input.close();
       }
+    }
+
+    protected void stop() {
+      abort.set(true);
     }
 
     @Override
