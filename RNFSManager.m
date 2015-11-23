@@ -165,7 +165,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
                                        @"bytesWritten": bytesWritten}]);
   };
 
-	params.errorCallback = ^(NSError* error) {
+  params.errorCallback = ^(NSError* error) {
     return callback([self makeErrorPayload:error]);
   };
   
@@ -183,7 +183,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
                                                         @"bytesWritten": bytesWritten}];
   };
 
-  if (self.downloaders) self.downloaders = [NSMutableDictionary alloc];
+  if (!self.downloaders) self.downloaders = [[NSMutableDictionary alloc] init];
   
   Downloader* downloader = [Downloader alloc];
 
@@ -192,7 +192,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
   [self.downloaders setValue:downloader forKey:[jobId stringValue]];
 }
 
-RCT_EXPORT_METHOD(stopDownload:(NSNumber *)jobId)
+RCT_EXPORT_METHOD(stopDownload:(nonnull NSNumber *)jobId)
 {
   Downloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
   

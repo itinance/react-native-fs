@@ -170,6 +170,10 @@ var RNFS = {
       .catch(convertError);
   },
 
+  stopDownload(jobId) {
+    RNFSManager.stopDownload(jobId);
+  },
+
   MainBundlePath: RNFSManager.MainBundlePath,
   CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
   DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
