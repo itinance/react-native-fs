@@ -174,7 +174,8 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
   [self.downloader downloadFile:urlStr toFile:filepath callback:downloaderSuccessCallback errorCallback:downloaderErrorCallback progressCallback:downloaderProgressCallback];
 }
 
-RCT_EXPORT_METHOD(stopDownload)
+RCT_EXPORT_METHOD(stopDownload:(NSString *)url
+                  callback:(RCTResponseSenderBlock)callback)
 {
     [self.downloader stopDownload];
 }

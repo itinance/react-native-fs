@@ -21,6 +21,7 @@ var _writeFile = Promise.promisify(RNFSManager.writeFile);
 var _unlink = Promise.promisify(RNFSManager.unlink);
 var _mkdir = Promise.promisify(RNFSManager.mkdir);
 var _downloadFile = Promise.promisify(RNFSManager.downloadFile);
+var _stopDownload = Promise.promisify(RNFSManager.stopDownload);
 var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
 
 var convertError = (err) => {
@@ -156,6 +157,11 @@ var RNFS = {
         if (subscriptionAndroid) subscriptionAndroid.remove();
         return res;
       })
+      .catch(convertError);
+  },
+
+  stopDownload() {
+    return _stopDownload("")
       .catch(convertError);
   },
 
