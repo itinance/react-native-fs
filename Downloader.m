@@ -2,6 +2,8 @@
 
 @interface Downloader()
 
+@property (retain) NSURLConnection* connection;
+
 @property (copy) DownloaderCallback callback;
 @property (copy) ErrorCallback errorCallback;
 @property (copy) DownloaderCallback progressCallback;
@@ -40,11 +42,11 @@
     return _errorCallback(error);
   }
 
-  NSURLConnection* connection = [[NSURLConnection alloc] initWithRequest:downloadRequest delegate:self startImmediately:NO];
+  _connection = [[NSURLConnection alloc] initWithRequest:downloadRequest delegate:self startImmediately:NO];
 
-  [connection scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+  [_connection scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
 
-  [connection start];
+  [_connection start];
 }
 
 - (void)connection:(NSURLConnection*)connection didFailWithError:(NSError*)error
@@ -78,6 +80,11 @@
   [_fileHandle closeFile];
 
   return _callback(_statusCode, _contentLength, _bytesWritten);
+}
+
+- (void)stopDownload
+{
+    [_connection cancel];
 }
 
 @end
