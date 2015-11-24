@@ -14,7 +14,7 @@
 
 @interface RNFSManager()
 
-@property (retain) Downloader* downloader;
+@property (retain) NSMutableDictionary* downloaders;
 
 @end
 
@@ -153,31 +153,52 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
                   jobId:(nonnull NSNumber *)jobId
                   callback:(RCTResponseSenderBlock)callback)
 {
+  
+  DownloadParams* params = [DownloadParams alloc];
+  
+  params.fromUrl = urlStr;
+  params.toFile = filepath;
 
-  DownloaderCallback downloaderSuccessCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSNumber* bytesWritten) {
-    return callback(@[[NSNull null], [NSNumber numberWithBool:YES], filepath]);
+  params.callback = ^(NSNumber* statusCode, NSNumber* bytesWritten) {
+    return callback(@[[NSNull null], @{@"jobId": jobId,
+                                       @"statusCode": statusCode,
+                                       @"bytesWritten": bytesWritten}]);
   };
 
-  ErrorCallback downloaderErrorCallback = ^(NSError* error) {
+  params.errorCallback = ^(NSError* error) {
     return callback([self makeErrorPayload:error]);
   };
-
-  DownloaderCallback downloaderProgressCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSNumber* bytesWritten) {
-    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadProgress-%@", jobId]
-                                                 body:@{@"statusCode": statusCode,
+  
+  params.beginCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSDictionary* headers) {
+    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadBegin-%@", jobId]
+                                                 body:@{@"jobId": jobId,
+                                                        @"statusCode": statusCode,
                                                         @"contentLength": contentLength,
+                                                        @"headers": headers}];
+  };
+  
+  params.progressCallback = ^(NSNumber* contentLength, NSNumber* bytesWritten) {
+    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadProgress-%@", jobId]
+                                                 body:@{@"contentLength": contentLength,
                                                         @"bytesWritten": bytesWritten}];
   };
 
-  self.downloader = [Downloader alloc];
+  if (!self.downloaders) self.downloaders = [[NSMutableDictionary alloc] init];
+  
+  Downloader* downloader = [Downloader alloc];
 
-  [self.downloader downloadFile:urlStr toFile:filepath callback:downloaderSuccessCallback errorCallback:downloaderErrorCallback progressCallback:downloaderProgressCallback];
+  [downloader downloadFile:params];
+  
+  [self.downloaders setValue:downloader forKey:[jobId stringValue]];
 }
 
-RCT_EXPORT_METHOD(stopDownload:(NSString *)url
-                  callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(stopDownload:(nonnull NSNumber *)jobId)
 {
-    [self.downloader stopDownload];
+  Downloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
+  
+  if (downloader != nil) {
+    [downloader stopDownload];
+  }
 }
 
 RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed

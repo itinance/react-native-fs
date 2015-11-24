@@ -1,13 +1,14 @@
 #import "Downloader.h"
 
+@implementation DownloadParams
+
+@end
+
 @interface Downloader()
 
+@property (copy) DownloadParams* params;
+
 @property (retain) NSURLConnection* connection;
-
-@property (copy) DownloaderCallback callback;
-@property (copy) ErrorCallback errorCallback;
-@property (copy) DownloaderCallback progressCallback;
-
 @property (retain) NSNumber* statusCode;
 @property (retain) NSNumber* contentLength;
 @property (retain) NSNumber* bytesWritten;
@@ -18,28 +19,26 @@
 
 @implementation Downloader
 
-- (void)downloadFile:(NSString*)urlStr toFile:(NSString*)downloadPath callback:(DownloaderCallback)callback errorCallback:(ErrorCallback)errorCallback progressCallback:(DownloaderCallback)progressCallback
+- (void)downloadFile:(DownloadParams*)params
 {
-  _callback = callback;
-  _errorCallback = errorCallback;
-  _progressCallback = progressCallback;
-
+  _params = params;
+  
   _bytesWritten = 0;
 
-  NSURL* url = [NSURL URLWithString:urlStr];
+  NSURL* url = [NSURL URLWithString:_params.fromUrl];
 
   NSMutableURLRequest* downloadRequest = [NSMutableURLRequest requestWithURL:url
                                                                  cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                              timeoutInterval:30];
 
-  [[NSFileManager defaultManager] createFileAtPath:downloadPath contents:nil attributes:nil];
+  [[NSFileManager defaultManager] createFileAtPath:_params.toFile contents:nil attributes:nil];
 
-  _fileHandle = [NSFileHandle fileHandleForWritingAtPath:downloadPath];
+  _fileHandle = [NSFileHandle fileHandleForWritingAtPath:_params.toFile];
 
   if (!_fileHandle) {
-    NSError* error = [NSError errorWithDomain:@"Downloader" code:NSURLErrorFileDoesNotExist userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat: @"Failed to create target file at path: %@", downloadPath]}];
+    NSError* error = [NSError errorWithDomain:@"Downloader" code:NSURLErrorFileDoesNotExist userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat: @"Failed to create target file at path: %@", _params.toFile]}];
 
-    return _errorCallback(error);
+    return _params.errorCallback(error);
   }
 
   _connection = [[NSURLConnection alloc] initWithRequest:downloadRequest delegate:self startImmediately:NO];
@@ -53,7 +52,7 @@
 {
   [_fileHandle closeFile];
 
-  return _errorCallback(error);
+  return _params.errorCallback(error);
 }
 
 - (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response
@@ -62,6 +61,8 @@
 
   _statusCode = [NSNumber numberWithLong:httpUrlResponse.statusCode];
   _contentLength = [NSNumber numberWithLong: httpUrlResponse.expectedContentLength];
+  
+  return _params.beginCallback(_statusCode, _contentLength, httpUrlResponse.allHeaderFields);
 }
 
 - (void)connection:(NSURLConnection*)connection didReceiveData:(NSData*)data
@@ -71,7 +72,7 @@
 
     _bytesWritten = [NSNumber numberWithUnsignedInteger:[_bytesWritten unsignedIntegerValue] + data.length];
 
-    return _progressCallback(_statusCode, _contentLength, _bytesWritten);
+    return _params.progressCallback(_contentLength, _bytesWritten);
   }
 }
 
@@ -79,12 +80,12 @@
 {
   [_fileHandle closeFile];
 
-  return _callback(_statusCode, _contentLength, _bytesWritten);
+  return _params.callback(_statusCode, _bytesWritten);
 }
 
 - (void)stopDownload
 {
-    [_connection cancel];
+  [_connection cancel];
 }
 
 @end

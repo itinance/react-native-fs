@@ -21,7 +21,6 @@ var _writeFile = Promise.promisify(RNFSManager.writeFile);
 var _unlink = Promise.promisify(RNFSManager.unlink);
 var _mkdir = Promise.promisify(RNFSManager.mkdir);
 var _downloadFile = Promise.promisify(RNFSManager.downloadFile);
-var _stopDownload = Promise.promisify(RNFSManager.stopDownload);
 var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
 
 var convertError = (err) => {
@@ -139,19 +138,30 @@ var RNFS = {
       .catch(convertError);
   },
 
-  downloadFile(url, filepath, progress) {
+  downloadFile(fromUrl, toFile, begin, progress) {
     var jobId = getJobId();
     var subscriptionIos, subscriptionAndroid;
 
-    if (progress) {
+    if (!begin) begin = (info) => {
+      console.log('Download begun:', info);
+    };
+
+    if (begin) {
       // Two different styles of subscribing to events for different platforms, hmmm....
       if (NativeAppEventEmitter.addListener)
-        subscriptionIos = NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, progress);
+        subscriptionIos = NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, begin);
+      if (DeviceEventEmitter.addListener)
+        subscriptionAndroid = DeviceEventEmitter.addListener('DownloadBegin-' + jobId, begin);
+    }
+
+    if (progress) {
       if (NativeAppEventEmitter.addListener)
+        subscriptionIos = NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, progress);
+      if (DeviceEventEmitter.addListener)
         subscriptionAndroid = DeviceEventEmitter.addListener('DownloadProgress-' + jobId, progress);
     }
 
-    return _downloadFile(url, filepath, jobId)
+    return _downloadFile(fromUrl, toFile, jobId)
       .then(res => {
         if (subscriptionIos) subscriptionIos.remove();
         if (subscriptionAndroid) subscriptionAndroid.remove();
@@ -160,9 +170,8 @@ var RNFS = {
       .catch(convertError);
   },
 
-  stopDownload() {
-    return _stopDownload("")
-      .catch(convertError);
+  stopDownload(jobId) {
+    RNFSManager.stopDownload(jobId);
   },
 
   MainBundlePath: RNFSManager.MainBundlePath,
