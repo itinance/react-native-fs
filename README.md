@@ -227,3 +227,9 @@ Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
 ### `promise stopDownload(jobId)`
 
 Abort the current download job with this ID. The partial file will remain on the filesystem.
+
+## Test / Demo app
+
+Test app to demostrate the use of the module. Useful for testing and developing the module:
+
+https://github.com/cjdell/react-native-fs-test
