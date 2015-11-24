@@ -138,7 +138,7 @@ var RNFS = {
       .catch(convertError);
   },
 
-  downloadFile(fromUrl, toFile, begin, progress) {
+  downloadFile(fromUrl, toFile, begin, progress, errorHandler) {
     var jobId = getJobId();
     var subscriptionIos, subscriptionAndroid;
 
@@ -167,7 +167,12 @@ var RNFS = {
         if (subscriptionAndroid) subscriptionAndroid.remove();
         return res;
       })
-      .catch(convertError);
+      .catch(function(err) {
+        if (errorHandler) {
+          errorHandler(err);
+        }
+        convertError(err);
+      });
   },
 
   stopDownload(jobId) {
