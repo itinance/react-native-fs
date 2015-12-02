@@ -176,7 +176,7 @@ var RNFS = {
 
   MainBundlePath: RNFSManager.MainBundlePath,
   CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
-  DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath
+  DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath,
   LibraryDirectoryPath: RNFSManager.NSLibraryDirectoryPath
 };
 
