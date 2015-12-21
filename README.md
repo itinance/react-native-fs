@@ -224,7 +224,7 @@ If `progressCallback` is provided, it will be invoked continuously and passed a 
 
 Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
 
-### `promise stopDownload(jobId)`
+### `void stopDownload(jobId)`
 
 Abort the current download job with this ID. The partial file will remain on the filesystem.
 
