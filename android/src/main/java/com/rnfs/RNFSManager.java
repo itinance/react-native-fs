@@ -38,6 +38,8 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 public class RNFSManager extends ReactContextBaseJavaModule {
 
   private static final String NSDocumentDirectoryPath = "NSDocumentDirectoryPath";
+  private static final String NSPicturesDirectoryPath = "NSPicturesDirectoryPath";
+  private static final String NSCachesDirectoryPath = "NSCachesDirectoryPath";
   private static final String NSDocumentDirectory = "NSDocumentDirectory";
 
   private static final String NSFileTypeRegular = "NSFileTypeRegular";
@@ -281,6 +283,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     final Map<String, Object> constants = new HashMap<>();
     constants.put(NSDocumentDirectory, 0);
     constants.put(NSDocumentDirectoryPath, this.getReactApplicationContext().getFilesDir().getAbsolutePath());
+    constants.put(NSPicturesDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath());
+    constants.put(NSCachesDirectoryPath, this.getReactApplicationContext().getCacheDir().getAbsolutePath());
     constants.put(NSFileTypeRegular, 0);
     constants.put(NSFileTypeDirectory, 1);
     return constants;

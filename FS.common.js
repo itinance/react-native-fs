@@ -177,7 +177,8 @@ var RNFS = {
   MainBundlePath: RNFSManager.MainBundlePath,
   CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
   DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath,
-  LibraryDirectoryPath: RNFSManager.NSLibraryDirectoryPath
+  LibraryDirectoryPath: RNFSManager.NSLibraryDirectoryPath,
+  PicturesDirectoryPath: RNFSManager.NSPicturesDirectoryPath
 };
 
 module.exports = RNFS;
