@@ -160,9 +160,12 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
   params.toFile = filepath;
 
   params.callback = ^(NSNumber* statusCode, NSNumber* bytesWritten) {
-    return callback(@[[NSNull null], @{@"jobId": jobId,
-                                       @"statusCode": statusCode,
-                                       @"bytesWritten": bytesWritten}]);
+    NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,
+                             @"statusCode": statusCode}];
+    if (bytesWritten) {
+      [result setObject:@"bytesWritten" forKey: bytesWritten];
+    }
+    return callback(@[[NSNull null], result]);
   };
 
   params.errorCallback = ^(NSError* error) {
