@@ -163,7 +163,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
     NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,
                              @"statusCode": statusCode}];
     if (bytesWritten) {
-      [result setObject:@"bytesWritten" forKey: bytesWritten];
+      [result setObject:bytesWritten forKey: @"bytesWritten"];
     }
     return callback(@[[NSNull null], result]);
   };
