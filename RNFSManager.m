@@ -148,6 +148,22 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
   callback(@[[NSNull null], base64Content]);
 }
 
+RCT_EXPORT_METHOD(moveFile:(NSString *)filepath
+                  destPath:(NSString *)destPath
+                  callback:(RCTResponseSenderBlock)callback)
+{
+    NSFileManager *manager = [NSFileManager defaultManager];
+    
+    NSError *error = nil;
+    BOOL success = [manager moveItemAtPath:filepath toPath:destPath error:&error];
+    
+    if (!success) {
+        return callback([self makeErrorPayload:error]);
+    }
+    
+    callback(@[[NSNull null], [NSNumber numberWithBool:success], destPath]);
+}
+
 RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
                   filepath:(NSString *)filepath
                   jobId:(nonnull NSNumber *)jobId
