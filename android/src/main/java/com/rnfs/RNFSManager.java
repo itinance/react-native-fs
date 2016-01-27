@@ -93,6 +93,20 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void moveFile(String filepath, String destPath, Callback callback) {
+    try {
+      File from = new File(filepath);
+      File to = new File(destPath);
+      from.renameTo(to);
+
+      callback.invoke(null, true, destPath);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      callback.invoke(makeErrorPayload(ex));
+    }
+  }
+
+  @ReactMethod
   public void readDir(String directory, Callback callback) {
     try {
       File file = new File(directory);

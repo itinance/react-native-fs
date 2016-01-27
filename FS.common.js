@@ -124,8 +124,8 @@ var RNFS = {
       .catch(convertError);
   },
 
-  moveFile(filepath, topath) {
-    return _moveFile(filepath, topath)
+  moveFile(filepath, destPath) {
+    return _moveFile(filepath, destPath)
       .catch(convertError);
   },
 
