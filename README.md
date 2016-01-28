@@ -200,6 +200,12 @@ The promise resolves with an array, which contains a boolean and the path that h
 
 Also recursively deletes directories (works like Linux `rm -rf`).
 
+### `promise exist(filepath)`
+
+check if the item exist at `filepath`. If the item does not exist, return false.
+
+The promise resolves with boolean.
+
 ### `promise mkdir(filepath [, excludeFromBackup])`
 
 Create a directory at `filepath`. Automatically creates parents and does not throw if already exists (works like Linux `mkdir -p`).

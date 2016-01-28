@@ -71,6 +71,17 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       callback.invoke(makeErrorPayload(ex));
     }
   }
+  
+  @ReactMethod
+  public void exist(String filepath, Callback callback) {
+    try {
+      File file = new File(filepath);
+      callback.invoke(null, file.exists());
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      callback.invoke(makeErrorPayload(ex));
+    }
+  }
 
   @ReactMethod
   public void readFile(String filepath, Callback callback) {
