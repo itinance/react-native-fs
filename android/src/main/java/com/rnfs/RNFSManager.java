@@ -73,7 +73,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
   
   @ReactMethod
-  public void exist(String filepath, Callback callback) {
+  public void exists(String filepath, Callback callback) {
     try {
       File file = new File(filepath);
       callback.invoke(null, file.exists());

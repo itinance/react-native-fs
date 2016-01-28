@@ -200,7 +200,7 @@ The promise resolves with an array, which contains a boolean and the path that h
 
 Also recursively deletes directories (works like Linux `rm -rf`).
 
-### `promise exist(filepath)`
+### `promise exists(filepath)`
 
 check if the item exist at `filepath`. If the item does not exist, return false.
 

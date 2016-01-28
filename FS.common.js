@@ -15,7 +15,7 @@ var base64 = require('base-64');
 var utf8 = require('utf8');
 
 var _readDir = Promise.promisify(RNFSManager.readDir);
-var _exist = Promise.promisify(RNFSManager.exist);
+var _exists = Promise.promisify(RNFSManager.exists);
 var _stat = Promise.promisify(RNFSManager.stat);
 var _readFile = Promise.promisify(RNFSManager.readFile);
 var _writeFile = Promise.promisify(RNFSManager.writeFile);
@@ -83,8 +83,8 @@ var RNFS = {
       .catch(convertError);
   },
   
-  exist(filepath) {
-    return _exist(filepath)
+  exists(filepath) {
+    return _exists(filepath)
       .catch(convertError);
   },
 
