@@ -208,9 +208,9 @@ RNFS.uploadFiles(uploadUrl, files, options, uploadBegin, uploadProgress)
 
 The following constants are available on the `RNFS` export:
 
-`MainBundlePath` (`String`) The absolute path to the main bundle directory
-`CachesDirectoryPath` (`String`) The absolute path to the caches directory
-`DocumentDirectoryPath`  (`String`) The absolute path to the document directory
+`MainBundlePath` (`String`) The absolute path to the main bundle directory  
+`CachesDirectoryPath` (`String`) The absolute path to the caches directory  
+`DocumentDirectoryPath`  (`String`) The absolute path to the document directory  
 
 ### `promise readDir(path)`
 
@@ -218,9 +218,9 @@ Reads the contents of `path`. This must be an absolute path. Use the above path 
 
 The returned promise resolves with an array of objects with the following properties:
 
-`name` (`String`) - The name of the item
-`path` (`String`) - The absolute path to the item
-`size` (`Number`) - Size in bytes
+`name` (`String`) - The name of the item  
+`path` (`String`) - The absolute path to the item  
+`size` (`Number`) - Size in bytes  
 
 ### `promise readdir(path)`
 
@@ -231,11 +231,11 @@ Node.js style version of `readDir` that returns only the names. Note the lowerca
 Stats an item at `path`.
 The promise resolves with an object with the following properties:
 
-`ctime` (`Date`) - The creation date of the item
-`mtime` (`Date`) - The modification date of the item
-`size` (`Number`) - The size of the item in bytes
-`isFile` (`Function`) - Returns true when the item is a file
-`isDirectory` (`Function`) - Returns true when the item is a directory
+`ctime` (`Date`) - The creation date of the item   
+`mtime` (`Date`) - The modification date of the item  
+`size` (`Number`) - The size of the item in bytes  
+`isFile` (`Function`) - Returns true when the item is a file  
+`isDirectory` (`Function`) - Returns true when the item is a directory  
 
 ### `promise readFile(path [, encoding])`
 
@@ -273,14 +273,14 @@ Download file from `url` to `filepath`. Will overwrite any previously existing f
 
 If `beginCallback` is provided, it will be invoked once upon download starting when headers have been received and passed a single argument with the following properties:
 
-`jobId` (`Number`) - The download job ID, required if one wishes to cancel the download. See `stopDownload`.
-`statusCode` (`Number`) - The HTTP status code
-`contentLength` (`Number`) - The total size in bytes of the download resource
-`headers` (`Map`) - The HTTP response headers from the server
+`jobId` (`Number`) - The download job ID, required if one wishes to cancel the download. See `stopDownload`.  
+`statusCode` (`Number`) - The HTTP status code  
+`contentLength` (`Number`) - The total size in bytes of the download resource  
+`headers` (`Map`) - The HTTP response headers from the server  
 
 If `progressCallback` is provided, it will be invoked continuously and passed a single argument with the following properties:
 
-`contentLength` (`Number`) - The total size in bytes of the download resource
+`contentLength` (`Number`) - The total size in bytes of the download resource  
 `bytesWritten` (`Number`) - The number of bytes written to the file so far
 
 Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
