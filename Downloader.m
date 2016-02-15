@@ -60,7 +60,7 @@
   NSHTTPURLResponse* httpUrlResponse = (NSHTTPURLResponse*)response;
 
   _statusCode = [NSNumber numberWithLong:httpUrlResponse.statusCode];
-  _contentLength = [NSNumber numberWithLong: httpUrlResponse.expectedContentLength];
+  _contentLength = [NSNumber numberWithLongLong: httpUrlResponse.expectedContentLength];
   
   return _params.beginCallback(_statusCode, _contentLength, httpUrlResponse.allHeaderFields);
 }
@@ -80,7 +80,7 @@
 {
   [_fileHandle closeFile];
 
-  return _params.callback(_statusCode, _bytesWritten);
+  return _params.completeCallback(_statusCode, _bytesWritten);
 }
 
 - (void)stopDownload

@@ -22,6 +22,7 @@ var _moveFile = Promise.promisify(RNFSManager.moveFile);
 var _unlink = Promise.promisify(RNFSManager.unlink);
 var _mkdir = Promise.promisify(RNFSManager.mkdir);
 var _downloadFile = Promise.promisify(RNFSManager.downloadFile);
+var _uploadFiles = Promise.promisify(RNFSManager.uploadFiles);
 var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
 
 var convertError = (err) => {
@@ -178,6 +179,39 @@ var RNFS = {
 
   stopDownload(jobId) {
     RNFSManager.stopDownload(jobId);
+  },
+
+  uploadFiles(toUrl, files, options, begin, progress) {
+    var jobId = getJobId();
+    var subscriptionIos;
+
+    if (!begin) begin = (info) => {
+      console.log('Upload begun:', info);
+    };
+
+    if (begin) {
+      if (NativeAppEventEmitter.addListener)
+        subscriptionIos = NativeAppEventEmitter.addListener('UploadBegin-' + jobId, begin);
+    }
+
+    if (progress) {
+      if (NativeAppEventEmitter.addListener)
+        subscriptionIos = NativeAppEventEmitter.addListener('UploadProgress-' + jobId, progress);
+    }
+
+    if(typeof options != "object") {
+      options = {};
+    }
+
+    return _uploadFiles(toUrl, files, options, jobId)
+      .then(res => {
+        if (subscriptionIos) subscriptionIos.remove();
+        return res;
+      });
+  },
+
+  stopUpload(jobId) {
+    RNFSManager.stopUpload(jobId);
   },
 
   MainBundlePath: RNFSManager.MainBundlePath,
