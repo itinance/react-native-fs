@@ -291,37 +291,37 @@ Abort the current download job with this ID. The partial file will remain on the
 
 ### `promise uploadFiles(url, files, options [, beginCallback, progressCallback])`
 
-`url` (`String`) - URL of server to upload file to
-`files` (`Array`) - An array of objects with the file information to be uploaded.
-  [
-    {
-      `name` (`String`) - (Optional) Name of the file, if not defined then `filename` is used
-      `filename` (`String`) - Name of file
-      `filepath` (`String`) - Path to file
-      `mimetype` (`String`) - (Optional) The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
-    },{
-      ...
-    }
-  ]
-`options` (`Object`)
-  {
-    `method` (`String`) - (Optional) Default is 'POST', supports 'POST' and 'PUT'
-    `headers` (`Object`) - (Optional) An object of headers to be passed to the server
-    `fields` (`Object`) - (Optional) An object of fields to be passed to the server
-  }
+`url` (`String`) - URL of server to upload file to  
+`files` (`Array`) - An array of objects with the file information to be uploaded.  
+
+	[
+		{
+			name (String) - (Optional) Name of the file, if not defined then filename is used  
+			filename (String) - Name of file  
+			filepath (String) - Path to file  
+			mimetype (String) - (Optional) The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension 
+		},{
+			...
+		}
+	]
+	
+`options` (`Object`) - An object containing optional method, headers and fields.  
+
+	{
+	    method (String) - (Optional) Default is 'POST', supports 'POST' and 'PUT'  
+	    headers (Object) - (Optional) An object of headers to be passed to the server  
+	    fields (Object) - (Optional) An object of fields to be passed to the server  
+	} 
 
 If `beginCallback` is provided, it will be invoked once upon upload has begun:
 
-{
-  `jobId` (`Number`) - The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
-}
+`jobId` (`Number`) - The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.   
 
 If `progressCallback` is provided, it will be invoked continuously and passed a single object with the following properties:
 
-{
-  `totalBytesExpectedToSend` (`Number`) - The total number of bytes that will be sent to the server
-  `totalBytesSent` (`Number`) - The number of bytes sent to the server
-}
+`totalBytesExpectedToSend` (`Number`) - The total number of bytes that will be sent to the server  
+`totalBytesSent` (`Number`) - The number of bytes sent to the server  
+
 
 Percentage can be computed easily by dividing `totalBytesSent` by `totalBytesExpectedToSend`.
 
