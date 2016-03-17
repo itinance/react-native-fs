@@ -56,6 +56,14 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
   callback(@[[NSNull null], contents]);
 }
 
+RCT_EXPORT_METHOD(exists:(NSString *)filepath
+                  callback:(RCTResponseSenderBlock)callback)
+{
+  BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filepath];
+
+  callback(@[[NSNull null], [NSNumber numberWithBool:fileExists]]);
+}
+
 RCT_EXPORT_METHOD(stat:(NSString *)filepath
                   callback:(RCTResponseSenderBlock)callback)
 {

@@ -15,6 +15,7 @@ var base64 = require('base-64');
 var utf8 = require('utf8');
 
 var _readDir = Promise.promisify(RNFSManager.readDir);
+var _exists = Promise.promisify(RNFSManager.exists);
 var _stat = Promise.promisify(RNFSManager.stat);
 var _readFile = Promise.promisify(RNFSManager.readFile);
 var _writeFile = Promise.promisify(RNFSManager.writeFile);
@@ -80,6 +81,11 @@ var RNFS = {
           isDirectory: () => result.type === NSFileTypeDirectory,
         };
       })
+      .catch(convertError);
+  },
+  
+  exists(filepath) {
+    return _exists(filepath)
       .catch(convertError);
   },
 
