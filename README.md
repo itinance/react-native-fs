@@ -41,6 +41,8 @@ dependencies {
 ```
 
 * register module (in MainActivity.java)
+ 
+  * For react-native below 0.19.0 (use `cat ./node_modules/react-native/package.json | grep version`)
 
 ```java
 import com.rnfs.RNFSPackage;  // <--- import
@@ -72,6 +74,21 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
   ......
 
 }
+```
+
+  * For react-native 0.19.0 and higher
+```java
+import com.rnfs.RNFSPackage; // <------- add package
+
+public class MainActivity extends ReactActivity {
+   // ...
+    @Override
+    protected List<ReactPackage> getPackages() {
+      return Arrays.<ReactPackage>asList(
+        new MainReactPackage(), // <---- add comma
+        new RNFSPackage() // <---------- add package
+      );
+    }
 ```
 
 ## Examples
@@ -260,6 +277,12 @@ Unlinks the item at `filepath`. If the item does not exist, an error will be thr
 The promise resolves with an array, which contains a boolean and the path that has been unlinked. Tip: use `spread` to receive the two arguments instead of a single array in your handler.
 
 Also recursively deletes directories (works like Linux `rm -rf`).
+
+### `promise exists(filepath)`
+
+check if the item exist at `filepath`. If the item does not exist, return false.
+
+The promise resolves with boolean.
 
 ### `promise mkdir(filepath [, excludeFromBackup])`
 
