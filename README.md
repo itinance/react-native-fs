@@ -12,7 +12,7 @@ npm install react-native-fs --save
 
 In XCode, in the project navigator, right click Libraries ➜ Add Files to [your project's name] Go to node_modules ➜ react-native-fs and add the .xcodeproj file
 
-In XCode, in the project navigator, select your project. Add the lib*.a from the RNFS project to your project's Build Phases ➜ Link Binary With Libraries Click .xcodeproj file you added before in the project navigator and go the Build Settings tab. Make sure 'All' is toggled on (instead of 'Basic'). Look for Header Search Paths and make sure it contains both $(SRCROOT)/../react-native/React and $(SRCROOT)/../../React - mark both as recursive.
+In XCode, in the project navigator, select your project. Add the `lib*.a` from the RNFS project to your project's Build Phases ➜ Link Binary With Libraries Click .xcodeproj file you added before in the project navigator and go the Build Settings tab. Make sure 'All' is toggled on (instead of 'Basic'). Look for Header Search Paths and make sure it contains both `$(SRCROOT)/../react-native/React` and `$(SRCROOT)/../../React` - mark both as recursive.
 
 Run your project (Cmd+R)
 
@@ -317,24 +317,28 @@ Abort the current download job with this ID. The partial file will remain on the
 `url` (`String`) - URL of server to upload file to
 `files` (`Array`) - An array of objects with the file information to be uploaded.
 
-	[
-		{
-			name (String) - (Optional) Name of the file, if not defined then filename is used
-			filename (String) - Name of file
-			filepath (String) - Path to file
-			mimetype (String) - (Optional) The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
-		},{
-			...
-		}
-	]
+```
+[
+  {
+    name (String) - (Optional) Name of the file, if not defined then filename is used
+    filename (String) - Name of file
+    filepath (String) - Path to file
+    mimetype (String) - (Optional) The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
+  },{
+    ...
+  }
+]
+```
 
 `options` (`Object`) - An object containing optional method, headers and fields.
 
-	{
-	    method (String) - (Optional) Default is 'POST', supports 'POST' and 'PUT'
-	    headers (Object) - (Optional) An object of headers to be passed to the server
-	    fields (Object) - (Optional) An object of fields to be passed to the server
-	}
+```
+{
+  method (String) - (Optional) Default is 'POST', supports 'POST' and 'PUT'
+  headers (Object) - (Optional) An object of headers to be passed to the server
+  fields (Object) - (Optional) An object of fields to be passed to the server
+}
+```
 
 If `beginCallback` is provided, it will be invoked once upon upload has begun:
 
