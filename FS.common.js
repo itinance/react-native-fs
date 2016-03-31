@@ -15,6 +15,7 @@ var base64 = require('base-64');
 var utf8 = require('utf8');
 
 var _readDir = Promise.promisify(RNFSManager.readDir);
+var _exists = Promise.promisify(RNFSManager.exists);
 var _stat = Promise.promisify(RNFSManager.stat);
 var _readFile = Promise.promisify(RNFSManager.readFile);
 var _writeFile = Promise.promisify(RNFSManager.writeFile);
@@ -24,6 +25,21 @@ var _mkdir = Promise.promisify(RNFSManager.mkdir);
 var _downloadFile = Promise.promisify(RNFSManager.downloadFile);
 var _uploadFiles = Promise.promisify(RNFSManager.uploadFiles);
 var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
+
+var NATIVE_ADD_LISTENER_AVAILABLE = !!NativeAppEventEmitter.addListener;
+var DEVICE_EVENT_EMITTER_LISTENER_AVAILABLE = !!DeviceEventEmitter.addListener;
+
+var addListener;
+
+if (NATIVE_ADD_LISTENER_AVAILABLE) {
+  addListener = (event, cb) => {
+    return NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, begin);
+  };
+} else if (DEVICE_EVENT_EMITTER_LISTENER_AVAILABLE) {
+  addListener = (event, cb) => {
+    return DeviceEventEmitter.addListener('DownloadBegin-' + jobId, begin);
+  }
+}
 
 var convertError = (err) => {
   if (err.isOperational && err.cause) {
@@ -81,6 +97,11 @@ var RNFS = {
           isDirectory: () => result.type === NSFileTypeDirectory,
         };
       })
+      .catch(convertError);
+  },
+
+  exists(filepath) {
+    return _exists(filepath)
       .catch(convertError);
   },
 
@@ -147,31 +168,25 @@ var RNFS = {
 
   downloadFile(fromUrl, toFile, begin, progress) {
     var jobId = getJobId();
-    var subscriptionIos, subscriptionAndroid;
+    var subscription;
 
     if (!begin) begin = (info) => {
       console.log('Download begun:', info);
     };
 
     if (begin) {
-      // Two different styles of subscribing to events for different platforms, hmmm....
-      if (NativeAppEventEmitter.addListener)
-        subscriptionIos = NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, begin);
-      if (DeviceEventEmitter.addListener)
-        subscriptionAndroid = DeviceEventEmitter.addListener('DownloadBegin-' + jobId, begin);
+      subscription = addListener('DownloadBegin-' + jobId, begin);
     }
 
     if (progress) {
-      if (NativeAppEventEmitter.addListener)
-        subscriptionIos = NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, progress);
-      if (DeviceEventEmitter.addListener)
-        subscriptionAndroid = DeviceEventEmitter.addListener('DownloadProgress-' + jobId, progress);
+      subscription = addListener('DownloadProgress-' + jobId, progress);
     }
 
     return _downloadFile(fromUrl, toFile, jobId)
       .then(res => {
-        if (subscriptionIos) subscriptionIos.remove();
-        if (subscriptionAndroid) subscriptionAndroid.remove();
+        if (subscription) {
+          subscription.remove();
+        }
         return res;
       })
       .catch(convertError);
@@ -183,29 +198,29 @@ var RNFS = {
 
   uploadFiles(toUrl, files, options, begin, progress) {
     var jobId = getJobId();
-    var subscriptionIos;
+    var subscription;
 
     if (!begin) begin = (info) => {
       console.log('Upload begun:', info);
     };
 
     if (begin) {
-      if (NativeAppEventEmitter.addListener)
-        subscriptionIos = NativeAppEventEmitter.addListener('UploadBegin-' + jobId, begin);
+      subscription = addListener('UploadBegin-' + jobId, begin)
     }
 
     if (progress) {
-      if (NativeAppEventEmitter.addListener)
-        subscriptionIos = NativeAppEventEmitter.addListener('UploadProgress-' + jobId, progress);
+      subscription = addListener('UploadProgress-' + jobId, progress);
     }
 
-    if(typeof options != "object") {
+    if(typeof options !== "object") {
       options = {};
     }
 
     return _uploadFiles(toUrl, files, options, jobId)
       .then(res => {
-        if (subscriptionIos) subscriptionIos.remove();
+        if (subscription) {
+          subscription.remove();
+        }
         return res;
       });
   },
