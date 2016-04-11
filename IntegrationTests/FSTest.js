@@ -63,7 +63,7 @@ function testWriteAndReadFile() {
 
 
 function testCreateAndDeleteFile() {
-  var path = RNFS.ExternalDirectoryPath + '/test.txt';
+  var path = RNFS.DocumentDirectoryPath + '/test.txt';
   var text = 'Lorem ipsum dolor sit amet';
   var readText;
 
