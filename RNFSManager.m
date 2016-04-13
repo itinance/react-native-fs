@@ -161,14 +161,14 @@ RCT_EXPORT_METHOD(moveFile:(NSString *)filepath
                   callback:(RCTResponseSenderBlock)callback)
 {
     NSFileManager *manager = [NSFileManager defaultManager];
-    
+
     NSError *error = nil;
     BOOL success = [manager moveItemAtPath:filepath toPath:destPath error:&error];
-    
+
     if (!success) {
         return callback([self makeErrorPayload:error]);
     }
-    
+
     callback(@[[NSNull null], [NSNumber numberWithBool:success], destPath]);
 }
 
@@ -177,9 +177,9 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
                   jobId:(nonnull NSNumber *)jobId
                   callback:(RCTResponseSenderBlock)callback)
 {
-  
+
   DownloadParams* params = [DownloadParams alloc];
-  
+
   params.fromUrl = urlStr;
   params.toFile = filepath;
 
@@ -195,7 +195,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
   params.errorCallback = ^(NSError* error) {
     return callback([self makeErrorPayload:error]);
   };
-  
+
   params.beginCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSDictionary* headers) {
     [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadBegin-%@", jobId]
                                                  body:@{@"jobId": jobId,
@@ -203,26 +203,27 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
                                                         @"contentLength": contentLength,
                                                         @"headers": headers}];
   };
-  
+
   params.progressCallback = ^(NSNumber* contentLength, NSNumber* bytesWritten) {
     [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadProgress-%@", jobId]
-                                                 body:@{@"contentLength": contentLength,
+                                                 body:@{@"jobId": jobId,
+                                                        @"contentLength": contentLength,
                                                         @"bytesWritten": bytesWritten}];
   };
 
   if (!self.downloaders) self.downloaders = [[NSMutableDictionary alloc] init];
-  
+
   Downloader* downloader = [Downloader alloc];
 
   [downloader downloadFile:params];
-  
+
   [self.downloaders setValue:downloader forKey:[jobId stringValue]];
 }
 
 RCT_EXPORT_METHOD(stopDownload:(nonnull NSNumber *)jobId)
 {
   Downloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
-  
+
   if (downloader != nil) {
     [downloader stopDownload];
   }
