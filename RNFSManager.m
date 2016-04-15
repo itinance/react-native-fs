@@ -37,23 +37,34 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
 
   NSArray *contents = [fileManager contentsOfDirectoryAtPath:dirPath error:&error];
 
-  contents = [contents rnfs_mapObjectsUsingBlock:^id(NSString *obj, NSUInteger idx) {
-    NSString *path = [dirPath stringByAppendingPathComponent:obj];
-    NSDictionary *attributes = [fileManager attributesOfItemAtPath:path error:nil];
+  NSMutableArray <NSDictionary*> *result = [NSMutableArray arrayWithCapacity:contents.count];
 
-    return @{
-      @"name": obj,
+  for (int i = 0; i < contents.count; i++) {
+    NSString *name = contents[i];
+    if ([name characterAtIndex:0] == '.') {
+      continue;
+    }
+    NSError *attributesError = nil;
+    NSString *path = [dirPath stringByAppendingPathComponent:name];
+    NSDictionary *attributes = [fileManager attributesOfItemAtPath:path error:&attributesError];
+    if (attributesError != nil) {
+      continue;
+    }
+
+    NSDictionary *dict = @{
+      @"name": name,
       @"path": path,
       @"size": [attributes objectForKey:NSFileSize],
       @"type": [attributes objectForKey:NSFileType]
     };
-  }];
+    [result addObject:dict];
+  }
 
   if (error) {
     return callback([self makeErrorPayload:error]);
   }
 
-  callback(@[[NSNull null], contents]);
+  callback(@[[NSNull null], result]);
 }
 
 RCT_EXPORT_METHOD(exists:(NSString *)filepath
