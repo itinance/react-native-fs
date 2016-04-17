@@ -170,7 +170,7 @@ The following constants are available on the `RNFS` export:
 
 `MainBundlePath` (`String`) The absolute path to the main bundle directory  
 `CachesDirectoryPath` (`String`) The absolute path to the caches directory  
-`DocumentDirectoryPath`  (`String`) The absolute path to the document directory
+`DocumentDirectoryPath`  (`String`) The absolute path to the document directory     
 `ExternalDirectoryPath` (`String`) The absolute path to the external, shared directory (android only)
 
 ### `promise readDir(path)`
