@@ -258,11 +258,12 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         WritableMap fileMap = Arguments.createMap();
 
         fileMap.putString("name", childFile);
-        fileMap.putString("path", childFile);
+        String path = String.format("%s/%s", directory, childFile);
+        fileMap.putString("path", path);
         int length = 0;
         boolean isDirectory = false;
         try {
-          AssetFileDescriptor assetFileDescriptor = assetManager.openFd(childFile);
+          AssetFileDescriptor assetFileDescriptor = assetManager.openFd(path);
           if (assetFileDescriptor != null) {
             length = (int) assetFileDescriptor.getLength();
             assetFileDescriptor.close();
