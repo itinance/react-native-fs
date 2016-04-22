@@ -168,6 +168,20 @@ var RNFS = {
     });
   },
 
+  // Android-only
+  readDirAssets(dirpath): Promise<ReadDirItem[]> {
+    return RNFSManager.readDirAssets(dirpath).then(files => {
+          return files.map(file => ({
+            name: file.name,
+            path: file.path,
+            size: file.size,
+            isFile: () => file.type === NSFileTypeRegular,
+            isDirectory: () => file.type === NSFileTypeDirectory,
+          }));
+        })
+        .catch(convertError)
+  },
+
   // Node style version (lowercase d). Returns just the names
   readdir(dirpath: string): Promise<string[]> {
     return RNFS.readDir(normalizeFilePath(dirpath)).then(files => {
