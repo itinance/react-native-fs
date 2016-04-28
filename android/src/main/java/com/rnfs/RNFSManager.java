@@ -129,6 +129,36 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void readFileAssets(String filepath, Callback callback) {
+    InputStream stream = null;
+    try {
+      // ensure isn't a directory
+      AssetManager assetManager = getReactApplicationContext().getAssets();
+      stream = assetManager.open(filepath, 0);
+      if (stream == null) {
+        callback.invoke(makeErrorPayload(new Exception("Failed to open file")));
+        return;
+      }
+
+      byte[] buffer = new byte[stream.available()];
+      stream.read(buffer);
+      String base64Content = Base64.encodeToString(buffer, Base64.NO_WRAP);
+
+      callback.invoke(null, base64Content);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      callback.invoke(makeErrorPayload(ex));
+    } finally {
+      if (stream != null) {
+        try {
+          stream.close();
+        } catch (IOException ignored) {
+        }
+      }
+    }
+  }
+
+  @ReactMethod
   public void hash(String filepath, String algorithm, Promise promise) {
     try {
       Map<String, String> algorithms = new HashMap<>();

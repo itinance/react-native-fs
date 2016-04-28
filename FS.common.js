@@ -232,6 +232,12 @@ var RNFS = {
     });
   },
 
+
+  // Android only
+  readFileAssets(filepath, encoding) {
+    return readFileActual(filepath, encoding, _readFileAssets);
+  },
+
   hash(filepath: string, algorithm: string): Promise<string> {
     return RNFSManager.hash(filepath, algorithm);
   },
