@@ -301,6 +301,19 @@ type ReadDirItem = {
 
 Node.js style version of `readDir` that returns only the names. Note the lowercase `d`.
 
+### `promise readDirAssets(path)`
+
+Reads the contents of `path` in the Android app's assets folder.
+`path` is the relative path to the file from the root of the `assets` folder.
+
+The returned promise resolves with an array of objects with the following properties:
+
+`name` (`String`) - The name of the item
+`path` (`String`) - The absolute path to the item
+`size` (`Number`) - Size in bytes. Note that the size of files compressed during the creation of the APK (such as JSON files) cannot be determined. `size` will be set to -1 in this case.
+
+Note: Android only.
+
 ### `stat(filepath: string): Promise<StatResult>`
 
 Stats an item at `path`.
@@ -322,6 +335,14 @@ type StatResult = {
 Reads the file at `path` and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
 Note: you will take quite a performance hit if you are reading big files
+
+### `promise readFileAssets(path, [, encoding]`
+
+Reads the file at `path` in the Android app's assets folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+
+`path` is the relative path to the file from the root of the `assets` folder.
+
+Note: Android only.
 
 ### `writeFile(filepath: string, contents: string, encoding?: string): Promise<void>`
 
