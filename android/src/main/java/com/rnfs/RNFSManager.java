@@ -288,7 +288,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         WritableMap fileMap = Arguments.createMap();
 
         fileMap.putString("name", childFile);
-        String path = String.format("%s/%s", directory, childFile);
+        String path = directory.isEmpty() ? childFile : String.format("%s/%s", directory, childFile); // don't allow / at the start when directory is ""
         fileMap.putString("path", path);
         int length = 0;
         boolean isDirectory = false;
