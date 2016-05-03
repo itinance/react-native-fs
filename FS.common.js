@@ -242,6 +242,15 @@ var RNFS = {
     return RNFSManager.hash(filepath, algorithm);
   },
 
+  // Android only
+  copyFileAssets(filepath, destination) {
+    if (!_copyFileAssets) {
+      throw new Error("Not available on this platform");
+    }
+    return _copyFileAssets(filepath, destination)
+        .catch(convertError);
+  },
+
   writeFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
     var b64;
 

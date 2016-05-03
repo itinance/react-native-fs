@@ -316,6 +316,62 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void copyFileAssets(String assetPath, String destination, Callback callback) {
+    AssetManager assetManager = getReactApplicationContext().getAssets();
+
+    InputStream in = null;
+    OutputStream out = null;
+    try {
+      try {
+        in = assetManager.open(assetPath);
+      } catch (IOException e) {
+        // Default error message is just asset name, so make a more helpful error here.
+        callback.invoke(makeErrorPayload(new Exception(String.format("Asset '%s' could not be opened", assetPath))));
+        return;
+      }
+
+      File outFile = new File(destination);
+      try {
+        out = new FileOutputStream(outFile);
+      } catch (FileNotFoundException e) {
+        callback.invoke(makeErrorPayload(e));
+        return;
+      }
+
+      try {
+        copyFile(in, out);
+      } catch (IOException e) {
+        callback.invoke(makeErrorPayload(new Exception(String.format("Failed to copy '%s' to %s (%s)", assetPath, destination, e.getLocalizedMessage()))));
+      }
+
+      // Success!
+      callback.invoke();
+
+    } finally {
+      if (in != null) {
+        try {
+          in.close();
+        } catch (IOException ignored) {
+        }
+      }
+      if (out != null) {
+        try {
+          out.close();
+        } catch (IOException ignored) {
+        }
+      }
+    }
+  }
+
+  private void copyFile(InputStream in, OutputStream out) throws IOException {
+    byte[] buffer = new byte[1024*10]; // 10k buffer
+    int read;
+    while((read = in.read(buffer)) != -1){
+      out.write(buffer, 0, read);
+    }
+  }
+
+  @ReactMethod
   public void stat(String filepath, Promise promise) {
     try {
       File file = new File(filepath);
