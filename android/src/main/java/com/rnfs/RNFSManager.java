@@ -315,9 +315,9 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       totalSpace = blockSize * stat.getBlockCount();
       freeSpace = blockSize * stat.getAvailableBlocks();
     }
-    HashMap info = new HashMap();
-    info.put("totalSpace", totalSpace);
-    info.put("freeSpace", freeSpace);
+    WritableMap info = Arguments.createMap();
+    info.putDouble("totalSpace", (double)totalSpace);   // Int32 too small, must use Double
+    info.putDouble("freeSpace", (double)freeSpace);
     callback.invoke(null, info);
   }
 
