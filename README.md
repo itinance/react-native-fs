@@ -56,7 +56,7 @@ dependencies {
 ```
 
 * register module (in MainActivity.java)
- 
+
   * For react-native below 0.19.0 (use `cat ./node_modules/react-native/package.json | grep version`)
 
 ```java
@@ -270,6 +270,13 @@ Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
 ### `void stopDownload(jobId)`
 
 Abort the current download job with this ID. The partial file will remain on the filesystem.
+
+### `promise getFSInfo()`
+
+Returns an object with the following properties:
+
+`totalSpace` (`Number`): The total amount of storage space on the device (in bytes).
+`freeSpace` (`Number`): The amount of available storage space on the device (in bytes).
 
 ## Test / Demo app
 
