@@ -25,6 +25,7 @@ var _mkdir = Promise.promisify(RNFSManager.mkdir);
 var _downloadFile = Promise.promisify(RNFSManager.downloadFile);
 var _uploadFiles = Promise.promisify(RNFSManager.uploadFiles);
 var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
+var _getFSInfo = Promise.promisify(RNFSManager.getFSInfo);
 
 var NATIVE_ADD_LISTENER_AVAILABLE = !!NativeAppEventEmitter.addListener;
 var DEVICE_EVENT_EMITTER_LISTENER_AVAILABLE = !!DeviceEventEmitter.addListener;
@@ -155,6 +156,11 @@ var RNFS = {
     return _pathForBundle(bundleName);
   },
 
+  getFSInfo() {
+    return _getFSInfo()
+      .catch(convertError);
+  },
+
   unlink(filepath) {
     return _unlink(filepath)
       .catch(convertError);
@@ -232,6 +238,7 @@ var RNFS = {
   MainBundlePath: RNFSManager.MainBundlePath,
   CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
   DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath,
+  ExternalDirectoryPath: RNFSManager.NSExternalDirectoryPath,
   LibraryDirectoryPath: RNFSManager.NSLibraryDirectoryPath,
   PicturesDirectoryPath: RNFSManager.NSPicturesDirectoryPath
 };
