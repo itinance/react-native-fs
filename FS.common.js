@@ -31,7 +31,11 @@ var DEVICE_EVENT_EMITTER_LISTENER_AVAILABLE = !!DeviceEventEmitter.addListener;
 
 var addListener;
 
-if (NATIVE_ADD_LISTENER_AVAILABLE || DEVICE_EVENT_EMITTER_LISTENER_AVAILABLE) {
+if (NATIVE_ADD_LISTENER_AVAILABLE) {
+  addListener = (event, cb) => {
+    return NativeAppEventEmitter.addListener(event, cb);
+  }
+} else if (DEVICE_EVENT_EMITTER_LISTENER_AVAILABLE) {
   addListener = (event, cb) => {
     return DeviceEventEmitter.addListener(event, cb);
   }
