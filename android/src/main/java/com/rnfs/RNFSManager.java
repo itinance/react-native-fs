@@ -310,7 +310,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   private void reject(Promise promise, Exception ex) {
-    promise.reject(ex.getClass().getSimpleName(), ex.getMessage());
+    promise.reject(null, ex.getMessage());
   }
 
   @Override
