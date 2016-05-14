@@ -56,7 +56,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       outputStream.write(bytes);
       outputStream.close();
 
-      promise.resolve(filepath);
+      promise.resolve(true);
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, ex);
