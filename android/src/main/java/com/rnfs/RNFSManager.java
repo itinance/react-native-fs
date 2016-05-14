@@ -228,7 +228,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
             promise.resolve(infoMap);
           } else {
-            reject(promise, ex);
+            reject(promise, res.exception);
           }
         }
       };
@@ -320,9 +320,9 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     constants.put(NSDocumentDirectoryPath, this.getReactApplicationContext().getFilesDir().getAbsolutePath());
     File externalDirectory = this.getReactApplicationContext().getExternalFilesDir(null);
     if (externalDirectory != null) {
-        constants.put(NSExternalDirectoryPath, externalDirectory.getAbsolutePath());
+      constants.put(NSExternalDirectoryPath, externalDirectory.getAbsolutePath());
     } else {
-        constants.put(NSExternalDirectoryPath, null);
+      constants.put(NSExternalDirectoryPath, null);
     }
     constants.put(NSPicturesDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath());
     constants.put(NSCachesDirectoryPath, this.getReactApplicationContext().getCacheDir().getAbsolutePath());
