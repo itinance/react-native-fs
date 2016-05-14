@@ -258,17 +258,17 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTResponseSenderBlock)callback)
 {
     unsigned long long totalSpace = 0;
     unsigned long long totalFreeSpace = 0;
-    
+
     __autoreleasing NSError *error = nil;
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSDictionary *dictionary = [[NSFileManager defaultManager] attributesOfFileSystemForPath:[paths lastObject] error: &error];
-    
+
     if (dictionary) {
         NSNumber *fileSystemSizeInBytes = [dictionary objectForKey: NSFileSystemSize];
         NSNumber *freeFileSystemSizeInBytes = [dictionary objectForKey:NSFileSystemFreeSize];
         totalSpace = [fileSystemSizeInBytes unsignedLongLongValue];
         totalFreeSpace = [freeFileSystemSizeInBytes unsignedLongLongValue];
-        
+
         callback(@[[NSNull null],
                    @{
                        @"totalSpace": [NSNumber numberWithUnsignedLongLong:totalSpace],
@@ -306,6 +306,7 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTResponseSenderBlock)callback)
     @"NSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
     @"NSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
     @"NSExternalDirectoryPath": [NSNull null],
+    @"NSTemporaryDirectoryPatg": NSTemporaryDirectory(),
     @"NSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
     @"NSFileTypeRegular": NSFileTypeRegular,
     @"NSFileTypeDirectory": NSFileTypeDirectory
