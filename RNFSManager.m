@@ -51,7 +51,7 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
   }];
 
   if (error) {
-      return [self reject:reject withError:error];
+    return [self reject:reject withError:error];
   }
 
   resolve(contents);
@@ -74,7 +74,7 @@ RCT_EXPORT_METHOD(stat:(NSString *)filepath
   NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
 
   if (error) {
-      return [self reject:reject withError:error];
+    return [self reject:reject withError:error];
   }
 
   attributes = @{
@@ -112,13 +112,13 @@ RCT_EXPORT_METHOD(unlink:(NSString*)filepath
   BOOL exists = [manager fileExistsAtPath:filepath isDirectory:false];
 
   if (!exists) {
-      return reject([NSString stringWithFormat:@"File at path %@ does not exist", filepath], nil, nil);
+    return reject([NSString stringWithFormat:@"File at path %@ does not exist", filepath], nil, nil);
   }
   NSError *error = nil;
   BOOL success = [manager removeItemAtPath:filepath error:&error];
 
   if (!success) {
-      return [self reject:reject withError:error];
+    return [self reject:reject withError:error];
   }
 
   resolve([NSNumber numberWithBool:success]);
@@ -168,16 +168,16 @@ RCT_EXPORT_METHOD(moveFile:(NSString *)filepath
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    NSFileManager *manager = [NSFileManager defaultManager];
+  NSFileManager *manager = [NSFileManager defaultManager];
 
-    NSError *error = nil;
-    BOOL success = [manager moveItemAtPath:filepath toPath:destPath error:&error];
+  NSError *error = nil;
+  BOOL success = [manager moveItemAtPath:filepath toPath:destPath error:&error];
 
-    if (!success) {
-      return [self reject:reject withError:error];
-    }
+  if (!success) {
+    return [self reject:reject withError:error];
+  }
 
-    resolve([NSNumber numberWithBool:success]);
+  resolve([NSNumber numberWithBool:success]);
 }
 
 RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
@@ -242,51 +242,51 @@ RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    NSString *path = [[NSBundle mainBundle].bundlePath stringByAppendingFormat:@"/%@.bundle", bundleNamed];
-    NSBundle *bundle = [NSBundle bundleWithPath:path];
+  NSString *path = [[NSBundle mainBundle].bundlePath stringByAppendingFormat:@"/%@.bundle", bundleNamed];
+  NSBundle *bundle = [NSBundle bundleWithPath:path];
 
-    if (!bundle) {
-        bundle = [NSBundle bundleForClass:NSClassFromString(bundleNamed)];
-        path = bundle.bundlePath;
-    }
+  if (!bundle) {
+    bundle = [NSBundle bundleForClass:NSClassFromString(bundleNamed)];
+    path = bundle.bundlePath;
+  }
 
-    if (!bundle.isLoaded) {
-        [bundle load];
-    }
+  if (!bundle.isLoaded) {
+    [bundle load];
+  }
 
-    if (path) {
-        resolve(path);
-    } else {
-        NSError *error = [NSError errorWithDomain:NSPOSIXErrorDomain
-                                             code:NSFileNoSuchFileError
-                                         userInfo:nil];
+  if (path) {
+    resolve(path);
+  } else {
+    NSError *error = [NSError errorWithDomain:NSPOSIXErrorDomain
+                                         code:NSFileNoSuchFileError
+                                     userInfo:nil];
 
-        [self reject:reject withError:error];
-    }
+    [self reject:reject withError:error];
+  }
 }
 
 RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    unsigned long long totalSpace = 0;
-    unsigned long long totalFreeSpace = 0;
+  unsigned long long totalSpace = 0;
+  unsigned long long totalFreeSpace = 0;
 
-    __autoreleasing NSError *error = nil;
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSDictionary *dictionary = [[NSFileManager defaultManager] attributesOfFileSystemForPath:[paths lastObject] error:&error];
+  __autoreleasing NSError *error = nil;
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+  NSDictionary *dictionary = [[NSFileManager defaultManager] attributesOfFileSystemForPath:[paths lastObject] error:&error];
 
-    if (dictionary) {
-        NSNumber *fileSystemSizeInBytes = [dictionary objectForKey: NSFileSystemSize];
-        NSNumber *freeFileSystemSizeInBytes = [dictionary objectForKey:NSFileSystemFreeSize];
-        totalSpace = [fileSystemSizeInBytes unsignedLongLongValue];
-        totalFreeSpace = [freeFileSystemSizeInBytes unsignedLongLongValue];
+  if (dictionary) {
+    NSNumber *fileSystemSizeInBytes = [dictionary objectForKey: NSFileSystemSize];
+    NSNumber *freeFileSystemSizeInBytes = [dictionary objectForKey:NSFileSystemFreeSize];
+    totalSpace = [fileSystemSizeInBytes unsignedLongLongValue];
+    totalFreeSpace = [freeFileSystemSizeInBytes unsignedLongLongValue];
 
-        resolve(@{
-          @"totalSpace": [NSNumber numberWithUnsignedLongLong:totalSpace],
-          @"freeSpace": [NSNumber numberWithUnsignedLongLong:totalFreeSpace]
-        });
-    } else {
-        [self reject:reject withError:error];
-    }
+    resolve(@{
+      @"totalSpace": [NSNumber numberWithUnsignedLongLong:totalSpace],
+      @"freeSpace": [NSNumber numberWithUnsignedLongLong:totalFreeSpace]
+    });
+  } else {
+    [self reject:reject withError:error];
+  }
 }
 
 - (NSNumber *)dateToTimeIntervalNumber:(NSDate *)date
