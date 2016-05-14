@@ -8,8 +8,7 @@ if (typeof self === 'undefined') {
 }
 
 var RNFSManager = require('react-native').NativeModules.RNFSManager;
-var NativeAppEventEmitter = require('react-native').NativeAppEventEmitter;  // iOS
-var DeviceEventEmitter = require('react-native').DeviceEventEmitter;        // Android
+var NativeAppEventEmitter = require('react-native').NativeAppEventEmitter;
 var Promise = require('bluebird');
 var base64 = require('base-64');
 var utf8 = require('utf8');
@@ -158,31 +157,22 @@ var RNFS = {
 
   downloadFile(fromUrl, toFile, begin, progress) {
     var jobId = getJobId();
-    var subscriptionIos, subscriptionAndroid;
-
-    if (!begin) begin = (info) => {
+    var subscriptions = [];
+    var beginListener = begin || (info) => {
       console.log('Download begun:', info);
     };
 
     if (begin) {
-      // Two different styles of subscribing to events for different platforms, hmmm....
-      if (NativeAppEventEmitter.addListener)
-        subscriptionIos = NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, begin);
-      if (DeviceEventEmitter.addListener)
-        subscriptionAndroid = DeviceEventEmitter.addListener('DownloadBegin-' + jobId, begin);
+      subscriptions.push(NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, begin));
     }
 
     if (progress) {
-      if (NativeAppEventEmitter.addListener)
-        subscriptionIos = NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, progress);
-      if (DeviceEventEmitter.addListener)
-        subscriptionAndroid = DeviceEventEmitter.addListener('DownloadProgress-' + jobId, progress);
+      subscriptions.push(NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, progress));
     }
 
     return _downloadFile(fromUrl, toFile, jobId)
       .then(res => {
-        if (subscriptionIos) subscriptionIos.remove();
-        if (subscriptionAndroid) subscriptionAndroid.remove();
+        subscriptions.forEach(sub => sub.remove());
         return res;
       })
       .catch(convertError);
