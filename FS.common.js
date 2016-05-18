@@ -196,6 +196,7 @@ var RNFS = {
   CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
   DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath,
   ExternalDirectoryPath: RNFSManager.NSExternalDirectoryPath,
+  TemporaryDirectoryPath: RNFSManager.NSTemporaryDirectoryPath,
   LibraryDirectoryPath: RNFSManager.NSLibraryDirectoryPath,
   PicturesDirectoryPath: RNFSManager.NSPicturesDirectoryPath
 };
