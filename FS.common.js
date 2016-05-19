@@ -158,9 +158,10 @@ var RNFS = {
   downloadFile(fromUrl, toFile, begin, progress) {
     var jobId = getJobId();
     var subscriptions = [];
-    var beginListener = begin || (info) => {
+    var defaultBeginListener = (info) => {
       console.log('Download begun:', info);
     };
+    var beginListener = begin || defaultBeginListener;
 
     if (begin) {
       subscriptions.push(NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, begin));
