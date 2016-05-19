@@ -333,7 +333,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     final Map<String, Object> constants = new HashMap<>();
     constants.put(NSDocumentDirectory, 0);
     constants.put(NSDocumentDirectoryPath, this.getReactApplicationContext().getFilesDir().getAbsolutePath());
-    constants.put(NSTemporaryDirectoryPath, null)
+    constants.put(NSTemporaryDirectoryPath, null);
     File externalDirectory = this.getReactApplicationContext().getExternalFilesDir(null);
     if (externalDirectory != null) {
         constants.put(NSExternalDirectoryPath, externalDirectory.getAbsolutePath());
