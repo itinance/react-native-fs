@@ -23,8 +23,24 @@ var _moveFile = Promise.promisify(RNFSManager.moveFile);
 var _unlink = Promise.promisify(RNFSManager.unlink);
 var _mkdir = Promise.promisify(RNFSManager.mkdir);
 var _downloadFile = Promise.promisify(RNFSManager.downloadFile);
+var _uploadFiles = Promise.promisify(RNFSManager.uploadFiles);
 var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
 var _getFSInfo = Promise.promisify(RNFSManager.getFSInfo);
+
+var NATIVE_ADD_LISTENER_AVAILABLE = !!NativeAppEventEmitter.addListener;
+var DEVICE_EVENT_EMITTER_LISTENER_AVAILABLE = !!DeviceEventEmitter.addListener;
+
+var addListener;
+
+if (NATIVE_ADD_LISTENER_AVAILABLE) {
+  addListener = (event, cb) => {
+    return NativeAppEventEmitter.addListener(event, cb);
+  }
+} else if (DEVICE_EVENT_EMITTER_LISTENER_AVAILABLE) {
+  addListener = (event, cb) => {
+    return DeviceEventEmitter.addListener(event, cb);
+  }
+}
 
 var convertError = (err) => {
   if (err.isOperational && err.cause) {
@@ -158,31 +174,25 @@ var RNFS = {
 
   downloadFile(fromUrl, toFile, begin, progress) {
     var jobId = getJobId();
-    var subscriptionIos, subscriptionAndroid;
+    var subscription;
 
     if (!begin) begin = (info) => {
       console.log('Download begun:', info);
     };
 
     if (begin) {
-      // Two different styles of subscribing to events for different platforms, hmmm....
-      if (NativeAppEventEmitter.addListener)
-        subscriptionIos = NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, begin);
-      if (DeviceEventEmitter.addListener)
-        subscriptionAndroid = DeviceEventEmitter.addListener('DownloadBegin-' + jobId, begin);
+      subscription = addListener('DownloadBegin-' + jobId, begin);
     }
 
     if (progress) {
-      if (NativeAppEventEmitter.addListener)
-        subscriptionIos = NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, progress);
-      if (DeviceEventEmitter.addListener)
-        subscriptionAndroid = DeviceEventEmitter.addListener('DownloadProgress-' + jobId, progress);
+      subscription = addListener('DownloadProgress-' + jobId, progress);
     }
 
     return _downloadFile(fromUrl, toFile, jobId)
       .then(res => {
-        if (subscriptionIos) subscriptionIos.remove();
-        if (subscriptionAndroid) subscriptionAndroid.remove();
+        if (subscription) {
+          subscription.remove();
+        }
         return res;
       })
       .catch(convertError);
@@ -190,6 +200,39 @@ var RNFS = {
 
   stopDownload(jobId) {
     RNFSManager.stopDownload(jobId);
+  },
+
+  uploadFiles(toUrl, files, options, begin, progress) {
+    var jobId = getJobId();
+    var subscription;
+
+    if (!begin) begin = (info) => {
+      console.log('Upload begun:', info);
+    };
+
+    if (begin) {
+      subscription = addListener('UploadBegin-' + jobId, begin)
+    }
+
+    if (progress) {
+      subscription = addListener('UploadProgress-' + jobId, progress);
+    }
+
+    if(typeof options !== "object") {
+      options = {};
+    }
+
+    return _uploadFiles(toUrl, files, options, jobId)
+      .then(res => {
+        if (subscription) {
+          subscription.remove();
+        }
+        return res;
+      });
+  },
+
+  stopUpload(jobId) {
+    RNFSManager.stopUpload(jobId);
   },
 
   MainBundlePath: RNFSManager.MainBundlePath,
