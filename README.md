@@ -115,7 +115,7 @@ public class MainActivity extends ReactActivity {
 var RNFS = require('react-native-fs');
 
 // get a list of files and directories in the main bundle
-RNFS.readDir(RNFS.MainBundlePath)
+RNFS.readDir(RNFS.PicturesDirectoryPath)
   .then((result) => {
     console.log('GOT RESULT', result);
 
