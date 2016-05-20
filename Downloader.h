@@ -16,7 +16,7 @@ typedef void (^ProgressCallback)(NSNumber*, NSNumber*);
 
 @end
 
-@interface Downloader : NSObject <NSURLConnectionDelegate>
+@interface Downloader : NSObject <NSURLSessionDelegate, NSURLSessionDownloadDelegate>
 
 - (void)downloadFile:(DownloadParams*)params;
 - (void)stopDownload;
