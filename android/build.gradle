@@ -25,10 +25,6 @@ android {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    compile 'com.facebook.react:react-native:0.12.+'
+    compile 'com.facebook.react:react-native:+'
 }
