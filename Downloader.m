@@ -32,9 +32,12 @@
   _fileHandle = [NSFileHandle fileHandleForWritingAtPath:_params.toFile];
 
   if (!_fileHandle) {
-    NSError* error = [NSError errorWithDomain:@"Downloader" code:NSURLErrorFileDoesNotExist userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat: @"Failed to create target file at path: %@", _params.toFile]}];
+    NSError* error = [NSError errorWithDomain:@"Downloader" code:NSURLErrorFileDoesNotExist
+                              userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat: @"Failed to create target file at path: %@", _params.toFile]}];
 
     return _params.errorCallback(error);
+  } else {
+    [_fileHandle closeFile];
   }
 
   NSURLSessionConfiguration *config;
@@ -47,36 +50,37 @@
   [_task resume];
 }
 
-- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didReceiveResponse:(NSURLResponse *)response
+- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
 {
   NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)downloadTask.response;
-  _statusCode = [NSNumber numberWithLong:httpResponse.statusCode];
-  _contentLength = [NSNumber numberWithLong:httpResponse.expectedContentLength];
+  if (!_statusCode) {
+    _statusCode = [NSNumber numberWithLong:httpResponse.statusCode];
+    _contentLength = [NSNumber numberWithLong:httpResponse.expectedContentLength];
+    return _params.beginCallback(_statusCode, _contentLength, httpResponse.allHeaderFields);
+  }
 
-  return _params.beginCallback(_statusCode, _contentLength, httpResponse.allHeaderFields);
-}
-
-- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didWriteData:(NSData *)data
-{
   if ([_statusCode isEqualToNumber:[NSNumber numberWithInt:200]]) {
-    [_fileHandle writeData:data];
-
-    _bytesWritten = [NSNumber numberWithUnsignedInteger:[_bytesWritten unsignedIntegerValue] + data.length];
-
+    _bytesWritten = @(totalBytesWritten);
     return _params.progressCallback(_contentLength, _bytesWritten);
   }
 }
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location
 {
-  [_fileHandle closeFile];
+  NSURL *destURL = [NSURL fileURLWithPath:_params.toFile];
+  NSFileManager *fm = [NSFileManager defaultManager];
+  NSError *error = nil;
+  [fm removeItemAtURL:destURL error:nil];       // Remove file at destination path, if it exists
+  [fm moveItemAtURL:location toURL:destURL error:&error];
+  if (error) {
+    NSLog(@"RNFS download: unable to move tempfile to destination. %@, %@", error, error.userInfo);
+  }
 
   return _params.completeCallback(_statusCode, _bytesWritten);
 }
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionTask *)downloadTask didCompleteWithError:(NSError *)error
 {
-  [_fileHandle closeFile];
   return _params.errorCallback(error);
 }
 
