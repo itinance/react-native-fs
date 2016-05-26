@@ -306,7 +306,7 @@ Create a directory at `filepath`. Automatically creates parents and does not thr
 
 IOS only: If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` attribute will be set. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
-### `promise downloadFile(url, filepath [, beginCallback, progressCallback])`
+### `promise downloadFile(url, filepath [, beginCallback, progressCallback, options])`
 
 Download file from `url` to `filepath`. Will overwrite any previously existing file.
 
@@ -323,6 +323,14 @@ If `progressCallback` is provided, it will be invoked continuously and passed a 
 `bytesWritten` (`Number`) - The number of bytes written to the file so far
 
 Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
+
+If `options` is provided, it can contain the following property:
+
+`background` (`Boolean`) - Whether to continue downloads when the app is not focused (default: `false`)
+                           This option is currently only available for iOS, and you must [enable
+                           background fetch](https://www.objc.io/issues/5-ios7/multitasking/#background-fetch<Paste>)
+                           for your project in XCode.
+
 
 ### `void stopDownload(jobId)`
 

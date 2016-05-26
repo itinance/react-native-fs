@@ -41,9 +41,11 @@
   }
 
   NSURLSessionConfiguration *config;
-  config = [NSURLSessionConfiguration defaultSessionConfiguration];
-  // TODO: use the following config for session objects:
-  //config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:fromUrl];
+  if (_params.background) {
+    config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:_params.fromUrl];
+  } else {
+    config = [NSURLSessionConfiguration defaultSessionConfiguration];
+  }
 
   _session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:nil];
   _task = [_session downloadTaskWithURL:url];

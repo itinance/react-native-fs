@@ -156,7 +156,7 @@ var RNFS = {
       .catch(convertError);
   },
 
-  downloadFile(fromUrl, toFile, begin, progress) {
+  downloadFile(fromUrl, toFile, begin, progress, options = {}) {
     var jobId = getJobId();
     var subscriptions = [];
 
@@ -168,7 +168,7 @@ var RNFS = {
       subscriptions.push(NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, progress));
     }
 
-    return _downloadFile(fromUrl, toFile, jobId)
+    return _downloadFile(fromUrl, toFile, jobId, options)
       .then(res => {
         subscriptions.forEach(sub => sub.remove());
         return res;
