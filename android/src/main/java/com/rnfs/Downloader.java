@@ -13,6 +13,8 @@ import java.net.HttpURLConnection;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import android.util.Log;
+
 import android.os.AsyncTask;
 
 public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult> {
