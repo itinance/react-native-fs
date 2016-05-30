@@ -182,7 +182,7 @@ var RNFS = {
 
   uploadFiles(options) {
     var jobId = getJobId();
-    var subscription;
+    var subscriptions = [];
 
     if (typeof options !== 'object') throw new Error('uploadFiles: Invalid value for argument `options`');
     if (typeof options.toUrl !== 'string') throw new Error('uploadFiles: Invalid value for property `toUrl`');
@@ -191,16 +191,12 @@ var RNFS = {
     if (options.fields && typeof options.fields !== 'object') throw new Error('uploadFiles: Invalid value for property `fields`');
     if (options.method && typeof options.method !== 'string') throw new Error('uploadFiles: Invalid value for property `method`');
 
-    if (!options.beginCallback) beginCallback = (info) => {
-      console.log('Upload begun:', info);
-    };
-
     if (options.beginCallback) {
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadBegin-' + jobId, begin));
+      subscriptions.push(NativeAppEventEmitter.addListener('UploadBegin-' + jobId, options.beginCallback));
     }
 
     if (options.progressCallback) {
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadProgress-' + jobId, progress));
+      subscriptions.push(NativeAppEventEmitter.addListener('UploadProgress-' + jobId, options.progressCallback));
     }
 
     var bridgeOptions = {
@@ -214,9 +210,7 @@ var RNFS = {
 
     return _uploadFiles(bridgeOptions)
       .then(res => {
-        if (subscription) {
-          subscription.remove();
-        }
+        subscriptions.forEach(sub => sub.remove());
         return res;
       });
   },
