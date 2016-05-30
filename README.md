@@ -177,7 +177,7 @@ return RNFS.unlink(path)
   });
 ```
 
-### File upload
+### File upload (iOS only)
 
 ```javascript
 // require the module
@@ -328,7 +328,7 @@ Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
 
 Abort the current download job with this ID. The partial file will remain on the filesystem.
 
-### `promise uploadFiles(url, files, options [, beginCallback, progressCallback])`
+### `promise uploadFiles(url, files, options [, beginCallback, progressCallback])` [iOS only]
 
 `url` (`String`) - URL of server to upload file to
 `files` (`Array`) - An array of objects with the file information to be uploaded.
@@ -367,7 +367,7 @@ If `progressCallback` is provided, it will be invoked continuously and passed a 
 
 Percentage can be computed easily by dividing `totalBytesSent` by `totalBytesExpectedToSend`.
 
-### `void stopUpload(jobId)`
+### `void stopUpload(jobId)` [iOS only]
 
 Abort the current upload job with this ID.
 
