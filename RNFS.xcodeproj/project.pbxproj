@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8BB364CC1CDA130000435A01 /* Uploader.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BB364CB1CDA130000435A01 /* Uploader.m */; };
 		8BF740771C033A2E0057A1E7 /* Downloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BF740761C033A2E0057A1E7 /* Downloader.m */; };
 		F1E59BDF1ADD662800ACA28A /* RNFSManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E59BDE1ADD662800ACA28A /* RNFSManager.m */; };
 		F1EB08BB1AFD0E6A008F8F2B /* NSArray+Map.m in Sources */ = {isa = PBXBuildFile; fileRef = F1EB08BA1AFD0E6A008F8F2B /* NSArray+Map.m */; };
@@ -25,6 +26,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		8BB364CA1CDA130000435A01 /* Uploader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Uploader.h; sourceTree = "<group>"; };
+		8BB364CB1CDA130000435A01 /* Uploader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Uploader.m; sourceTree = "<group>"; };
 		8BF740751C033A2E0057A1E7 /* Downloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Downloader.h; sourceTree = "<group>"; };
 		8BF740761C033A2E0057A1E7 /* Downloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Downloader.m; sourceTree = "<group>"; };
 		F12AFB9B1ADAF8F800E0535D /* libRNFS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNFS.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -54,6 +57,8 @@
 				F1E59BDE1ADD662800ACA28A /* RNFSManager.m */,
 				8BF740751C033A2E0057A1E7 /* Downloader.h */,
 				8BF740761C033A2E0057A1E7 /* Downloader.m */,
+				8BB364CA1CDA130000435A01 /* Uploader.h */,
+				8BB364CB1CDA130000435A01 /* Uploader.m */,
 				F12AFB9C1ADAF8F800E0535D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -123,6 +128,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F1E59BDF1ADD662800ACA28A /* RNFSManager.m in Sources */,
+				8BB364CC1CDA130000435A01 /* Uploader.m in Sources */,
 				F1EB08BB1AFD0E6A008F8F2B /* NSArray+Map.m in Sources */,
 				8BF740771C033A2E0057A1E7 /* Downloader.m in Sources */,
 			);
