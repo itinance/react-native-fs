@@ -23,7 +23,7 @@
 - (void)downloadFile:(DownloadParams*)params
 {
   _params = params;
-  
+
   _bytesWritten = 0;
 
   NSURL* url = [NSURL URLWithString:_params.fromUrl];
@@ -62,7 +62,7 @@
 
   _statusCode = [NSNumber numberWithLong:httpUrlResponse.statusCode];
   _contentLength = [NSNumber numberWithLong: httpUrlResponse.expectedContentLength];
-  
+
   return _params.beginCallback(_statusCode, _contentLength, httpUrlResponse.allHeaderFields);
 }
 
@@ -71,17 +71,19 @@
   if ([_statusCode isEqualToNumber:[NSNumber numberWithInt:200]]) {
     [_fileHandle writeData:data];
 
-    _bytesWritten = [NSNumber numberWithUnsignedInteger:[_bytesWritten unsignedIntegerValue] + data.length];
+    _bytesWritten = [NSNumber numberWithLong:[_bytesWritten longValue] + data.length];
 
     if (_params.progressDivider <= 1) {
         return _params.progressCallback(_contentLength, _bytesWritten);
     } else {
-        NSLog(@"---Progress callback---");
-        long double progress = Math.round(((double) _bytesWritten * 100) / _contentLength);
-        if (progress % param.progressDivider == 0) {
-            if ((progress != _lastProgressValue) || (_bytesWritten == _contentLength)) {
-                NSLog(@"---Progress callback EMIT--- %zu", progress);
-                _lastProgressValue = [NSNumber numberWithLong:progress];
+        double doubleBytesWritten = (double)[_bytesWritten longValue];
+        double doubleContentLength = (double)[_contentLength longValue];
+        double doublePercents = doubleBytesWritten / doubleContentLength * 100;
+        NSNumber* progress = [NSNumber numberWithUnsignedInt: floor(doublePercents)];
+        if ([progress unsignedIntValue] % [_params.progressDivider integerValue] == 0) {
+            if (([progress unsignedIntValue] != [_lastProgressValue unsignedIntValue]) || ([_bytesWritten unsignedIntegerValue] == [_contentLength longValue])) {
+                NSLog(@"---Progress callback EMIT--- %zu", [progress unsignedIntValue]);
+                _lastProgressValue = [NSNumber numberWithUnsignedInt:[progress unsignedIntValue]];
                 return _params.progressCallback(_contentLength, _bytesWritten);
             }
         }
