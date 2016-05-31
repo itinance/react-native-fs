@@ -250,7 +250,7 @@ Create a directory at `filepath`. Automatically creates parents and does not thr
 
 IOS only: If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` attribute will be set. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
-### `promise downloadFile(url, filepath [, beginCallback, progressCallback])`
+### `promise downloadFile(url, filepath [, beginCallback, progressCallback, progressDivider])`
 
 Download file from `url` to `filepath`. Will overwrite any previously existing file.
 
@@ -264,9 +264,13 @@ If `beginCallback` is provided, it will be invoked once upon download starting w
 If `progressCallback` is provided, it will be invoked continuously and passed a single argument with the following properties:
 
 `contentLength` (`Number`) - The total size in bytes of the download resource  
-`bytesWritten` (`Number`) - The number of bytes written to the file so far  
+`bytesWritten` (`Number`) - The number of bytes written to the file so far
 
-Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
+If `progressDivider`(`Number`) is provided, it will return progress events that divided by progressDivider
+
+For example, if `progressDivider` = 10, you will receive only ten callbacks for this values of progress: 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+Use it for performance issues.
+If `progressDivider` = 1, you will receive all `progressCallback` calls, default value is 1.
 
 ### `void stopDownload(jobId)`
 
