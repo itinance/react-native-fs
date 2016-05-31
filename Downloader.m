@@ -10,6 +10,7 @@
 
 @property (retain) NSURLConnection* connection;
 @property (retain) NSNumber* statusCode;
+@property (retain) NSNumber* lastProgressValue;
 @property (retain) NSNumber* contentLength;
 @property (retain) NSNumber* bytesWritten;
 
@@ -72,7 +73,19 @@
 
     _bytesWritten = [NSNumber numberWithUnsignedInteger:[_bytesWritten unsignedIntegerValue] + data.length];
 
-    return _params.progressCallback(_contentLength, _bytesWritten);
+    if (_params.progressDivider <= 1) {
+        return _params.progressCallback(_contentLength, _bytesWritten);
+    } else {
+        NSLog(@"---Progress callback---");
+        long double progress = Math.round(((double) _bytesWritten * 100) / _contentLength);
+        if (progress % param.progressDivider == 0) {
+            if ((progress != _lastProgressValue) || (_bytesWritten == _contentLength)) {
+                NSLog(@"---Progress callback EMIT--- %zu", progress);
+                _lastProgressValue = [NSNumber numberWithLong:progress];
+                return _params.progressCallback(_contentLength, _bytesWritten);
+            }
+        }
+    }
   }
 }
 

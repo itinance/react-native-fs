@@ -175,6 +175,7 @@ RCT_EXPORT_METHOD(moveFile:(NSString *)filepath
 RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
                   filepath:(NSString *)filepath
                   jobId:(nonnull NSNumber *)jobId
+                  progressDivider:(nonnull NSNumber *)progressDivider
                   callback:(RCTResponseSenderBlock)callback)
 {
 
@@ -182,6 +183,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
 
   params.fromUrl = urlStr;
   params.toFile = filepath;
+  params.progressDivider = progressDivider;
 
   params.callback = ^(NSNumber* statusCode, NSNumber* bytesWritten) {
     NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,

@@ -81,12 +81,16 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
         }
 
         total += count;
-        double progress = Math.round(((double) total * 100) / lengthOfFile);
-        if (progress % 10 == 0) {
-            if ((progress != lastProgressValue) || (total == lengthOfFile)) {
-                Log.d("Downloader", "EMIT: " + String.valueOf(progress) + ", TOTAL:" + String.valueOf(total));
-                lastProgressValue = progress;
-                publishProgress(new int[]{lengthOfFile, total});
+        if (param.progressDivider <= 1) {
+            publishProgress(new int[]{lengthOfFile, total});
+        } else {
+            double progress = Math.round(((double) total * 100) / lengthOfFile);
+            if (progress % param.progressDivider == 0) {
+                if ((progress != lastProgressValue) || (total == lengthOfFile)) {
+                    Log.d("Downloader", "EMIT: " + String.valueOf(progress) + ", TOTAL:" + String.valueOf(total));
+                    lastProgressValue = progress;
+                    publishProgress(new int[]{lengthOfFile, total});
+                }
             }
         }
         output.write(data, 0, count);

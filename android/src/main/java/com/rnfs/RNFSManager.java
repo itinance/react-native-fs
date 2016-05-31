@@ -220,7 +220,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void downloadFile(String urlStr, final String filepath, final int jobId, final Callback callback) {
+  public void downloadFile(String urlStr, final String filepath, final int jobId, float progressDivider, final Callback callback) {
     try {
       File file = new File(filepath);
       URL url = new URL(urlStr);
@@ -229,6 +229,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
       params.src = url;
       params.dest = file;
+      params.progressDivider = progressDivider;
 
       params.onTaskCompleted = new DownloadParams.OnTaskCompleted() {
         public void onTaskCompleted(DownloadResult res) {
