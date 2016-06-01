@@ -220,10 +220,12 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void downloadFile(String urlStr, final String filepath, final int jobId, final Callback callback) {
+  public void downloadFile(ReadableMap options, final Callback callback) {
     try {
-      File file = new File(filepath);
-      URL url = new URL(urlStr);
+      File file = new File(options.getString("toFile"));
+      URL url = new URL(options.getString("fromUrl"));
+      final int jobId = options.getInt("jobId");
+      ReadableMap headers = options.getMap("headers");
 
       DownloadParams params = new DownloadParams();
 

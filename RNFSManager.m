@@ -174,17 +174,18 @@ RCT_EXPORT_METHOD(moveFile:(NSString *)filepath
     callback(@[[NSNull null], [NSNumber numberWithBool:success], destPath]);
 }
 
-RCT_EXPORT_METHOD(downloadFile:(NSString *)urlStr
-                  filepath:(NSString *)filepath
-                  jobId:(nonnull NSNumber *)jobId
-                  options:(nonnull NSDictionary *)options
+RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
                   callback:(RCTResponseSenderBlock)callback)
 {
   DownloadParams* params = [DownloadParams alloc];
 
-  params.fromUrl = urlStr;
-  params.toFile = filepath;
-  params.background = (BOOL)[options valueForKey:@"background"];
+  NSNumber* jobId = options[@"jobId"];
+  params.fromUrl = options[@"fromUrl"];
+  params.toFile = options[@"toFile"];
+  NSDictionary* headers = options[@"headers"];
+  params.headers = headers;
+  NSNumber* background = options[@"background"];
+  params.background = [background boolValue];
 
   params.completeCallback = ^(NSNumber* statusCode, NSNumber* bytesWritten) {
     NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,

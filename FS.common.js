@@ -22,7 +22,7 @@ var _moveFile = Promise.promisify(RNFSManager.moveFile);
 var _unlink = Promise.promisify(RNFSManager.unlink);
 var _mkdir = Promise.promisify(RNFSManager.mkdir);
 var _downloadFile = Promise.promisify(RNFSManager.downloadFile);
-var _uploadFiles = Promise.promisify(RNFSManager.uploadFiles);
+var _uploadFiles = RNFSManager.uploadFiles ? Promise.promisify(RNFSManager.uploadFiles) : function () { return Promise.reject('Not implemented on Android') };
 var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
 var _getFSInfo = Promise.promisify(RNFSManager.getFSInfo);
 
@@ -156,19 +156,43 @@ var RNFS = {
       .catch(convertError);
   },
 
-  downloadFile(fromUrl, toFile, begin, progress, options = {}) {
+  downloadFile(options) {
+    if (arguments.length > 1) {
+      // Compatibility with old argument structure
+      options = {
+        fromUrl: arguments[0],
+        toFile: arguments[1],
+        begin: arguments[2],
+        progress: arguments[3]
+      };
+    }
+
+    if (typeof options !== 'object') throw new Error('downloadFile: Invalid value for argument `options`');
+    if (typeof options.fromUrl !== 'string') throw new Error('downloadFile: Invalid value for property `fromUrl`');
+    if (typeof options.toFile !== 'string') throw new Error('downloadFile: Invalid value for property `toFile`');
+    if (options.headers && typeof options.headers !== 'object') throw new Error('downloadFile: Invalid value for property `headers`');
+    if (options.background && typeof options.background !== 'boolean') throw new Error('downloadFile: Invalid value for property `background`');
+
     var jobId = getJobId();
     var subscriptions = [];
 
-    if (begin) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, begin));
+    if (options.begin) {
+      subscriptions.push(NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, options.begin));
     }
 
-    if (progress) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, progress));
+    if (options.progress) {
+      subscriptions.push(NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, options.progress));
     }
 
-    return _downloadFile(fromUrl, toFile, jobId, options)
+    var bridgeOptions = {
+      jobId: jobId,
+      fromUrl: options.fromUrl,
+      toFile: options.toFile,
+      headers: options.headers || {},
+      background: !!options.background,
+    };
+
+    return _downloadFile(bridgeOptions)
       .then(res => {
         subscriptions.forEach(sub => sub.remove());
         return res;
