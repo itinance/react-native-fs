@@ -318,18 +318,36 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void copyFileAssets(String assetPath, String destination, Callback callback) {
     AssetManager assetManager = getReactApplicationContext().getAssets();
+    try {
+      InputStream in = assetManager.open(assetPath);
+      copyInputStream(in, assetPath, destination, callback);
+    } catch (IOException e) {
+      // Default error message is just asset name, so make a more helpful error here.
+      callback.invoke(makeErrorPayload(new Exception(String.format("Asset '%s' could not be opened", assetPath))));
+    }
+  }
 
-    InputStream in = null;
+  @ReactMethod
+  public void copyFile(String source, String destination, Callback callback) {
+    try {
+      InputStream in = new FileInputStream(source);
+      copyInputStream(in, source, destination, callback);
+    } catch (FileNotFoundException e) {
+      // Default error message is just asset name, so make a more helpful error here.
+      callback.invoke(makeErrorPayload(new Exception(String.format("File '%s' could not be found", source))));
+    }
+  }
+
+  /**
+   * Internal method for copying that works with any InputStream
+   * @param in InputStream from assets or file
+   * @param source source path (only used for logging errors)
+   * @param destination destination path
+   * @param callback React Callback
+     */
+  private void copyInputStream(InputStream in, String source, String destination, Callback callback) {
     OutputStream out = null;
     try {
-      try {
-        in = assetManager.open(assetPath);
-      } catch (IOException e) {
-        // Default error message is just asset name, so make a more helpful error here.
-        callback.invoke(makeErrorPayload(new Exception(String.format("Asset '%s' could not be opened", assetPath))));
-        return;
-      }
-
       File outFile = new File(destination);
       try {
         out = new FileOutputStream(outFile);
@@ -339,9 +357,13 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       }
 
       try {
-        copyFile(in, out);
+        byte[] buffer = new byte[1024*10]; // 10k buffer
+        int read;
+        while((read = in.read(buffer)) != -1){
+          out.write(buffer, 0, read);
+        }
       } catch (IOException e) {
-        callback.invoke(makeErrorPayload(new Exception(String.format("Failed to copy '%s' to %s (%s)", assetPath, destination, e.getLocalizedMessage()))));
+        callback.invoke(makeErrorPayload(new Exception(String.format("Failed to copy '%s' to %s (%s)", source, destination, e.getLocalizedMessage()))));
       }
 
       // Success!
@@ -360,14 +382,6 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         } catch (IOException ignored) {
         }
       }
-    }
-  }
-
-  private void copyFile(InputStream in, OutputStream out) throws IOException {
-    byte[] buffer = new byte[1024*10]; // 10k buffer
-    int read;
-    while((read = in.read(buffer)) != -1){
-      out.write(buffer, 0, read);
     }
   }
 
