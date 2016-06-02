@@ -313,14 +313,14 @@ IOS only: If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` at
 ```
 {
   fromUrl (String) - URL to download file from
-  toFile (Array) - Local filesystem path to save the file to
+  toFile (String) - Local filesystem path to save the file to
   background (Boolean) - (Optional) See below
   begin (Function) - (Optional) See below
   progress (Function) - (Optional) See below
 }
 ```
 
-Download file from `url` to `filepath`. Will overwrite any previously existing file.
+Download file from `options.fromUrl` to `options.toFile`. Will overwrite any previously existing file.
 
 If `options.begin` is provided, it will be invoked once upon download starting when headers have been received and passed a single argument with the following properties:
 
