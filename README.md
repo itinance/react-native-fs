@@ -169,7 +169,7 @@ return RNFS.unlink(path)
   // single return value of a promise. If you use `then`, you will receive
   // the values inside of an array
   .spread((success, path) => {
-  console.log('FILE DELETED', success, path);
+    console.log('FILE DELETED', success, path);
   })
   // `unlink` will throw an error, if the item to unlink does not exist
   .catch((err) => {
@@ -191,7 +191,7 @@ var files = [
     filename: 'test1.w4a',
     filepath: RNFS.DocumentDirectoryPath + '/test1.w4a',
     filetype: 'audio/x-m4a'
-  },{
+  }, {
     name: 'test2',
     filename: 'test2.w4a',
     filepath: RNFS.DocumentDirectoryPath + '/test2.w4a',
@@ -304,7 +304,7 @@ The promise resolves with boolean.
 
 Create a directory at `filepath`. Automatically creates parents and does not throw if already exists (works like Linux `mkdir -p`).
 
-IOS only: If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` attribute will be set. Apple will *reject* apps for storing offline cache data that does not have this attribute.
+(IOS only): If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` attribute will be set. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
 ### `promise downloadFile(options)`
 
@@ -336,7 +336,7 @@ If `options.progress` is provided, it will be invoked continuously and passed a 
 
 Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
 
-`options.background` (`Boolean`) - Whether to continue downloads when the app is not focused (default: `false`)
+(IOS only): `options.background` (`Boolean`) - Whether to continue downloads when the app is not focused (default: `false`)
                            This option is currently only available for iOS, and you must [enable
                            background fetch](https://www.objc.io/issues/5-ios7/multitasking/#background-fetch<Paste>)
                            for your project in XCode.
@@ -346,7 +346,7 @@ Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
 
 Abort the current download job with this ID. The partial file will remain on the filesystem.
 
-### `promise uploadFiles(options)` [iOS only]
+### (iOS only) `promise uploadFiles(options)`
 
 `options` (`Object`) - An object containing named parameters
 
@@ -357,10 +357,12 @@ Abort the current download job with this ID. The partial file will remain on the
   method (String) - (Optional) Default is 'POST', supports 'POST' and 'PUT'
   headers (Object) - (Optional) An object of headers to be passed to the server
   fields (Object) - (Optional) An object of fields to be passed to the server
+  begin (Function) - (Optional) See below
+  progress (Function) - (Optional) See below
 }
 ```
 
-`options.file` (`Array`) =
+`options.files` (`Array`) =
 
 ```
 [
@@ -375,18 +377,18 @@ Abort the current download job with this ID. The partial file will remain on the
 ]
 ```
 
-If `beginCallback` is provided, it will be invoked once upon upload has begun:
+If `options.begin` is provided, it will be invoked once upon upload has begun:
 
 `jobId` (`Number`) - The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
 
-If `progressCallback` is provided, it will be invoked continuously and passed a single object with the following properties:
+If `options.progress` is provided, it will be invoked continuously and passed a single object with the following properties:
 
 `totalBytesExpectedToSend` (`Number`) - The total number of bytes that will be sent to the server
 `totalBytesSent` (`Number`) - The number of bytes sent to the server
 
 Percentage can be computed easily by dividing `totalBytesSent` by `totalBytesExpectedToSend`.
 
-### `void stopUpload(jobId)` [iOS only]
+### (iOS only) `void stopUpload(jobId)`
 
 Abort the current upload job with this ID.
 
