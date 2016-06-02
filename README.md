@@ -306,27 +306,37 @@ Create a directory at `filepath`. Automatically creates parents and does not thr
 
 IOS only: If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` attribute will be set. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
-### `promise downloadFile(url, filepath [, beginCallback, progressCallback, options])`
+### `promise downloadFile(options)`
+
+`options` (`Object`) - An object containing named parameters
+
+```
+{
+  fromUrl (String) - URL to download file from
+  toFile (Array) - Local filesystem path to save the file to
+  background (Boolean) - (Optional) See below
+  begin (Function) - (Optional) See below
+  progress (Function) - (Optional) See below
+}
+```
 
 Download file from `url` to `filepath`. Will overwrite any previously existing file.
 
-If `beginCallback` is provided, it will be invoked once upon download starting when headers have been received and passed a single argument with the following properties:
+If `options.begin` is provided, it will be invoked once upon download starting when headers have been received and passed a single argument with the following properties:
 
 `jobId` (`Number`) - The download job ID, required if one wishes to cancel the download. See `stopDownload`.
 `statusCode` (`Number`) - The HTTP status code
 `contentLength` (`Number`) - The total size in bytes of the download resource
 `headers` (`Map`) - The HTTP response headers from the server
 
-If `progressCallback` is provided, it will be invoked continuously and passed a single argument with the following properties:
+If `options.progress` is provided, it will be invoked continuously and passed a single argument with the following properties:
 
 `contentLength` (`Number`) - The total size in bytes of the download resource
 `bytesWritten` (`Number`) - The number of bytes written to the file so far
 
 Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
 
-If `options` is provided, it can contain the following property:
-
-`background` (`Boolean`) - Whether to continue downloads when the app is not focused (default: `false`)
+`options.background` (`Boolean`) - Whether to continue downloads when the app is not focused (default: `false`)
                            This option is currently only available for iOS, and you must [enable
                            background fetch](https://www.objc.io/issues/5-ios7/multitasking/#background-fetch<Paste>)
                            for your project in XCode.
@@ -336,10 +346,21 @@ If `options` is provided, it can contain the following property:
 
 Abort the current download job with this ID. The partial file will remain on the filesystem.
 
-### `promise uploadFiles(url, files, options [, beginCallback, progressCallback])` [iOS only]
+### `promise uploadFiles(options)` [iOS only]
 
-`url` (`String`) - URL of server to upload file to
-`files` (`Array`) - An array of objects with the file information to be uploaded.
+`options` (`Object`) - An object containing named parameters
+
+```
+{
+  url (String) - URL to upload file to
+  files (Array) - An array of objects with the file information to be uploaded.
+  method (String) - (Optional) Default is 'POST', supports 'POST' and 'PUT'
+  headers (Object) - (Optional) An object of headers to be passed to the server
+  fields (Object) - (Optional) An object of fields to be passed to the server
+}
+```
+
+`options.file` (`Array`) =
 
 ```
 [
@@ -348,20 +369,10 @@ Abort the current download job with this ID. The partial file will remain on the
     filename (String) - Name of file
     filepath (String) - Path to file
     mimetype (String) - (Optional) The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
-  },{
+  }, {
     ...
   }
 ]
-```
-
-`options` (`Object`) - An object containing optional method, headers and fields.
-
-```
-{
-  method (String) - (Optional) Default is 'POST', supports 'POST' and 'PUT'
-  headers (Object) - (Optional) An object of headers to be passed to the server
-  fields (Object) - (Optional) An object of fields to be passed to the server
-}
 ```
 
 If `beginCallback` is provided, it will be invoked once upon upload has begun:
