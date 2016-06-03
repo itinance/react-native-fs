@@ -60,6 +60,24 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
       int statusCode = connection.getResponseCode();
       int lengthOfFile = connection.getContentLength();
 
+      boolean isRedirect = (
+        statusCode != HttpURLConnection.HTTP_OK &&
+        (
+          statusCode == HttpURLConnection.HTTP_MOVED_PERM ||
+          statusCode == HttpURLConnection.HTTP_MOVED_TEMP
+        )
+      );
+
+      if (isRedirect) {
+        String redirectURL = connection.getHeaderField("Location");
+        connection = (HttpURLConnection) new URL(redirectURL).openConnection();
+        connection.setConnectTimeout(5000);
+        connection.connect();
+
+        statusCode = connection.getResponseCode();
+        lengthOfFile = connection.getContentLength();
+      }
+
       Map<String, List<String>> headers = connection.getHeaderFields();
 
       Map<String, String> headersFlat = new HashMap<String, String>();
