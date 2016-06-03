@@ -231,6 +231,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
       params.src = url;
       params.dest = file;
+      params.headers = headers;
 
       params.onTaskCompleted = new DownloadParams.OnTaskCompleted() {
         public void onTaskCompleted(DownloadResult res) {

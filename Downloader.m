@@ -48,6 +48,8 @@
     config = [NSURLSessionConfiguration defaultSessionConfiguration];
   }
 
+  config.HTTPAdditionalHeaders = _params.headers;
+
   _session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:nil];
   _task = [_session downloadTaskWithURL:url];
   [_task resume];

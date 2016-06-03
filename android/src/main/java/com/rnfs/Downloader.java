@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.os.AsyncTask;
 
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
+
 public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult> {
   private DownloadParams mParam;
   private AtomicBoolean mAbort = new AtomicBoolean(false);
@@ -44,6 +46,14 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
     try {
       connection = (HttpURLConnection)param.src.openConnection();
 
+      ReadableMapKeySetIterator iterator = param.headers.keySetIterator();
+
+      while (iterator.hasNextKey()) {
+        String key = iterator.nextKey();
+        String value = param.headers.getString(key);
+        connection.setRequestProperty(key, value);
+      }
+
       connection.setConnectTimeout(5000);
       connection.connect();
 
@@ -57,7 +67,7 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
       for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
         String headerKey = entry.getKey();
         String valueKey = entry.getValue().get(0);
-        
+
         if (headerKey != null && valueKey != null) {
           headersFlat.put(headerKey, valueKey);
         }
