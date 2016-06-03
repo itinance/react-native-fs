@@ -314,6 +314,7 @@ Create a directory at `filepath`. Automatically creates parents and does not thr
 {
   fromUrl (String) - URL to download file from
   toFile (String) - Local filesystem path to save the file to
+  headers (Object) - (Optional) An object of headers to be passed to the server
   background (Boolean) - (Optional) See below
   begin (Function) - (Optional) See below
   progress (Function) - (Optional) See below
