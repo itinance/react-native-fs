@@ -42,7 +42,8 @@
 
   NSURLSessionConfiguration *config;
   if (_params.background) {
-    config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:_params.fromUrl];
+    NSString *uuid = [[NSUUID UUID] UUIDString];
+    config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:uuid];
   } else {
     config = [NSURLSessionConfiguration defaultSessionConfiguration];
   }
