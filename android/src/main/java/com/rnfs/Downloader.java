@@ -70,6 +70,8 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
 
       if (isRedirect) {
         String redirectURL = connection.getHeaderField("Location");
+        connection.disconnect();
+
         connection = (HttpURLConnection) new URL(redirectURL).openConnection();
         connection.setConnectTimeout(5000);
         connection.connect();
