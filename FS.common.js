@@ -158,7 +158,8 @@ var RNFS = {
 
   downloadFile(options) {
     if (arguments.length > 1) {
-      // Compatibility with old argument structure
+      console.warn('Deprecated: Please see updated docs for `downloadFile`');
+
       options = {
         fromUrl: arguments[0],
         toFile: arguments[1],
