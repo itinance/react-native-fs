@@ -364,7 +364,7 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTResponseSenderBlock)callback)
     @"NSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
     @"NSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
     @"NSExternalDirectoryPath": [NSNull null],
-    @"NSTemporaryDirectoryPatg": NSTemporaryDirectory(),
+    @"NSTemporaryDirectoryPath": NSTemporaryDirectory(),
     @"NSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
     @"NSFileTypeRegular": NSFileTypeRegular,
     @"NSFileTypeDirectory": NSFileTypeDirectory
