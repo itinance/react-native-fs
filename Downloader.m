@@ -66,9 +66,7 @@
   }
 
   if ([_statusCode isEqualToNumber:[NSNumber numberWithInt:200]]) {
-    [_fileHandle writeData:data];
-
-    _bytesWritten = [NSNumber numberWithLong:[_bytesWritten longValue] + data.length];
+    _bytesWritten = @(totalBytesWritten);
 
     if (_params.progressDivider <= 1) {
       return _params.progressCallback(_contentLength, _bytesWritten);
