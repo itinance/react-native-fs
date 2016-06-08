@@ -226,12 +226,14 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       URL url = new URL(options.getString("fromUrl"));
       final int jobId = options.getInt("jobId");
       ReadableMap headers = options.getMap("headers");
+      int progressDivider = options.getInt("progressDivider");
 
       DownloadParams params = new DownloadParams();
 
       params.src = url;
       params.dest = file;
       params.headers = headers;
+      params.progressDivider = progressDivider;
 
       params.onTaskCompleted = new DownloadParams.OnTaskCompleted() {
         public void onTaskCompleted(DownloadResult res) {
