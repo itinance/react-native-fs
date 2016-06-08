@@ -316,6 +316,7 @@ Create a directory at `filepath`. Automatically creates parents and does not thr
   toFile (String) - Local filesystem path to save the file to
   headers (Object) - (Optional) An object of headers to be passed to the server
   background (Boolean) - (Optional) See below
+  progressDivider (Number) - (Optional) See below
   begin (Function) - (Optional) See below
   progress (Function) - (Optional) See below
 }
@@ -335,7 +336,11 @@ If `options.progress` is provided, it will be invoked continuously and passed a 
 `contentLength` (`Number`) - The total size in bytes of the download resource
 `bytesWritten` (`Number`) - The number of bytes written to the file so far
 
-Percentage can be computed easily by dividing `bytesWritten` by `contentLength`.
+If `options.progressDivider`(`Number`) is provided, it will return progress events that divided by progressDivider
+
+For example, if `progressDivider` = 10, you will receive only ten callbacks for this values of progress: 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+Use it for performance issues.
+If `progressDivider` = 1, you will receive all `progressCallback` calls, default value is 1.
 
 (IOS only): `options.background` (`Boolean`) - Whether to continue downloads when the app is not focused (default: `false`)
                            This option is currently only available for iOS, and you must [enable

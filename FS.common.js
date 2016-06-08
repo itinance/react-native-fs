@@ -22,7 +22,7 @@ var _moveFile = Promise.promisify(RNFSManager.moveFile);
 var _unlink = Promise.promisify(RNFSManager.unlink);
 var _mkdir = Promise.promisify(RNFSManager.mkdir);
 var _downloadFile = Promise.promisify(RNFSManager.downloadFile);
-var _uploadFiles = RNFSManager.uploadFiles ? Promise.promisify(RNFSManager.uploadFiles) : function () { return Promise.reject('Not implemented on Android') };
+var _uploadFiles = RNFSManager.uploadFiles ? Promise.promisify(RNFSManager.uploadFiles) : function () { return Promise.reject('Not implemented on Android'); };
 var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
 var _getFSInfo = Promise.promisify(RNFSManager.getFSInfo);
 
@@ -173,6 +173,7 @@ var RNFS = {
     if (typeof options.toFile !== 'string') throw new Error('downloadFile: Invalid value for property `toFile`');
     if (options.headers && typeof options.headers !== 'object') throw new Error('downloadFile: Invalid value for property `headers`');
     if (options.background && typeof options.background !== 'boolean') throw new Error('downloadFile: Invalid value for property `background`');
+    if (options.progressDivider && typeof options.progressDivider !== 'number') throw new Error('downloadFile: Invalid value for property `progressDivider`');
 
     var jobId = getJobId();
     var subscriptions = [];
@@ -191,6 +192,7 @@ var RNFS = {
       toFile: options.toFile,
       headers: options.headers || {},
       background: !!options.background,
+      progressDivider: options.progressDivider || 1
     };
 
     return _downloadFile(bridgeOptions)

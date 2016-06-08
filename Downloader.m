@@ -11,6 +11,7 @@
 @property (retain) NSURLSession* session;
 @property (retain) NSURLSessionTask* task;
 @property (retain) NSNumber* statusCode;
+@property (retain) NSNumber* lastProgressValue;
 @property (retain) NSNumber* contentLength;
 @property (retain) NSNumber* bytesWritten;
 
@@ -65,8 +66,25 @@
   }
 
   if ([_statusCode isEqualToNumber:[NSNumber numberWithInt:200]]) {
-    _bytesWritten = @(totalBytesWritten);
-    return _params.progressCallback(_contentLength, _bytesWritten);
+    [_fileHandle writeData:data];
+
+    _bytesWritten = [NSNumber numberWithLong:[_bytesWritten longValue] + data.length];
+
+    if (_params.progressDivider <= 1) {
+      return _params.progressCallback(_contentLength, _bytesWritten);
+    } else {
+      double doubleBytesWritten = (double)[_bytesWritten longValue];
+      double doubleContentLength = (double)[_contentLength longValue];
+      double doublePercents = doubleBytesWritten / doubleContentLength * 100;
+      NSNumber* progress = [NSNumber numberWithUnsignedInt: floor(doublePercents)];
+      if ([progress unsignedIntValue] % [_params.progressDivider integerValue] == 0) {
+        if (([progress unsignedIntValue] != [_lastProgressValue unsignedIntValue]) || ([_bytesWritten unsignedIntegerValue] == [_contentLength longValue])) {
+          NSLog(@"---Progress callback EMIT--- %zu", [progress unsignedIntValue]);
+          _lastProgressValue = [NSNumber numberWithUnsignedInt:[progress unsignedIntValue]];
+          return _params.progressCallback(_contentLength, _bytesWritten);
+        }
+      }
+    }
   }
 }
 

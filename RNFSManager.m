@@ -186,6 +186,8 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   params.headers = headers;
   NSNumber* background = options[@"background"];
   params.background = [background boolValue];
+  NSNumber* progressDivider = options[@"progressDivider"];
+  params.progressDivider = progressDivider;
 
   params.completeCallback = ^(NSNumber* statusCode, NSNumber* bytesWritten) {
     NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,
