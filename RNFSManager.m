@@ -250,9 +250,14 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
   params.fields = fields;
   params.method = method;
 
-  params.completeCallback = ^(NSString* response) {
+  params.completeCallback = ^(NSString* body, NSURLResponse *resp) {
+    
     NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,
-                             @"response": response}];
+                             @"body": body}];
+    if ([resp isKindOfClass:[NSHTTPURLResponse class]]) {
+      [result setValue:((NSHTTPURLResponse *)resp).allHeaderFields forKey:@"headers"];
+      [result setValue:[NSNumber numberWithUnsignedInteger:((NSHTTPURLResponse *)resp).statusCode] forKey:@"statusCode"];
+    }
     return callback(@[[NSNull null], result]);
   };
 

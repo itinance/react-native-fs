@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <MobileCoreServices/MobileCoreServices.h>
 
-typedef void (^UploadCompleteCallback)(NSString*);
+typedef void (^UploadCompleteCallback)(NSString*, NSURLResponse *);
 typedef void (^UploadErrorCallback)(NSError*);
 typedef void (^UploadBeginCallback)();
 typedef void (^UploadProgressCallback)(NSNumber*, NSNumber*);

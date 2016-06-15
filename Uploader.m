@@ -98,7 +98,10 @@
 
   NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
   NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfiguration delegate:(id)self delegateQueue:[NSOperationQueue mainQueue]];
-  _task = [session dataTaskWithRequest:req];
+  _task = [session dataTaskWithRequest:req completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+      NSString * str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+      return _params.completeCallback(str, response);
+  }];
   [_task resume];
   _params.beginCallback();
 }
@@ -131,12 +134,6 @@
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didSendBodyData:(int64_t)bytesSent totalBytesSent:(int64_t)totalBytesSent totalBytesExpectedToSend:(NSInteger)totalBytesExpectedToSend
 {
   return _params.progressCallback([NSNumber numberWithLongLong:totalBytesExpectedToSend], [NSNumber numberWithLongLong:totalBytesSent]);
-}
-
-- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data
-{
-  NSString * str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-  return _params.completeCallback(str);
 }
 
 - (void)stopUpload
