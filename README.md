@@ -198,16 +198,6 @@ var files = [
     filetype: 'audio/x-m4a'
   }
 ];
-// create an object of options
-var options = {
-  method: 'POST',
-  headers: {
-    'Accept': 'application/json',
-  },
-  fields: {
-    'hello': 'world',
-  }
-};
 
 var uploadBegin = (response) => {
   var jobId = response.jobId;
@@ -220,9 +210,25 @@ var uploadProgress = (response) => {
 };
 
 // upload files
-RNFS.uploadFiles(uploadUrl, files, options, uploadBegin, uploadProgress)
+RNFS.uploadFiles({
+    toUrl: uploadUrl,
+    files: files,
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+    },
+    fields: {
+      'hello': 'world',
+    },
+    begin: uploadBegin,
+    progress: uploadProgress
+  })
   .then((response) => {
-    console.log('FILES UPLOADED!');
+    if (response.statusCode == 200) {
+      console.log('FILES UPLOADED!'); // response.statusCode, response.headers, response.body
+    } else {
+      console.log('SERVER ERROR');
+    }
   })
   .catch((err) => {
     if(err.description === "cancelled") {
@@ -358,7 +364,7 @@ Abort the current download job with this ID. The partial file will remain on the
 
 ```
 {
-  url (String) - URL to upload file to
+  toUrl (String) - URL to upload file to
   files (Array) - An array of objects with the file information to be uploaded.
   method (String) - (Optional) Default is 'POST', supports 'POST' and 'PUT'
   headers (Object) - (Optional) An object of headers to be passed to the server
