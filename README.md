@@ -249,7 +249,8 @@ The following constants are available on the `RNFS` export:
 - `CachesDirectoryPath` (`String`) The absolute path to the caches directory
 - `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
 - `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (iOS only)
-- `ExternalDirectoryPath` (`String`) The absolute path to the external, shared directory (android only)
+- `ExternalDirectoryPath` (`String`) The absolute path to the external files, shared directory (android only)
+- `ExternalStorageDirectoryPath` (`String`) The absolute path to the external storage, shared directory (android only)
 
 ### `promise readDir(path)`
 
