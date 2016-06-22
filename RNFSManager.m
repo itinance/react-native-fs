@@ -92,13 +92,38 @@ RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
                   attributes:(NSDictionary *)attributes
                   callback:(RCTResponseSenderBlock)callback)
 {
+  BOOL success = true, append = false;
   NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
-  BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
-
-  if (!success) {
-    return callback(@[[NSString stringWithFormat:@"Could not write file at path %@", filepath]]);
+    
+  NSDictionary *d = [NSDictionary dictionaryWithDictionary:attributes];
+  for(NSString *key in [d allKeys])
+  {
+    NSDictionary *value = [d valueForKey:key];
+        
+    if([key isEqualToString:@"append"])
+      append = [((NSNumber *)d[@"append"]) boolValue];
   }
-
+    
+  if(append)
+  {
+    NSFileManager *fM = [NSFileManager defaultManager];
+    if(![fM fileExistsAtPath:filepath])
+    {
+      success = [fM createFileAtPath:filepath contents:nil attributes:nil];
+      if (!success)
+        return callback(@[[NSString stringWithFormat:@"Could not write file at path %@", filepath]]);
+    }
+    NSFileHandle *fH = [NSFileHandle fileHandleForUpdatingAtPath:filepath];
+    [fH seekToEndOfFile];
+    [fH writeData:data];
+  }
+  else
+  {
+    success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
+    if (!success)
+      return callback(@[[NSString stringWithFormat:@"Could not write file at path %@", filepath]]);
+  }
+    
   callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
 }
 
