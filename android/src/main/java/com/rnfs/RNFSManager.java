@@ -62,9 +62,10 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void writeFile(String filepath, String base64Content, ReadableMap options, Callback callback) {
     try {
+      Boolean append = options.hasKey("append") ? options.getBoolean("append") : false;
       byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
 
-      FileOutputStream outputStream = new FileOutputStream(filepath);
+      FileOutputStream outputStream = new FileOutputStream(filepath, append);
       outputStream.write(bytes);
       outputStream.close();
 
