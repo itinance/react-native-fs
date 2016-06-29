@@ -305,7 +305,7 @@ var RNFS = {
       toFile: options.toFile,
       headers: options.headers || {},
       background: !!options.background,
-      progressDivider: options.progressDivider || 1
+      progressDivider: options.progressDivider || 0
     };
 
     return _downloadFile(bridgeOptions).then(res => {

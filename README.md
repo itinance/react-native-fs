@@ -373,7 +373,7 @@ If `options.progressDivider` is provided, it will return progress events that di
 
 For example, if `progressDivider` = 10, you will receive only ten callbacks for this values of progress: 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
 Use it for performance issues.
-If `progressDivider` = 1, you will receive all `progressCallback` calls, default value is 1.
+If `progressDivider` = 0, you will receive all `progressCallback` calls, default value is 0.
 
 (IOS only): `options.background` (`Boolean`) - Whether to continue downloads when the app is not focused (default: `false`)
                            This option is currently only available for iOS, and you must [enable

@@ -68,7 +68,7 @@
   if ([_statusCode isEqualToNumber:[NSNumber numberWithInt:200]]) {
     _bytesWritten = @(totalBytesWritten);
 
-    if (_params.progressDivider <= 1) {
+    if (_params.progressDivider.integerValue <= 0) {
       return _params.progressCallback(_contentLength, _bytesWritten);
     } else {
       double doubleBytesWritten = (double)[_bytesWritten longValue];
