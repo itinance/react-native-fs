@@ -44,11 +44,11 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
     NSDictionary *attributes = [fileManager attributesOfItemAtPath:path error:nil];
 
     return @{
-      @"name": obj,
-      @"path": path,
-      @"size": [attributes objectForKey:NSFileSize],
-      @"type": [attributes objectForKey:NSFileType]
-    };
+             @"name": obj,
+             @"path": path,
+             @"size": [attributes objectForKey:NSFileSize],
+             @"type": [attributes objectForKey:NSFileType]
+             };
   }];
 
   if (error) {
@@ -77,12 +77,12 @@ RCT_EXPORT_METHOD(stat:(NSString *)filepath
   }
 
   attributes = @{
-    @"ctime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileCreationDate]],
-    @"mtime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileModificationDate]],
-    @"size": [attributes objectForKey:NSFileSize],
-    @"type": [attributes objectForKey:NSFileType],
-    @"mode": @([[NSString stringWithFormat:@"%ld", (long)[(NSNumber *)[attributes objectForKey:NSFilePosixPermissions] integerValue]] integerValue])
-  };
+                 @"ctime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileCreationDate]],
+                 @"mtime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileModificationDate]],
+                 @"size": [attributes objectForKey:NSFileSize],
+                 @"type": [attributes objectForKey:NSFileType],
+                 @"mode": @([[NSString stringWithFormat:@"%ld", (long)[(NSNumber *)[attributes objectForKey:NSFilePosixPermissions] integerValue]] integerValue])
+                 };
 
   callback(@[[NSNull null], attributes]);
 }
@@ -93,13 +93,46 @@ RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
                   callback:(RCTResponseSenderBlock)callback)
 {
   NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
+
   BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
 
   if (!success) {
     return callback(@[[NSString stringWithFormat:@"Could not write file at path %@", filepath]]);
   }
 
-  callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
+  return callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
+}
+
+RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
+                  contents:(NSString *)base64Content
+                  attributes:(NSDictionary *)attributes
+                  callback:(RCTResponseSenderBlock)callback)
+{
+  NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
+
+  NSFileManager *fM = [NSFileManager defaultManager];
+
+  if (![fM fileExistsAtPath:filepath])
+  {
+    BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
+
+    if (!success) {
+      return callback(@[[NSString stringWithFormat:@"Could not write file at path %@", filepath]]);
+    } else {
+      return callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
+    }
+  }
+
+  @try {
+    NSFileHandle *fH = [NSFileHandle fileHandleForUpdatingAtPath:filepath];
+
+    [fH seekToEndOfFile];
+    [fH writeData:data];
+
+    return callback(@[[NSNull null], [NSNumber numberWithBool:true], filepath]);
+  } @catch (NSException *e) {
+    return callback([self makeErrorPayload:e]);
+  }
 }
 
 RCT_EXPORT_METHOD(unlink:(NSString*)filepath
@@ -162,16 +195,16 @@ RCT_EXPORT_METHOD(moveFile:(NSString *)filepath
                   destPath:(NSString *)destPath
                   callback:(RCTResponseSenderBlock)callback)
 {
-    NSFileManager *manager = [NSFileManager defaultManager];
+  NSFileManager *manager = [NSFileManager defaultManager];
 
-    NSError *error = nil;
-    BOOL success = [manager moveItemAtPath:filepath toPath:destPath error:&error];
+  NSError *error = nil;
+  BOOL success = [manager moveItemAtPath:filepath toPath:destPath error:&error];
 
-    if (!success) {
-        return callback([self makeErrorPayload:error]);
-    }
+  if (!success) {
+    return callback([self makeErrorPayload:error]);
+  }
 
-    callback(@[[NSNull null], [NSNumber numberWithBool:success], destPath]);
+  callback(@[[NSNull null], [NSNumber numberWithBool:success], destPath]);
 }
 
 RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
@@ -191,7 +224,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
 
   params.completeCallback = ^(NSNumber* statusCode, NSNumber* bytesWritten) {
     NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,
-                             @"statusCode": statusCode}];
+                                                                                     @"statusCode": statusCode}];
     if (bytesWritten) {
       [result setObject:bytesWritten forKey: @"bytesWritten"];
     }
@@ -273,7 +306,8 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
 
   params.progressCallback = ^(NSNumber* totalBytesExpectedToSend, NSNumber* totalBytesSent) {
     [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"UploadProgress-%@", jobId]
-                                                 body:@{@"totalBytesExpectedToSend": totalBytesExpectedToSend,
+                                                 body:@{@"jobId": jobId,
+                                                        @"totalBytesExpectedToSend": totalBytesExpectedToSend,
                                                         @"totalBytesSent": totalBytesSent}];
   };
 
@@ -298,52 +332,52 @@ RCT_EXPORT_METHOD(stopUpload:(nonnull NSNumber *)jobId)
 RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
                   callback:(RCTResponseSenderBlock)callback)
 {
-    NSString *path = [[NSBundle mainBundle].bundlePath stringByAppendingFormat:@"/%@.bundle", bundleNamed];
-    NSBundle *bundle = [NSBundle bundleWithPath:path];
+  NSString *path = [[NSBundle mainBundle].bundlePath stringByAppendingFormat:@"/%@.bundle", bundleNamed];
+  NSBundle *bundle = [NSBundle bundleWithPath:path];
 
-    if (!bundle) {
-        bundle = [NSBundle bundleForClass:NSClassFromString(bundleNamed)];
-        path = bundle.bundlePath;
-    }
+  if (!bundle) {
+    bundle = [NSBundle bundleForClass:NSClassFromString(bundleNamed)];
+    path = bundle.bundlePath;
+  }
 
-    if (!bundle.isLoaded) {
-        [bundle load];
-    }
+  if (!bundle.isLoaded) {
+    [bundle load];
+  }
 
-    if (path) {
-        callback(@[[NSNull null], path]);
-    } else {
-        callback(@[[NSError errorWithDomain:NSPOSIXErrorDomain
-                                       code:NSFileNoSuchFileError
-                                   userInfo:nil].localizedDescription,
-                   [NSNull null]]);
-    }
+  if (path) {
+    callback(@[[NSNull null], path]);
+  } else {
+    callback(@[[NSError errorWithDomain:NSPOSIXErrorDomain
+                                   code:NSFileNoSuchFileError
+                               userInfo:nil].localizedDescription,
+               [NSNull null]]);
+  }
 }
 
 RCT_EXPORT_METHOD(getFSInfo:(RCTResponseSenderBlock)callback)
 {
-    unsigned long long totalSpace = 0;
-    unsigned long long totalFreeSpace = 0;
+  unsigned long long totalSpace = 0;
+  unsigned long long totalFreeSpace = 0;
 
-    __autoreleasing NSError *error = nil;
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSDictionary *dictionary = [[NSFileManager defaultManager] attributesOfFileSystemForPath:[paths lastObject] error: &error];
+  __autoreleasing NSError *error = nil;
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+  NSDictionary *dictionary = [[NSFileManager defaultManager] attributesOfFileSystemForPath:[paths lastObject] error: &error];
 
-    if (dictionary) {
-        NSNumber *fileSystemSizeInBytes = [dictionary objectForKey: NSFileSystemSize];
-        NSNumber *freeFileSystemSizeInBytes = [dictionary objectForKey:NSFileSystemFreeSize];
-        totalSpace = [fileSystemSizeInBytes unsignedLongLongValue];
-        totalFreeSpace = [freeFileSystemSizeInBytes unsignedLongLongValue];
+  if (dictionary) {
+    NSNumber *fileSystemSizeInBytes = [dictionary objectForKey: NSFileSystemSize];
+    NSNumber *freeFileSystemSizeInBytes = [dictionary objectForKey:NSFileSystemFreeSize];
+    totalSpace = [fileSystemSizeInBytes unsignedLongLongValue];
+    totalFreeSpace = [freeFileSystemSizeInBytes unsignedLongLongValue];
 
-        callback(@[[NSNull null],
-                   @{
-                       @"totalSpace": [NSNumber numberWithUnsignedLongLong:totalSpace],
-                       @"freeSpace": [NSNumber numberWithUnsignedLongLong:totalFreeSpace]
-                       }
-                   ]);
-    } else {
-        callback(@[error, [NSNull null]]);
-    }
+    callback(@[[NSNull null],
+               @{
+                 @"totalSpace": [NSNumber numberWithUnsignedLongLong:totalSpace],
+                 @"freeSpace": [NSNumber numberWithUnsignedLongLong:totalFreeSpace]
+                 }
+               ]);
+  } else {
+    callback(@[error, [NSNull null]]);
+  }
 }
 
 - (NSNumber *)dateToTimeIntervalNumber:(NSDate *)date
@@ -354,9 +388,9 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTResponseSenderBlock)callback)
 - (NSArray *)makeErrorPayload:(NSError *)error
 {
   return @[@{
-    @"description": error.localizedDescription,
-    @"code": @(error.code)
-  }];
+             @"description": error.localizedDescription,
+             @"code": @(error.code)
+             }];
 }
 
 - (NSString *)getPathForDirectory:(int)directory
@@ -368,15 +402,15 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTResponseSenderBlock)callback)
 - (NSDictionary *)constantsToExport
 {
   return @{
-    @"MainBundlePath": [[NSBundle mainBundle] bundlePath],
-    @"NSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
-    @"NSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
-    @"NSExternalDirectoryPath": [NSNull null],
-    @"NSTemporaryDirectoryPath": NSTemporaryDirectory(),
-    @"NSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
-    @"NSFileTypeRegular": NSFileTypeRegular,
-    @"NSFileTypeDirectory": NSFileTypeDirectory
-  };
+           @"MainBundlePath": [[NSBundle mainBundle] bundlePath],
+           @"NSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
+           @"NSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
+           @"NSExternalDirectoryPath": [NSNull null],
+           @"NSTemporaryDirectoryPath": NSTemporaryDirectory(),
+           @"NSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
+           @"NSFileTypeRegular": NSFileTypeRegular,
+           @"NSFileTypeDirectory": NSFileTypeDirectory
+           };
 }
 
 @end
