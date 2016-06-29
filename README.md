@@ -251,48 +251,63 @@ The following constants are available on the `RNFS` export:
 - `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (iOS only)
 - `ExternalDirectoryPath` (`String`) The absolute path to the external, shared directory (android only)
 
-### `promise readDir(path)`
+### `readDir(dirpath: string): Promise<ReadDirItem[]>`
 
 Reads the contents of `path`. This must be an absolute path. Use the above path constants to form a usable file path.
 
 The returned promise resolves with an array of objects with the following properties:
 
-`name` (`String`) - The name of the item
-`path` (`String`) - The absolute path to the item
-`size` (`Number`) - Size in bytes
+```
+type ReadDirItem = {
+  name: string;     // The name of the item
+  path: string;     // The absolute path to the item
+  size: string;     // Size in bytes
+  isFile: () => boolean;        // Is the file just a file?
+  isDirectory: () => boolean;   // Is the file a directory?
+};
+```
 
-### `promise readdir(path)`
+### `readdir(dirpath: string): Promise<string[]>`
 
 Node.js style version of `readDir` that returns only the names. Note the lowercase `d`.
 
-### `promise stat(path)`
+### `stat(filepath: string): Promise<StatResult>`
 
 Stats an item at `path`.
 The promise resolves with an object with the following properties:
 
-`ctime` (`Date`) - The creation date of the item
-`mtime` (`Date`) - The modification date of the item
-`size` (`Number`) - The size of the item in bytes
-`isFile` (`Function`) - Returns true when the item is a file
-`isDirectory` (`Function`) - Returns true when the item is a directory
+```
+type StatResult = {
+  name: string;     // The name of the item
+  path: string;     // The absolute path to the item
+  size: string;     // Size in bytes
+  mode: number;     // UNIX file mode
+  isFile: () => boolean;        // Is the file just a file?
+  isDirectory: () => boolean;   // Is the file a directory?
+};
+```
 
-### `promise readFile(path [, encoding])`
+### `readFile(filepath: string, encoding?: string): Promise<string>`
 
 Reads the file at `path` and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
 Note: you will take quite a performance hit if you are reading big files
 
-### `promise writeFile(filepath, contents [, encoding, options])`
+### `writeFile(filepath: string, contents: string, encoding?: string, options?: WriteFileOptions): Promise<void>`
 
 Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
 
-The promise resolves with a boolean.
+```
+type WriteFileOptions = {
+  // iOS only. See https://developer.apple.com/library/ios/documentation/Cocoa/Reference/Foundation/Classes/NSFileManager_Class/index.html#//apple_ref/doc/constant_group/File_Attribute_Keys
+};
+```
 
-### `promise moveFile(filepath, destPath)`
+### `moveFile(filepath: string, destPath: string): Promise<void>`
 
 Moves the file located at `filepath` to `destPath`. This is more performant than reading and then re-writing the file data because the move is done natively and the data doesn't have to be copied or cross the bridge.
 
-### `promise unlink(filepath)`
+### `unlink(filepath: string): Promise<void>`
 
 Unlinks the item at `filepath`. If the item does not exist, an error will be thrown.
 
@@ -300,49 +315,61 @@ The promise resolves with an array, which contains a boolean and the path that h
 
 Also recursively deletes directories (works like Linux `rm -rf`).
 
-### `promise exists(filepath)`
+### `exists(filepath: string): Promise<boolean>`
 
 check if the item exist at `filepath`. If the item does not exist, return false.
 
-The promise resolves with boolean.
-
-### `promise mkdir(filepath [, excludeFromBackup])`
+### `mkdir(filepath: string, excludeFromBackup?: boolean): Promise<void>`
 
 Create a directory at `filepath`. Automatically creates parents and does not throw if already exists (works like Linux `mkdir -p`).
 
 (IOS only): If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` attribute will be set. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
-### `promise downloadFile(options)`
-
-`options` (`Object`) - An object containing named parameters
+### `downloadFile(options: DownloadFileOptions): Promise<DownloadResult>`
 
 ```
-{
-  fromUrl (String) - URL to download file from
-  toFile (String) - Local filesystem path to save the file to
-  headers (Object) - (Optional) An object of headers to be passed to the server
-  background (Boolean) - (Optional) See below
-  progressDivider (Number) - (Optional) See below
-  begin (Function) - (Optional) See below
-  progress (Function) - (Optional) See below
-}
+type DownloadFileOptions = {
+  fromUrl: string;          // URL to download file from
+  toFile: string;           // Local filesystem path to save the file to
+  headers?: Headers;        // An object of headers to be passed to the server
+  background?: boolean;
+  progressDivider?: number;
+  begin?: (res: DownloadBeginCallbackResult) => void;
+  progress?: (res: DownloadProgressCallbackResult) => void;
+};
+```
+```
+type DownloadResult = {
+  jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
+  statusCode: number;     // The HTTP status code
+  bytesWritten: number;   // The number of bytes written to the file
+};
 ```
 
 Download file from `options.fromUrl` to `options.toFile`. Will overwrite any previously existing file.
 
 If `options.begin` is provided, it will be invoked once upon download starting when headers have been received and passed a single argument with the following properties:
 
-`jobId` (`Number`) - The download job ID, required if one wishes to cancel the download. See `stopDownload`.
-`statusCode` (`Number`) - The HTTP status code
-`contentLength` (`Number`) - The total size in bytes of the download resource
-`headers` (`Map`) - The HTTP response headers from the server
+```
+type DownloadBeginCallbackResult = {
+  jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
+  statusCode: number;     // The HTTP status code
+  contentLength: number;  // The total size in bytes of the download resource
+  headers: Headers;       // The HTTP response headers from the server
+};
+```
 
 If `options.progress` is provided, it will be invoked continuously and passed a single argument with the following properties:
 
-`contentLength` (`Number`) - The total size in bytes of the download resource
-`bytesWritten` (`Number`) - The number of bytes written to the file so far
+```
+type DownloadProgressCallbackResult = {
+  jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
+  contentLength: number;  // The total size in bytes of the download resource
+  bytesWritten: number;   // The number of bytes written to the file so far
+};
+```
 
-If `options.progressDivider`(`Number`) is provided, it will return progress events that divided by progressDivider
+If `options.progressDivider` is provided, it will return progress events that divided by `progressDivider`.
 
 For example, if `progressDivider` = 10, you will receive only ten callbacks for this values of progress: 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
 Use it for performance issues.
@@ -354,62 +381,72 @@ If `progressDivider` = 1, you will receive all `progressCallback` calls, default
                            for your project in XCode.
 
 
-### `void stopDownload(jobId)`
+### `stopDownload(jobId: number): Promise<void>`
 
 Abort the current download job with this ID. The partial file will remain on the filesystem.
 
-### (iOS only) `promise uploadFiles(options)`
+### (iOS only) `uploadFiles(options: UploadFileOptions): Promise<UploadResult>`
 
 `options` (`Object`) - An object containing named parameters
 
 ```
-{
-  toUrl (String) - URL to upload file to
-  files (Array) - An array of objects with the file information to be uploaded.
-  method (String) - (Optional) Default is 'POST', supports 'POST' and 'PUT'
-  headers (Object) - (Optional) An object of headers to be passed to the server
-  fields (Object) - (Optional) An object of fields to be passed to the server
-  begin (Function) - (Optional) See below
-  progress (Function) - (Optional) See below
-}
-```
-
-`options.files` (`Array`) =
+type UploadFileOptions = {
+  toUrl: string;            // URL to upload file to
+  files: UploadFileItem[];  // An array of objects with the file information to be uploaded.
+  headers?: Headers;        // Default is 'POST', supports 'POST' and 'PUT'
+  fields?: Fields;          // An object of headers to be passed to the server
+  method?: string;          // An object of fields to be passed to the server
+  begin?: (res: UploadBeginCallbackResult) => void;
+  progress?: (res: UploadProgressCallbackResult) => void;
+};
 
 ```
-[
-  {
-    name (String) - (Optional) Name of the file, if not defined then filename is used
-    filename (String) - Name of file
-    filepath (String) - Path to file
-    mimetype (String) - (Optional) The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
-  }, {
-    ...
-  }
-]
+
+Each file should have the following structure:
+
+```
+type UploadFileItem = {
+  name: string;       // Name of the file, if not defined then filename is used
+  filename: string;   // Name of file
+  filepath: string;   // Path to file
+  filetype: string;   // The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
+};
 ```
 
 If `options.begin` is provided, it will be invoked once upon upload has begun:
 
-`jobId` (`Number`) - The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
+```
+type UploadBeginCallbackResult = {
+  jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
+};
+```
 
 If `options.progress` is provided, it will be invoked continuously and passed a single object with the following properties:
 
-`totalBytesExpectedToSend` (`Number`) - The total number of bytes that will be sent to the server
-`totalBytesSent` (`Number`) - The number of bytes sent to the server
+```
+type UploadProgressCallbackResult = {
+  jobId: number;                      // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
+  totalBytesExpectedToSend: number;   // The total number of bytes that will be sent to the server
+  totalBytesSent: number;             // The number of bytes sent to the server
+};
+```
 
 Percentage can be computed easily by dividing `totalBytesSent` by `totalBytesExpectedToSend`.
 
-### (iOS only) `void stopUpload(jobId)`
+### (iOS only) `stopUpload(jobId: number): Promise<void>`
 
 Abort the current upload job with this ID.
 
-### `promise getFSInfo()`
+### `getFSInfo(): Promise<FSInfoResult>`
 
 Returns an object with the following properties:
 
-`totalSpace` (`Number`): The total amount of storage space on the device (in bytes).
-`freeSpace` (`Number`): The amount of available storage space on the device (in bytes).
+```
+type FSInfoResult = {
+  totalSpace: number;   // The total amount of storage space on the device (in bytes).
+  freeSpace: number;    // The amount of available storage space on the device (in bytes).
+};
+```
 
 ## Test / Demo app
 
