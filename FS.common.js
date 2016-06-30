@@ -116,9 +116,9 @@ type DownloadResult = {
 type UploadFileOptions = {
   toUrl: string;            // URL to upload file to
   files: UploadFileItem[];  // An array of objects with the file information to be uploaded.
-  headers?: Headers;        // Default is 'POST', supports 'POST' and 'PUT'
-  fields?: Fields;          // An object of headers to be passed to the server
-  method?: string;          // An object of fields to be passed to the server
+  headers?: Headers;        // An object of headers to be passed to the server
+  fields?: Fields;          // An object of fields to be passed to the server
+  method?: string;          // Default is 'POST', supports 'POST' and 'PUT'
   begin?: (res: UploadBeginCallbackResult) => void;
   progress?: (res: UploadProgressCallbackResult) => void;
 };
