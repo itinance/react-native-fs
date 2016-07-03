@@ -137,6 +137,27 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void copyFile(String filepath, String destPath, Callback callback) {
+    try {
+      InputStream in = new FileInputStream(filepath);
+      OutputStream out = new FileOutputStream(destPath);
+
+      byte[] buffer = new byte[1024];
+      int length;
+      while ((length = in.read(buffer)) > 0) {
+          out.write(buffer, 0, length);
+      }
+      in.close();
+      out.close();
+
+      callback.invoke(null, true, destPath);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      callback.invoke(makeErrorPayload(ex));
+    }
+  }
+
+  @ReactMethod
   public void readDir(String directory, Callback callback) {
     try {
       File file = new File(directory);
