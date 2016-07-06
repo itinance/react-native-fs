@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 
+import android.net.Uri;
 import android.os.Environment;
 import android.os.AsyncTask;
 import android.os.StatFs;
@@ -15,10 +16,8 @@ import android.util.SparseArray;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -50,8 +49,57 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private SparseArray<Downloader> downloaders = new SparseArray<Downloader>();
 
+  private static ReactApplicationContext mreactContext;
+
   public RNFSManager(ReactApplicationContext reactContext) {
     super(reactContext);
+    mreactContext = reactContext;
+  }
+
+  /**
+   * get bytes array from Uri.
+   *
+   * @param context current context.
+   * @param uri uri fo the file to read.
+   * @return a bytes array.
+   * @throws IOException
+   */
+  private static byte[] getBytes(Context context, Uri uri) throws IOException {
+    InputStream iStream = context.getContentResolver().openInputStream(uri);
+    try {
+      return getBytes(iStream);
+    } finally {
+      // close the stream
+      try {
+        iStream.close();
+      } catch (IOException ignored) { /* do nothing */ }
+    }
+  }
+
+  /**
+   * get bytes from input stream.
+   *
+   * @param inputStream inputStream.
+   * @return byte array read from the inputStream.
+   * @throws IOException
+   */
+  private static byte[] getBytes(InputStream inputStream) throws IOException {
+
+    byte[] bytesResult = null;
+    ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+    int bufferSize = 1024;
+    byte[] buffer = new byte[bufferSize];
+    try {
+      int len;
+      while ((len = inputStream.read(buffer)) != -1) {
+        byteBuffer.write(buffer, 0, len);
+      }
+      bytesResult = byteBuffer.toByteArray();
+    } finally {
+      // close the stream
+      try{ byteBuffer.close(); } catch (IOException ignored){ /* do nothing */ }
+    }
+    return bytesResult;
   }
 
   @Override
@@ -105,15 +153,13 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void readFile(String filepath, Callback callback) {
     try {
-      File file = new File(filepath);
+      Uri uri = Uri.parse(filepath);
+      if (uri.getScheme() == null) {
+        uri = Uri.parse("file://" + filepath);
+      }
+      byte[] inputData = getBytes(mreactContext, uri);
 
-      if (!file.exists()) throw new Exception("File does not exist");
-
-      FileInputStream inputStream = new FileInputStream(filepath);
-      byte[] buffer = new byte[(int)file.length()];
-      inputStream.read(buffer);
-
-      String base64Content = Base64.encodeToString(buffer, Base64.NO_WRAP);
+      String base64Content = Base64.encodeToString(inputData, Base64.NO_WRAP);
 
       callback.invoke(null, base64Content);
     } catch (Exception ex) {
