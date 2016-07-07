@@ -221,7 +221,7 @@ RNFS.uploadFiles({
       'hello': 'world',
     },
     begin: uploadBegin,
-    progress: uploadProgress
+    progressCallback: uploadProgress
   })
   .then((response) => {
     if (response.statusCode == 200) {
