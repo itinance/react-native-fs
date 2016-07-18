@@ -61,12 +61,12 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       promise.resolve(null);
     } catch (Exception ex) {
       ex.printStackTrace();
-      reject(promise, ex);
+      reject(promise, filepath, ex);
     }
   }
 
   @ReactMethod
-  public void appendFile(String filepath, String base64Content, ReadableMap options, Callback callback) {
+  public void appendFile(String filepath, String base64Content, ReadableMap options, Promise promise) {
     try {
       byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
 
@@ -77,7 +77,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       promise.resolve(true);
     } catch (Exception ex) {
       ex.printStackTrace();
-      reject(promise, ex);
+      reject(promise, filepath, ex);
     }
   }
 
@@ -88,7 +88,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       promise.resolve(file.exists());
     } catch (Exception ex) {
       ex.printStackTrace();
-      reject(promise, ex);
+      reject(promise, filepath, ex);
     }
   }
 
@@ -108,7 +108,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       promise.resolve(base64Content);
     } catch (Exception ex) {
       ex.printStackTrace();
-      reject(promise, ex);
+      reject(promise, filepath, ex);
     }
   }
 
@@ -122,7 +122,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       promise.resolve(true);
     } catch (Exception ex) {
       ex.printStackTrace();
-      reject(promise, ex);
+      reject(promise, filepath, ex);
     }
   }
 
@@ -151,7 +151,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       promise.resolve(fileMaps);
     } catch (Exception ex) {
       ex.printStackTrace();
-      reject(promise, ex);
+      reject(promise, directory, ex);
     }
   }
 
@@ -172,7 +172,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       promise.resolve(statMap);
     } catch (Exception ex) {
       ex.printStackTrace();
-      reject(promise, ex);
+      reject(promise, filepath, ex);
     }
   }
 
@@ -188,7 +188,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       promise.resolve(success);
     } catch (Exception ex) {
       ex.printStackTrace();
-      reject(promise, ex);
+      reject(promise, filepath, ex);
     }
   }
 
@@ -214,7 +214,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       promise.resolve(success);
     } catch (Exception ex) {
       ex.printStackTrace();
-      reject(promise, ex);
+      reject(promise, filepath, ex);
     }
   }
 
@@ -225,7 +225,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void downloadFile(ReadableMap options, final Promise promise) {
+  public void downloadFile(final ReadableMap options, final Promise promise) {
     try {
       File file = new File(options.getString("toFile"));
       URL url = new URL(options.getString("fromUrl"));
@@ -251,7 +251,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
             promise.resolve(infoMap);
           } else {
-            reject(promise, res.exception);
+            reject(promise, options.getString("toFile"), res.exception);
           }
         }
       };
@@ -294,7 +294,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       this.downloaders.put(jobId, downloader);
     } catch (Exception ex) {
       ex.printStackTrace();
-      reject(promise, ex);
+      reject(promise, options.getString("toFile"), ex);
     }
   }
 
@@ -342,7 +342,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   private void rejectFileNotFound(Promise promise, String filepath) {
-    promise.reject("ENOENT", "ENOENT: no such file or directory, open '" + filepath + "'");
+    promise.reject("ENOENT", "ENOENT: no such file or directory, open '" + filepath + "'");
   }
 
   @Override
