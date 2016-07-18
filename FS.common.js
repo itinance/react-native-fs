@@ -7,48 +7,48 @@
 
 // This file supports both iOS and Android
 
-// Stop bluebird going nuts because it can't find "self"
-if (typeof self === 'undefined') {
-  global.self = global;
-}
-
 var RNFSManager = require('react-native').NativeModules.RNFSManager;
-var NativeAppEventEmitter = require('react-native').NativeAppEventEmitter;
-var Promise = require('bluebird');
+// var NativeAppEventEmitter = require('react-native').NativeAppEventEmitter;
+// var Promise = require('bluebird');
+// var base64 = require('base-64');
+// var utf8 = require('utf8');
+
+// var _readDir = Promise.promisify(RNFSManager.readDir);
+// var _exists = Promise.promisify(RNFSManager.exists);
+// var _stat = Promise.promisify(RNFSManager.stat);
+// var _readFile = Promise.promisify(RNFSManager.readFile);
+// var _writeFile = Promise.promisify(RNFSManager.writeFile);
+// var _appendFile = Promise.promisify(RNFSManager.appendFile);
+// var _moveFile = Promise.promisify(RNFSManager.moveFile);
+// var _unlink = Promise.promisify(RNFSManager.unlink);
+// var _mkdir = Promise.promisify(RNFSManager.mkdir);
+// var _downloadFile = Promise.promisify(RNFSManager.downloadFile);
+// var _uploadFiles = RNFSManager.uploadFiles ? Promise.promisify(RNFSManager.uploadFiles) : function () { return Promise.reject('Not implemented on Android'); };
+// var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
+// var _getFSInfo = Promise.promisify(RNFSManager.getFSInfo);
+
+// class RNFSError extends Error {
+//   code: number;
+
+//   constructor(message) {
+//     super(message);
+//   }
+// }
+
+// var convertError = (err) => {
+//   if (err.isOperational && err.cause) {
+//     err = err.cause;
+//   }
+
+//   var error = new RNFSError(err.description || err.message);
+//   error.code = err.code;
+//   throw error;
+// };
+
+var NativeAppEventEmitter = require('react-native').NativeAppEventEmitter;  // iOS
+var DeviceEventEmitter = require('react-native').DeviceEventEmitter;        // Android
 var base64 = require('base-64');
 var utf8 = require('utf8');
-
-var _readDir = Promise.promisify(RNFSManager.readDir);
-var _exists = Promise.promisify(RNFSManager.exists);
-var _stat = Promise.promisify(RNFSManager.stat);
-var _readFile = Promise.promisify(RNFSManager.readFile);
-var _writeFile = Promise.promisify(RNFSManager.writeFile);
-var _appendFile = Promise.promisify(RNFSManager.appendFile);
-var _moveFile = Promise.promisify(RNFSManager.moveFile);
-var _unlink = Promise.promisify(RNFSManager.unlink);
-var _mkdir = Promise.promisify(RNFSManager.mkdir);
-var _downloadFile = Promise.promisify(RNFSManager.downloadFile);
-var _uploadFiles = RNFSManager.uploadFiles ? Promise.promisify(RNFSManager.uploadFiles) : function () { return Promise.reject('Not implemented on Android'); };
-var _pathForBundle = Promise.promisify(RNFSManager.pathForBundle);
-var _getFSInfo = Promise.promisify(RNFSManager.getFSInfo);
-
-class RNFSError extends Error {
-  code: number;
-
-  constructor(message) {
-    super(message);
-  }
-}
-
-var convertError = (err) => {
-  if (err.isOperational && err.cause) {
-    err = err.cause;
-  }
-
-  var error = new RNFSError(err.description || err.message);
-  error.code = err.code;
-  throw error;
-};
 
 var NSFileTypeRegular = RNFSManager.NSFileTypeRegular;
 var NSFileTypeDirectory = RNFSManager.NSFileTypeDirectory;
@@ -155,7 +155,7 @@ type FSInfoResult = {
 var RNFS = {
 
   readDir(dirpath: string): Promise<ReadDirItem[]> {
-    return _readDir(dirpath).then(files => {
+    return RNFSManager.readDir(dirpath).then(files => {
       return files.map(file => ({
         name: file.name,
         path: file.path,
@@ -163,7 +163,7 @@ var RNFS = {
         isFile: () => file.type === NSFileTypeRegular,
         isDirectory: () => file.type === NSFileTypeDirectory,
       }));
-    }).catch(convertError);
+    });
   },
 
   // Node style version (lowercase d). Returns just the names
@@ -174,7 +174,7 @@ var RNFS = {
   },
 
   stat(filepath: string): Promise<StatResult> {
-    return _stat(filepath).then((result) => {
+    return RNFSManager.stat(filepath).then((result) => {
       return {
         'ctime': new Date(result.ctime * 1000),
         'mtime': new Date(result.mtime * 1000),
@@ -183,17 +183,13 @@ var RNFS = {
         isFile: () => result.type === NSFileTypeRegular,
         isDirectory: () => result.type === NSFileTypeDirectory,
       };
-    }).catch(convertError);
-  },
-
-  exists(filepath: string): Promise<boolean> {
-    return _exists(filepath).catch(convertError);
+    });
   },
 
   readFile(filepath: string, encoding?: string): Promise<string> {
     if (!encoding) encoding = 'utf8';
 
-    return _readFile(filepath).then((b64) => {
+    return RNFSManager.readFile(filepath).then((b64) => {
       var contents;
 
       if (encoding === 'utf8') {
@@ -207,7 +203,7 @@ var RNFS = {
       }
 
       return contents;
-    }).catch(convertError);
+    });
   },
 
   writeFile(filepath: string, contents: string, encoding?: string, options?: WriteFileOptions): Promise<void> {
@@ -225,7 +221,7 @@ var RNFS = {
       throw new Error('Invalid encoding type "' + encoding + '"');
     }
 
-    return _writeFile(filepath, b64, options).catch(convertError);
+    return RNFSManager.writeFile(filepath, b64, options);
   },
 
   appendFile(filepath: string, contents: string, encoding?: string, options?: WriteFileOptions): Promise<void> {
@@ -243,29 +239,13 @@ var RNFS = {
       throw new Error('Invalid encoding type "' + encoding + '"');
     }
 
-    return _appendFile(filepath, b64, options).catch(convertError);
-  },
-
-  moveFile(filepath: string, destPath: string): Promise<void> {
-    return _moveFile(filepath, destPath).catch(convertError);
-  },
-
-  pathForBundle(bundleName: string): Promise<string> {
-    return _pathForBundle(bundleName);
-  },
-
-  getFSInfo(): Promise<FSInfoResult> {
-    return _getFSInfo().catch(convertError);
-  },
-
-  unlink(filepath: string): Promise<void> {
-    return _unlink(filepath).catch(convertError);
+    return RNFSManager.appendFile(filepath, b64, options);
   },
 
   mkdir(filepath: string, excludeFromBackup?: boolean): Promise<void> {
     excludeFromBackup = !!excludeFromBackup;
 
-    return _mkdir(filepath, excludeFromBackup).catch(convertError);
+    return RNFSManager.mkdir(filepath, excludeFromBackup);
   },
 
   downloadFile(options: DownloadFileOptions): Promise<DownloadResult> {
@@ -308,14 +288,10 @@ var RNFS = {
       progressDivider: options.progressDivider || 0
     };
 
-    return _downloadFile(bridgeOptions).then(res => {
+    return RNFSManager.downloadFile(bridgeOptions).then(res => {
       subscriptions.forEach(sub => sub.remove());
       return res;
-    }).catch(convertError);
-  },
-
-  stopDownload(jobId: number): Promise<void> {
-    RNFSManager.stopDownload(jobId);
+    });
   },
 
   uploadFiles(options: UploadFileOptions): Promise<UploadResult> {
@@ -354,15 +330,19 @@ var RNFS = {
       method: options.method || 'POST'
     };
 
-    return _uploadFiles(bridgeOptions).then(res => {
+    return RNFSManager.uploadFiles(bridgeOptions).then(res => {
       subscriptions.forEach(sub => sub.remove());
       return res;
     });
   },
 
-  stopUpload(jobId: number): Promise<void> {
-    RNFSManager.stopUpload(jobId);
-  },
+  moveFile: (RNFSManager.moveFile:(filepath: string, destPath: string) => Promise<void>),
+  pathForBundle: (RNFSManager.pathForBundle:(bundleNamed: string) => Promise<string>),
+  getFSInfo: (RNFSManager.getFSInfo:() => Promise<FSInfoResult>),
+  unlink: (RNFSManager.unlink:(filepath: string) => Promise<void>),
+  exists: (RNFSManager.exists:(filepath: string) => Promise<boolean>),
+  stopDownload: (RNFSManager.stopDownload:(jobId: number) => void),
+  stopUpload: (RNFSManager.stopUpload:(jobId: number) => void),
 
   MainBundlePath: RNFSManager.MainBundlePath,
   CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
@@ -371,6 +351,7 @@ var RNFS = {
   TemporaryDirectoryPath: RNFSManager.NSTemporaryDirectoryPath,
   LibraryDirectoryPath: RNFSManager.NSLibraryDirectoryPath,
   PicturesDirectoryPath: RNFSManager.NSPicturesDirectoryPath
+
 };
 
 module.exports = RNFS;

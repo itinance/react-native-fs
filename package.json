@@ -22,7 +22,6 @@
   "license": "MIT",
   "dependencies": {
     "base-64": "^0.1.0",
-    "bluebird": "^2.9.25",
     "utf8": "^2.1.1"
   },
   "devDependencies": {
