@@ -238,7 +238,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  DownloadParams* params = [DownloadParams alloc];
+  RNFSDownloadParams* params = [RNFSDownloadParams alloc];
 
   NSNumber* jobId = options[@"jobId"];
   params.fromUrl = options[@"fromUrl"];
@@ -280,7 +280,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
 
   if (!self.downloaders) self.downloaders = [[NSMutableDictionary alloc] init];
 
-  Downloader* downloader = [Downloader alloc];
+  RNFSDownloader* downloader = [RNFSDownloader alloc];
 
   [downloader downloadFile:params];
 
@@ -289,7 +289,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
 
 RCT_EXPORT_METHOD(stopDownload:(nonnull NSNumber *)jobId)
 {
-  Downloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
+  RNFSDownloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
 
   if (downloader != nil) {
     [downloader stopDownload];
@@ -300,7 +300,7 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  UploadParams* params = [UploadParams alloc];
+  RNFSUploadParams* params = [RNFSUploadParams alloc];
 
   NSNumber* jobId = options[@"jobId"];
   params.toUrl = options[@"toUrl"];
@@ -342,7 +342,7 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
 
   if (!self.uploaders) self.uploaders = [[NSMutableDictionary alloc] init];
 
-  Uploader* uploader = [Uploader alloc];
+  RNFSUploader* uploader = [RNFSUploader alloc];
 
   [uploader uploadFiles:params];
 
@@ -351,7 +351,7 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
 
 RCT_EXPORT_METHOD(stopUpload:(nonnull NSNumber *)jobId)
 {
-  Uploader* uploader = [self.uploaders objectForKey:[jobId stringValue]];
+  RNFSUploader* uploader = [self.uploaders objectForKey:[jobId stringValue]];
 
   if (uploader != nil) {
     [uploader stopUpload];
