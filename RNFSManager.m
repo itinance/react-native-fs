@@ -190,12 +190,26 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  NSData *content = [[NSFileManager defaultManager] contentsAtPath:filepath];
-  NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
+  BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filepath];
 
-  if (!base64Content) {
+  if (!fileExists) {
     return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
   }
+
+  NSError *error = nil;
+
+  NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
+
+  if (error) {
+    return [self reject:reject withError:error];
+  }
+
+  if ([attributes objectForKey:NSFileType] == NSFileTypeDirectory) {
+    return reject(@"EISDIR", @"EISDIR: illegal operation on a directory, read", nil);
+  }
+
+  NSData *content = [[NSFileManager defaultManager] contentsAtPath:filepath];
+  NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
 
   resolve(base64Content);
 }

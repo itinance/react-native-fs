@@ -150,60 +150,90 @@ var RNFS = {
     });
   },
 
-  readFile(filepath: string, encoding?: string): Promise<string> {
-    if (!encoding) encoding = 'utf8';
+  readFile(filepath: string, encodingOrOptions?: any): Promise<string> {
+    var options = {
+      encoding: 'utf8'
+    };
+
+    if (encodingOrOptions) {
+      if (typeof encodingOrOptions === 'string') {
+        options.encoding = encodingOrOptions;
+      } else if (typeof encodingOrOptions === 'object') {
+        options = encodingOrOptions;
+      }
+    }
 
     return RNFSManager.readFile(filepath).then((b64) => {
       var contents;
 
-      if (encoding === 'utf8') {
+      if (options.encoding === 'utf8') {
         contents = utf8.decode(base64.decode(b64));
-      } else if (encoding === 'ascii') {
+      } else if (options.encoding === 'ascii') {
         contents = base64.decode(b64);
-      } else if (encoding === 'base64') {
+      } else if (options.encoding === 'base64') {
         contents = b64;
       } else {
-        throw new Error('Invalid encoding type "' + String(encoding) + '"');
+        throw new Error('Invalid encoding type "' + String(options.encoding) + '"');
       }
 
       return contents;
     });
   },
 
-  writeFile(filepath: string, contents: string, encoding?: string, options?: WriteFileOptions): Promise<void> {
+  writeFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
     var b64;
 
-    if (!encoding) encoding = 'utf8';
+    var options = {
+      encoding: 'utf8'
+    };
 
-    if (encoding === 'utf8') {
-      b64 = base64.encode(utf8.encode(contents));
-    } else if (encoding === 'ascii') {
-      b64 = base64.encode(contents);
-    } else if (encoding === 'base64') {
-      b64 = contents;
-    } else {
-      throw new Error('Invalid encoding type "' + encoding + '"');
+    if (encodingOrOptions) {
+      if (typeof encodingOrOptions === 'string') {
+        options.encoding = encodingOrOptions;
+      } else if (typeof encodingOrOptions === 'object') {
+        options = encodingOrOptions;
+      }
     }
 
-    return RNFSManager.writeFile(filepath, b64, options);
+    if (options.encoding === 'utf8') {
+      b64 = base64.encode(utf8.encode(contents));
+    } else if (options.encoding === 'ascii') {
+      b64 = base64.encode(contents);
+    } else if (options.encoding === 'base64') {
+      b64 = contents;
+    } else {
+      throw new Error('Invalid encoding type "' + options.encoding + '"');
+    }
+
+    return RNFSManager.writeFile(filepath, b64, {});
   },
 
-  appendFile(filepath: string, contents: string, encoding?: string, options?: WriteFileOptions): Promise<void> {
+  appendFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
     var b64;
 
-    if (!encoding) encoding = 'utf8';
+    var options = {
+      encoding: 'utf8'
+    };
 
-    if (encoding === 'utf8') {
-      b64 = base64.encode(utf8.encode(contents));
-    } else if (encoding === 'ascii') {
-      b64 = base64.encode(contents);
-    } else if (encoding === 'base64') {
-      b64 = contents;
-    } else {
-      throw new Error('Invalid encoding type "' + encoding + '"');
+    if (encodingOrOptions) {
+      if (typeof encodingOrOptions === 'string') {
+        options.encoding = encodingOrOptions;
+      } else if (typeof encodingOrOptions === 'object') {
+        options = encodingOrOptions;
+      }
     }
 
-    return RNFSManager.appendFile(filepath, b64, options);
+    if (options.encoding === 'utf8') {
+      b64 = base64.encode(utf8.encode(contents));
+    } else if (options.encoding === 'ascii') {
+      b64 = base64.encode(contents);
+    } else if (options.encoding === 'base64') {
+      b64 = contents;
+    } else {
+      throw new Error('Invalid encoding type "' + options.encoding + '"');
+    }
+
+    return RNFSManager.appendFile(filepath, b64, {});
   },
 
   mkdir(filepath: string, excludeFromBackup?: boolean): Promise<void> {
