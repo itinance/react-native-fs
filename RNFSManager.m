@@ -161,8 +161,8 @@ RCT_EXPORT_METHOD(unlink:(NSString*)filepath
   resolve(nil);
 }
 
-RCT_EXPORT_METHOD(mkdir:(NSString*)filepath
-                  excludeFromBackup:(BOOL)excludeFromBackup
+RCT_EXPORT_METHOD(mkdir:(NSString *)filepath
+                  options:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -177,10 +177,13 @@ RCT_EXPORT_METHOD(mkdir:(NSString*)filepath
 
   NSURL *url = [NSURL fileURLWithPath:filepath];
 
-  success = [url setResourceValue: [NSNumber numberWithBool: excludeFromBackup] forKey: NSURLIsExcludedFromBackupKey error: &error];
+  if ([[options allKeys] containsObject:@"NSURLIsExcludedFromBackupKey"]) {
+    NSNumber *value = options[@"NSURLIsExcludedFromBackupKey"];
+    success = [url setResourceValue: value forKey: NSURLIsExcludedFromBackupKey error: &error];
 
-  if (!success) {
-    return [self reject:reject withError:error];
+    if (!success) {
+      return [self reject:reject withError:error];
+    }
   }
 
   resolve(nil);

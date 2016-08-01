@@ -76,7 +76,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       outputStream.write(bytes);
       outputStream.close();
 
-      promise.resolve(true);
+      promise.resolve(null);
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
@@ -99,7 +99,15 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     try {
       File file = new File(filepath);
 
-      if (!file.exists()) throw new Exception("File does not exist");
+      if (file.isDirectory()) {
+        rejectFileIsDirectory(promise);
+        return;
+      }
+
+      if (!file.exists()) {
+        rejectFileNotFound(promise, filepath);
+        return;
+      }
 
       FileInputStream inputStream = new FileInputStream(filepath);
       byte[] buffer = new byte[(int)file.length()];
@@ -142,7 +150,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       in.close();
       out.close();
 
-      promise.resolve(true);
+      promise.resolve(null);
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
@@ -206,35 +214,37 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
       if (!file.exists()) throw new Exception("File does not exist");
 
-      boolean success = DeleteRecursive(file);
+      DeleteRecursive(file);
 
-      promise.resolve(success);
+      promise.resolve(null);
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
     }
   }
 
-  private boolean DeleteRecursive(File fileOrDirectory) {
+  private void DeleteRecursive(File fileOrDirectory) {
     if (fileOrDirectory.isDirectory()) {
       for (File child : fileOrDirectory.listFiles()) {
         DeleteRecursive(child);
       }
     }
 
-    return fileOrDirectory.delete();
+    fileOrDirectory.delete();
   }
 
   @ReactMethod
-  public void mkdir(String filepath, Boolean excludeFromBackup, Promise promise) {
+  public void mkdir(String filepath, ReadableMap options, Promise promise) {
     try {
       File file = new File(filepath);
 
       file.mkdirs();
 
-      boolean success = file.exists();
+      boolean exists = file.exists();
 
-      promise.resolve(success);
+      if (!exists) throw new Exception("Directory could not be created");
+
+      promise.resolve(null);
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
@@ -366,6 +376,10 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private void rejectFileNotFound(Promise promise, String filepath) {
     promise.reject("ENOENT", "ENOENT: no such file or directory, open '" + filepath + "'");
+  }
+
+  private void rejectFileIsDirectory(Promise promise) {
+    promise.reject("EISDIR", "EISDIR: illegal operation on a directory, read");
   }
 
   @Override

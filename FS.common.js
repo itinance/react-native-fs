@@ -24,6 +24,10 @@ var getJobId = () => {
   return jobId;
 };
 
+type MkdirOptions = {
+  NSURLIsExcludedFromBackupKey?: boolean;
+};
+
 type ReadDirItem = {
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
@@ -118,6 +122,44 @@ type FSInfoResult = {
 
 var RNFS = {
 
+  mkdir(filepath: string, options: MkdirOptions): Promise<void> {
+    options = options || {};
+
+    return RNFSManager.mkdir(filepath, options).then(() => void 0);
+  },
+
+  moveFile(filepath: string, destPath: string): Promise<void> {
+    return RNFSManager.moveFile(filepath, destPath).then(() => void 0);
+  },
+
+  copyFile(filepath: string, destPath: string): Promise<void> {
+    return RNFSManager.copyFile(filepath, destPath).then(() => void 0);
+  },
+
+  pathForBundle(bundleNamed: string): Promise<string> {
+    return RNFSManager.pathForBundle(bundleNamed);
+  },
+
+  getFSInfo(): Promise<FSInfoResult> {
+    return RNFSManager.getFSInfo();
+  },
+
+  unlink(filepath: string): Promise<void> {
+    return RNFSManager.unlink(filepath).then(() => void 0);
+  },
+
+  exists(filepath: string): Promise<boolean> {
+    return RNFSManager.exists(filepath);
+  },
+
+  stopDownload(jobId: number): void {
+    RNFSManager.stopDownload(jobId);
+  },
+
+  stopUpload(jobId: number): void {
+    RNFSManager.stopUpload(jobId);
+  },
+
   readDir(dirpath: string): Promise<ReadDirItem[]> {
     return RNFSManager.readDir(dirpath).then(files => {
       return files.map(file => ({
@@ -205,7 +247,7 @@ var RNFS = {
       throw new Error('Invalid encoding type "' + options.encoding + '"');
     }
 
-    return RNFSManager.writeFile(filepath, b64, {});
+    return RNFSManager.writeFile(filepath, b64, {}).then(() => void 0);
   },
 
   appendFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
@@ -234,12 +276,6 @@ var RNFS = {
     }
 
     return RNFSManager.appendFile(filepath, b64, {});
-  },
-
-  mkdir(filepath: string, excludeFromBackup?: boolean): Promise<void> {
-    excludeFromBackup = !!excludeFromBackup;
-
-    return RNFSManager.mkdir(filepath, excludeFromBackup);
   },
 
   downloadFile(options: DownloadFileOptions): Promise<DownloadResult> {
@@ -329,15 +365,6 @@ var RNFS = {
       return res;
     });
   },
-
-  moveFile: (RNFSManager.moveFile:(filepath: string, destPath: string) => Promise<void>),
-  copyFile: (RNFSManager.copyFile:(filepath: string, destPath: string) => Promise<void>),
-  pathForBundle: (RNFSManager.pathForBundle:(bundleNamed: string) => Promise<string>),
-  getFSInfo: (RNFSManager.getFSInfo:() => Promise<FSInfoResult>),
-  unlink: (RNFSManager.unlink:(filepath: string) => Promise<void>),
-  exists: (RNFSManager.exists:(filepath: string) => Promise<boolean>),
-  stopDownload: (RNFSManager.stopDownload:(jobId: number) => void),
-  stopUpload: (RNFSManager.stopUpload:(jobId: number) => void),
 
   MainBundlePath: RNFSManager.MainBundlePath,
   CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
