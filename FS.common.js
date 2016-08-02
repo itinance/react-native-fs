@@ -45,10 +45,6 @@ type StatResult = {
   isDirectory: () => boolean;   // Is the file a directory?
 };
 
-type WriteFileOptions = {
-  // iOS only. See https://developer.apple.com/library/ios/documentation/Cocoa/Reference/Foundation/Classes/NSFileManager_Class/index.html#//apple_ref/doc/constant_group/File_Attribute_Keys
-};
-
 type Headers = { [name: string]: string };
 type Fields = { [name: string]: string };
 
@@ -247,7 +243,7 @@ var RNFS = {
       throw new Error('Invalid encoding type "' + options.encoding + '"');
     }
 
-    return RNFSManager.writeFile(filepath, b64, {}).then(() => void 0);
+    return RNFSManager.writeFile(filepath, b64).then(() => void 0);
   },
 
   appendFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
@@ -275,7 +271,7 @@ var RNFS = {
       throw new Error('Invalid encoding type "' + options.encoding + '"');
     }
 
-    return RNFSManager.appendFile(filepath, b64, {});
+    return RNFSManager.appendFile(filepath, b64);
   },
 
   downloadFile(options: DownloadFileOptions): Promise<DownloadResult> {

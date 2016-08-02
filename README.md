@@ -173,11 +173,8 @@ RNFS.writeFile(path, 'Lorem ipsum dolor sit amet', 'utf8')
 var path = RNFS.DocumentDirectoryPath + '/test.txt';
 
 return RNFS.unlink(path)
-  // spread is a method offered by bluebird to allow for more than a
-  // single return value of a promise. If you use `then`, you will receive
-  // the values inside of an array
-  .spread((success, path) => {
-    console.log('FILE DELETED', success, path);
+  .then(() => {
+    console.log('FILE DELETED');
   })
   // `unlink` will throw an error, if the item to unlink does not exist
   .catch((err) => {
@@ -219,19 +216,18 @@ var uploadProgress = (response) => {
 
 // upload files
 RNFS.uploadFiles({
-    toUrl: uploadUrl,
-    files: files,
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-    },
-    fields: {
-      'hello': 'world',
-    },
-    begin: uploadBegin,
-    progress: uploadProgress
-  })
-  .then((response) => {
+  toUrl: uploadUrl,
+  files: files,
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+  },
+  fields: {
+    'hello': 'world',
+  },
+  begin: uploadBegin,
+  progress: uploadProgress
+}).then((response) => {
     if (response.statusCode == 200) {
       console.log('FILES UPLOADED!'); // response.statusCode, response.headers, response.body
     } else {
@@ -301,15 +297,9 @@ Reads the file at `path` and return contents. `encoding` can be one of `utf8` (d
 
 Note: you will take quite a performance hit if you are reading big files
 
-### `writeFile(filepath: string, contents: string, encoding?: string, options?: WriteFileOptions): Promise<void>`
+### `writeFile(filepath: string, contents: string, encoding?: string): Promise<void>`
 
 Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
-
-```
-type WriteFileOptions = {
-  // iOS only. See https://developer.apple.com/library/ios/documentation/Cocoa/Reference/Foundation/Classes/NSFileManager_Class/index.html#//apple_ref/doc/constant_group/File_Attribute_Keys
-};
-```
 
 ### `appendFile(filepath: string, contents: string, encoding?: string): Promise<void>`
 
@@ -326,8 +316,6 @@ Copies the file located at `filepath` to `destPath`.
 ### `unlink(filepath: string): Promise<void>`
 
 Unlinks the item at `filepath`. If the item does not exist, an error will be thrown.
-
-The promise resolves with an array, which contains a boolean and the path that has been unlinked. Tip: use `spread` to receive the two arguments instead of a single array in your handler.
 
 Also recursively deletes directories (works like Linux `rm -rf`).
 
@@ -416,6 +404,14 @@ type UploadFileOptions = {
   progress?: (res: UploadProgressCallbackResult) => void;
 };
 
+```
+```
+type UploadResult = {
+  jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
+  statusCode: number;   // The HTTP status code
+  headers: Headers;     // The HTTP response headers from the server
+  body: string;         // The HTTP response body
+};
 ```
 
 Each file should have the following structure:

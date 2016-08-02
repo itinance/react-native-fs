@@ -92,13 +92,12 @@ RCT_EXPORT_METHOD(stat:(NSString *)filepath
 
 RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
                   contents:(NSString *)base64Content
-                  attributes:(NSDictionary *)attributes
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
 
-  BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
+  BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:nil];
 
   if (!success) {
     return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
@@ -109,7 +108,6 @@ RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
 
 RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
                   contents:(NSString *)base64Content
-                  attributes:(NSDictionary *)attributes
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -119,7 +117,7 @@ RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
 
   if (![fM fileExistsAtPath:filepath])
   {
-    BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
+    BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:nil];
 
     if (!success) {
       return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
