@@ -2,6 +2,14 @@
 
 Native filesystem access for react-native
 
+## Breaking change in v2.x
+
+- Removed attributes from `writeFile` and `appendFile` for iOS / Android consistency
+- `downloadFile` takes `options` object rather than parameters
+- `stopDownload` will cause the rejection of promise returned by `downloadFile`
+- `uploadFile` promise result `response` property is now `body`
+- A boolean is no longer returned from any method except `exists`
+
 ## Usage (iOS)
 
 First you need to install react-native-fs:

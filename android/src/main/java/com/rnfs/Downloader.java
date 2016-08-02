@@ -40,7 +40,7 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
     return res;
   }
 
-  private void download(DownloadParams param, DownloadResult res) throws IOException {
+  private void download(DownloadParams param, DownloadResult res) throws Exception {
     InputStream input = null;
     OutputStream output = null;
     HttpURLConnection connection = null;
@@ -107,22 +107,20 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
       double lastProgressValue = 0;
 
       while ((count = input.read(data)) != -1) {
-        if (mAbort.get()) {
-          break;
-        }
+        if (mAbort.get()) throw new Exception("Download has been aborted");
 
         total += count;
         if (param.progressDivider <= 0) {
-            publishProgress(new int[]{lengthOfFile, total});
+          publishProgress(new int[]{lengthOfFile, total});
         } else {
-            double progress = Math.round(((double) total * 100) / lengthOfFile);
-            if (progress % param.progressDivider == 0) {
-                if ((progress != lastProgressValue) || (total == lengthOfFile)) {
-                    Log.d("Downloader", "EMIT: " + String.valueOf(progress) + ", TOTAL:" + String.valueOf(total));
-                    lastProgressValue = progress;
-                    publishProgress(new int[]{lengthOfFile, total});
-                }
+          double progress = Math.round(((double) total * 100) / lengthOfFile);
+          if (progress % param.progressDivider == 0) {
+            if ((progress != lastProgressValue) || (total == lengthOfFile)) {
+              Log.d("Downloader", "EMIT: " + String.valueOf(progress) + ", TOTAL:" + String.valueOf(total));
+              lastProgressValue = progress;
+              publishProgress(new int[]{lengthOfFile, total});
             }
+          }
         }
         output.write(data, 0, count);
       }

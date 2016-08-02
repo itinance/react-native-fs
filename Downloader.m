@@ -105,10 +105,17 @@
   return _params.errorCallback(error);
 }
 
-
 - (void)stopDownload
 {
   [_task cancel];
+
+  NSError *error = [NSError errorWithDomain:@"RNFS"
+                                       code:@"Aborted"
+                                   userInfo:@{
+                                     NSLocalizedDescriptionKey: @"Download has been aborted"
+                                   }];
+
+  return _params.errorCallback(error);
 }
 
 @end
