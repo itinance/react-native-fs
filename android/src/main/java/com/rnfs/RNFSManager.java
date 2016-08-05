@@ -1,5 +1,6 @@
 package com.rnfs;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -125,9 +126,13 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void moveFile(String filepath, String destPath, Promise promise) {
     try {
-      File from = new File(filepath);
-      File to = new File(destPath);
-      from.renameTo(to);
+      File inFile = new File(filepath);
+
+      if (!inFile.renameTo(new File(destPath))) {
+        copyFile(filepath, destPath);
+
+        inFile.delete();
+      }
 
       promise.resolve(true);
     } catch (Exception ex) {
@@ -139,22 +144,26 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void copyFile(String filepath, String destPath, Promise promise) {
     try {
-      InputStream in = new FileInputStream(filepath);
-      OutputStream out = new FileOutputStream(destPath);
-
-      byte[] buffer = new byte[1024];
-      int length;
-      while ((length = in.read(buffer)) > 0) {
-          out.write(buffer, 0, length);
-      }
-      in.close();
-      out.close();
+      copyFile(filepath, destPath);
 
       promise.resolve(null);
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
     }
+  }
+
+  private void copyFile(String filepath, String destPath) throws IOException {
+    InputStream in = new FileInputStream(filepath);
+    OutputStream out = new FileOutputStream(destPath);
+
+    byte[] buffer = new byte[1024];
+    int length;
+    while ((length = in.read(buffer)) > 0) {
+      out.write(buffer, 0, length);
+    }
+    in.close();
+    out.close();
   }
 
   @ReactMethod
