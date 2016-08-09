@@ -16,7 +16,10 @@
     "ios",
     "android",
     "fs",
-    "filesystem"
+    "filesystem",
+    "download",
+    "upload",
+    "file-transfer"
   ],
   "author": "Johannes Lumpe <johannes@lum.pe> (https://github.com/johanneslumpe)",
   "license": "MIT",
