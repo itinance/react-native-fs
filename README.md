@@ -114,6 +114,21 @@ public class MainActivity extends ReactActivity {
     }
 ```
 
+  * For react-native 0.29.0 and higher ( in MainApplication.java )
+```java
+import com.rnfs.RNFSPackage; // <------- add package
+
+public class MainApplication extends Application implements ReactApplication {
+   // ...
+    @Override
+    protected List<ReactPackage> getPackages() {
+      return Arrays.<ReactPackage>asList(
+        new MainReactPackage(), // <---- add comma
+        new RNFSPackage() // <---------- add package
+      );
+    }
+```
+
 ## Examples
 
 ### Basic
