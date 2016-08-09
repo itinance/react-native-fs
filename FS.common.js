@@ -118,9 +118,7 @@ type FSInfoResult = {
 
 var RNFS = {
 
-  mkdir(filepath: string, options: MkdirOptions): Promise<void> {
-    options = options || {};
-
+  mkdir(filepath: string, options: MkdirOptions = {}): Promise<void> {
     return RNFSManager.mkdir(filepath, options).then(() => void 0);
   },
 
