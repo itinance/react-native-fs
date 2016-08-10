@@ -34,6 +34,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   private static final String NSDocumentDirectoryPath = "NSDocumentDirectoryPath";
   private static final String NSExternalDirectoryPath = "NSExternalDirectoryPath";
   private static final String NSExternalStorageDirectoryPath = "NSExternalStorageDirectoryPath";
+  private static final String NSDownloadsDirectoryPath = "NSDownloadsDirectoryPath";
+  private static final String NSMusicDirectoryPath = "NSMusicDirectoryPath";
   private static final String NSPicturesDirectoryPath = "NSPicturesDirectoryPath";
   private static final String NSTemporaryDirectoryPath = "NSTemporaryDirectoryPath";
   private static final String NSCachesDirectoryPath = "NSCachesDirectoryPath";
@@ -410,6 +412,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     } else {
         constants.put(NSExternalStorageDirectoryPath, null);
     }
+    constants.put(NSDownloadsDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath());
+    constants.put(NSMusicDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath());
     constants.put(NSPicturesDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath());
     constants.put(NSCachesDirectoryPath, this.getReactApplicationContext().getCacheDir().getAbsolutePath());
     constants.put(NSFileTypeRegular, 0);
