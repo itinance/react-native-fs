@@ -395,25 +395,29 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @Override
   public Map<String, Object> getConstants() {
     final Map<String, Object> constants = new HashMap<>();
+
     constants.put(RNFSDocumentDirectory, 0);
     constants.put(RNFSDocumentDirectoryPath, this.getReactApplicationContext().getFilesDir().getAbsolutePath());
     constants.put(RNFSTemporaryDirectoryPath, null);
+    constants.put(RNFSPicturesDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath());
+    constants.put(RNFSCachesDirectoryPath, this.getReactApplicationContext().getCacheDir().getAbsolutePath());
+    constants.put(RNFSFileTypeRegular, 0);
+    constants.put(RNFSFileTypeDirectory, 1);
+
+    File externalStorageDirectory = Environment.getExternalStorageDirectory();
+    if (externalStorageDirectory != null) {
+        constants.put(RNFSExternalStorageDirectoryPath, externalStorageDirectory.getAbsolutePath());
+    } else {
+        constants.put(RNFSExternalStorageDirectoryPath, null);
+    }
+
     File externalDirectory = this.getReactApplicationContext().getExternalFilesDir(null);
     if (externalDirectory != null) {
       constants.put(RNFSExternalDirectoryPath, externalDirectory.getAbsolutePath());
     } else {
       constants.put(RNFSExternalDirectoryPath, null);
     }
-    constants.put(RNFSPicturesDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath());
-    constants.put(RNFSCachesDirectoryPath, this.getReactApplicationContext().getCacheDir().getAbsolutePath());
-    constants.put(RNFSFileTypeRegular, 0);
-    constants.put(RNFSFileTypeDirectory, 1);
-    File externalStorageDirectory = this.getReactApplicationContext().getExternalStorageDirectory(null);
-    if (externalStorageDirectory != null) {
-        constants.put(RNFSExternalStorageDirectoryPath, externalStorageDirectory.getAbsolutePath());
-    } else {
-        constants.put(RNFSExternalStorageDirectoryPath, null);
-    }
+
     return constants;
   }
 }

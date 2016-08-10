@@ -447,6 +447,7 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
            @"RNFSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
            @"RNFSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
            @"RNFSExternalDirectoryPath": [NSNull null],
+           @"RNFSExternalStorageDirectoryPath": [NSNull null],
            @"RNFSTemporaryDirectoryPath": NSTemporaryDirectory(),
            @"RNFSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
            @"RNFSFileTypeRegular": NSFileTypeRegular,
