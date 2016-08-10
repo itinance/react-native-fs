@@ -14,8 +14,8 @@ var DeviceEventEmitter = require('react-native').DeviceEventEmitter;        // A
 var base64 = require('base-64');
 var utf8 = require('utf8');
 
-var NSFileTypeRegular = RNFSManager.NSFileTypeRegular;
-var NSFileTypeDirectory = RNFSManager.NSFileTypeDirectory;
+var RNFSFileTypeRegular = RNFSManager.RNFSFileTypeRegular;
+var RNFSFileTypeDirectory = RNFSManager.RNFSFileTypeDirectory;
 
 var jobId = 0;
 
@@ -25,7 +25,7 @@ var getJobId = () => {
 };
 
 type MkdirOptions = {
-  NSURLIsExcludedFromBackupKey?: boolean;
+  RNFSURLIsExcludedFromBackupKey?: boolean;
 };
 
 type ReadDirItem = {
@@ -160,8 +160,8 @@ var RNFS = {
         name: file.name,
         path: file.path,
         size: file.size,
-        isFile: () => file.type === NSFileTypeRegular,
-        isDirectory: () => file.type === NSFileTypeDirectory,
+        isFile: () => file.type === RNFSFileTypeRegular,
+        isDirectory: () => file.type === RNFSFileTypeDirectory,
       }));
     });
   },
@@ -180,8 +180,8 @@ var RNFS = {
         'mtime': new Date(result.mtime * 1000),
         'size': result.size,
         'mode': result.mode,
-        isFile: () => result.type === NSFileTypeRegular,
-        isDirectory: () => result.type === NSFileTypeDirectory,
+        isFile: () => result.type === RNFSFileTypeRegular,
+        isDirectory: () => result.type === RNFSFileTypeDirectory,
       };
     });
   },
@@ -360,13 +360,13 @@ var RNFS = {
     });
   },
 
-  MainBundlePath: RNFSManager.MainBundlePath,
-  CachesDirectoryPath: RNFSManager.NSCachesDirectoryPath,
-  DocumentDirectoryPath: RNFSManager.NSDocumentDirectoryPath,
-  ExternalDirectoryPath: RNFSManager.NSExternalDirectoryPath,
-  TemporaryDirectoryPath: RNFSManager.NSTemporaryDirectoryPath,
-  LibraryDirectoryPath: RNFSManager.NSLibraryDirectoryPath,
-  PicturesDirectoryPath: RNFSManager.NSPicturesDirectoryPath
+  MainBundlePath: RNFSManager.RNFSMainBundlePath,
+  CachesDirectoryPath: RNFSManager.RNFSCachesDirectoryPath,
+  DocumentDirectoryPath: RNFSManager.RNFSDocumentDirectoryPath,
+  ExternalDirectoryPath: RNFSManager.RNFSExternalDirectoryPath,
+  TemporaryDirectoryPath: RNFSManager.RNFSTemporaryDirectoryPath,
+  LibraryDirectoryPath: RNFSManager.RNFSLibraryDirectoryPath,
+  PicturesDirectoryPath: RNFSManager.RNFSPicturesDirectoryPath
 
 };
 

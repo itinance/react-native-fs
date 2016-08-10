@@ -31,15 +31,15 @@ import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 
 public class RNFSManager extends ReactContextBaseJavaModule {
 
-  private static final String NSDocumentDirectoryPath = "NSDocumentDirectoryPath";
-  private static final String NSExternalDirectoryPath = "NSExternalDirectoryPath";
-  private static final String NSPicturesDirectoryPath = "NSPicturesDirectoryPath";
-  private static final String NSTemporaryDirectoryPath = "NSTemporaryDirectoryPath";
-  private static final String NSCachesDirectoryPath = "NSCachesDirectoryPath";
-  private static final String NSDocumentDirectory = "NSDocumentDirectory";
+  private static final String RNFSDocumentDirectoryPath = "RNFSDocumentDirectoryPath";
+  private static final String RNFSExternalDirectoryPath = "RNFSExternalDirectoryPath";
+  private static final String RNFSPicturesDirectoryPath = "RNFSPicturesDirectoryPath";
+  private static final String RNFSTemporaryDirectoryPath = "RNFSTemporaryDirectoryPath";
+  private static final String RNFSCachesDirectoryPath = "RNFSCachesDirectoryPath";
+  private static final String RNFSDocumentDirectory = "RNFSDocumentDirectory";
 
-  private static final String NSFileTypeRegular = "NSFileTypeRegular";
-  private static final String NSFileTypeDirectory = "NSFileTypeDirectory";
+  private static final String RNFSFileTypeRegular = "RNFSFileTypeRegular";
+  private static final String RNFSFileTypeDirectory = "RNFSFileTypeDirectory";
 
   private SparseArray<Downloader> downloaders = new SparseArray<Downloader>();
 
@@ -394,19 +394,19 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @Override
   public Map<String, Object> getConstants() {
     final Map<String, Object> constants = new HashMap<>();
-    constants.put(NSDocumentDirectory, 0);
-    constants.put(NSDocumentDirectoryPath, this.getReactApplicationContext().getFilesDir().getAbsolutePath());
-    constants.put(NSTemporaryDirectoryPath, null);
+    constants.put(RNFSDocumentDirectory, 0);
+    constants.put(RNFSDocumentDirectoryPath, this.getReactApplicationContext().getFilesDir().getAbsolutePath());
+    constants.put(RNFSTemporaryDirectoryPath, null);
     File externalDirectory = this.getReactApplicationContext().getExternalFilesDir(null);
     if (externalDirectory != null) {
-      constants.put(NSExternalDirectoryPath, externalDirectory.getAbsolutePath());
+      constants.put(RNFSExternalDirectoryPath, externalDirectory.getAbsolutePath());
     } else {
-      constants.put(NSExternalDirectoryPath, null);
+      constants.put(RNFSExternalDirectoryPath, null);
     }
-    constants.put(NSPicturesDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath());
-    constants.put(NSCachesDirectoryPath, this.getReactApplicationContext().getCacheDir().getAbsolutePath());
-    constants.put(NSFileTypeRegular, 0);
-    constants.put(NSFileTypeDirectory, 1);
+    constants.put(RNFSPicturesDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath());
+    constants.put(RNFSCachesDirectoryPath, this.getReactApplicationContext().getCacheDir().getAbsolutePath());
+    constants.put(RNFSFileTypeRegular, 0);
+    constants.put(RNFSFileTypeDirectory, 1);
     return constants;
   }
 }

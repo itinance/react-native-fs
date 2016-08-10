@@ -443,14 +443,14 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
 - (NSDictionary *)constantsToExport
 {
   return @{
-           @"MainBundlePath": [[NSBundle mainBundle] bundlePath],
-           @"NSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
-           @"NSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
-           @"NSExternalDirectoryPath": [NSNull null],
-           @"NSTemporaryDirectoryPath": NSTemporaryDirectory(),
-           @"NSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
-           @"NSFileTypeRegular": NSFileTypeRegular,
-           @"NSFileTypeDirectory": NSFileTypeDirectory
+           @"RNFSMainBundlePath": [[NSBundle mainBundle] bundlePath],
+           @"RNFSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
+           @"RNFSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
+           @"RNFSExternalDirectoryPath": [NSNull null],
+           @"RNFSTemporaryDirectoryPath": NSTemporaryDirectory(),
+           @"RNFSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
+           @"RNFSFileTypeRegular": NSFileTypeRegular,
+           @"RNFSFileTypeDirectory": NSFileTypeDirectory
            };
 }
 
