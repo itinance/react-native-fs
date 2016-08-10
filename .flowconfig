@@ -1,5 +1,5 @@
 [ignore]
-.*/node_modules/.*
+.*/node_modules/react_native/.*
 
 [include]
 
@@ -8,4 +8,4 @@
 [options]
 
 [version]
-0.27.0
+0.28.0

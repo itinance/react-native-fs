@@ -7,8 +7,9 @@ Native filesystem access for react-native
 - Removed attributes from `writeFile` and `appendFile` for iOS / Android consistency
 - `downloadFile` takes `options` object rather than parameters
 - `stopDownload` will cause the rejection of promise returned by `downloadFile`
-- `uploadFile` promise result `response` property is now `body`
+- `uploadFiles` promise result `response` property is now `body`
 - A boolean is no longer returned from any method except `exists`
+- `downloadFile` and `uploadFiles` return an object of the form `{ jobId: number, promise: Promise }`
 
 ## Usage (iOS)
 
@@ -242,7 +243,7 @@ RNFS.uploadFiles({
   },
   begin: uploadBegin,
   progress: uploadProgress
-}).then((response) => {
+}).promise.then((response) => {
     if (response.statusCode == 200) {
       console.log('FILES UPLOADED!'); // response.statusCode, response.headers, response.body
     } else {
@@ -345,7 +346,7 @@ Create a directory at `filepath`. Automatically creates parents and does not thr
 
 (IOS only): If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` attribute will be set. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
-### `downloadFile(options: DownloadFileOptions): Promise<DownloadResult>`
+### `downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> }`
 
 ```
 type DownloadFileOptions = {
@@ -405,7 +406,7 @@ If `progressDivider` = 0, you will receive all `progressCallback` calls, default
 
 Abort the current download job with this ID. The partial file will remain on the filesystem.
 
-### (iOS only) `uploadFiles(options: UploadFileOptions): Promise<UploadResult>`
+### (iOS only) `uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> }`
 
 `options` (`Object`) - An object containing named parameters
 

@@ -272,19 +272,7 @@ var RNFS = {
     return RNFSManager.appendFile(filepath, b64);
   },
 
-  downloadFile(options: DownloadFileOptions): Promise<DownloadResult> {
-    if (arguments.length > 1) {
-      console.warn('Deprecated: Please see updated docs for `downloadFile`');
-
-      options = {
-        fromUrl: arguments[0],
-        toFile: arguments[1],
-        begin: arguments[2],
-        progress: arguments[3],
-        background: false
-      };
-    }
-
+  downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> } {
     if (typeof options !== 'object') throw new Error('downloadFile: Invalid value for argument `options`');
     if (typeof options.fromUrl !== 'string') throw new Error('downloadFile: Invalid value for property `fromUrl`');
     if (typeof options.toFile !== 'string') throw new Error('downloadFile: Invalid value for property `toFile`');
@@ -312,13 +300,23 @@ var RNFS = {
       progressDivider: options.progressDivider || 0
     };
 
-    return RNFSManager.downloadFile(bridgeOptions).then(res => {
-      subscriptions.forEach(sub => sub.remove());
-      return res;
-    });
+    return {
+      jobId,
+      promise: RNFSManager.downloadFile(bridgeOptions).then(res => {
+        subscriptions.forEach(sub => sub.remove());
+        return res;
+      })
+    };
   },
 
-  uploadFiles(options: UploadFileOptions): Promise<UploadResult> {
+  uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> } {
+    if (!RNFSManager.uploadFiles) {
+      return {
+        jobId: -1,
+        promise: Promise.reject(new Error('`uploadFiles` is unsupported on this platform'))
+      };
+    }
+
     var jobId = getJobId();
     var subscriptions = [];
 
@@ -354,10 +352,13 @@ var RNFS = {
       method: options.method || 'POST'
     };
 
-    return RNFSManager.uploadFiles(bridgeOptions).then(res => {
-      subscriptions.forEach(sub => sub.remove());
-      return res;
-    });
+    return {
+      jobId,
+      promise: RNFSManager.uploadFiles(bridgeOptions).then(res => {
+        subscriptions.forEach(sub => sub.remove());
+        return res;
+      })
+    };
   },
 
   MainBundlePath: RNFSManager.RNFSMainBundlePath,
