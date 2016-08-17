@@ -188,6 +188,8 @@ RCT_EXPORT_METHOD(mkdir:(NSString *)filepath
 }
 
 RCT_EXPORT_METHOD(readFile:(NSString *)filepath
+                  length: (NSInteger *)length
+                  offset: (NSInteger *)offset
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -208,8 +210,23 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
   if ([attributes objectForKey:NSFileType] == NSFileTypeDirectory) {
     return reject(@"EISDIR", @"EISDIR: illegal operation on a directory, read", nil);
   }
+    
+  // Open the file handler.
+  NSFileHandle *file = [NSFileHandle fileHandleForReadingAtPath:filepath];
+  if (file == nil) {
+    return reject(@"EISDIR", @"EISDIR: Could not open file for reading", nil);
+  }
+    
+  // Seek to the offset if there is one.
+  [file seekToFileOffset: (int)offset];
+    
+  NSData *content;
+  if ((int)length > 0) {
+    content = [file readDataOfLength: (int)length];
+  } else {
+    content = [file readDataToEndOfFile];
+  }
 
-  NSData *content = [[NSFileManager defaultManager] contentsAtPath:filepath];
   NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
 
   resolve(base64Content);
