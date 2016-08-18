@@ -401,6 +401,15 @@ type MkdirOptions = {
   NSURLIsExcludedFromBackupKey?: boolean; // iOS only
 };
 ```
+### `promise existsAssets(filepath)`
+
+check if the Android asset exists at the given `filepath`. If the item does not exist, returns false.
+
+The promise resolves with boolean.
+
+`filepath ` (`String`) is the relative path to the file from the root of the `assets` folder.
+
+### `promise mkdir(filepath [, excludeFromBackup])`
 
 Create a directory at `filepath`. Automatically creates parents and does not throw if already exists (works like Linux `mkdir -p`).
 

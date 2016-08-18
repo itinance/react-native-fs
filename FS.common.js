@@ -182,6 +182,12 @@ var RNFS = {
         .catch(convertError)
   },
 
+  // Android-only
+  existsAssets(filepath) {
+    return _existsAssets(filepath)
+      .catch(convertError);
+  },
+
   // Node style version (lowercase d). Returns just the names
   readdir(dirpath: string): Promise<string[]> {
     return RNFS.readDir(normalizeFilePath(dirpath)).then(files => {

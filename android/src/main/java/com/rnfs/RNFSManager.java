@@ -328,6 +328,39 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void existsAssets(String filepath, Callback callback) {
+    try {
+      AssetManager assetManager = getReactApplicationContext().getAssets();
+
+      try {
+        String[] list = assetManager.list(filepath);
+        if (list != null && list.length > 0) {
+          callback.invoke(null, true);
+          return;
+        }
+      } catch (Exception ignored) {
+        //.. probably not a directory then
+      }
+
+      // Attempt to open file (win = exists)
+      InputStream fileStream = null;
+      try {
+        fileStream = assetManager.open(filepath);
+        callback.invoke(null, true);
+      } catch (Exception ex) {
+        callback.invoke(null, false); // asset doesn't exist
+      } finally {
+        if (fileStream != null) {
+          fileStream.close();
+        }
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      callback.invoke(makeErrorPayload(ex));
+    }
+  }
+
+  @ReactMethod
   public void copyFile(String source, String destination, Callback callback) {
     try {
       InputStream in = new FileInputStream(source);
