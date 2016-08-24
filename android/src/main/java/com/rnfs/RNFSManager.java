@@ -1,9 +1,11 @@
 package com.rnfs;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
 
+import android.content.res.AssetManager;
 import android.os.Environment;
 import android.os.StatFs;
 import android.util.Base64;
@@ -97,6 +99,20 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void readAsset(String assetName, Promise promise) {
+    try {
+
+      AssetManager am = this.getReactApplicationContext().getAssets();
+      InputStream inputStream = am.open(assetName);
+      read(inputStream, promise);
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        reject(promise, assetName, ex);
+    }
+  }
+
+  @ReactMethod
   public void readFile(String filepath, Promise promise) {
     try {
       File file = new File(filepath);
@@ -111,17 +127,27 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         return;
       }
 
-      FileInputStream inputStream = new FileInputStream(filepath);
-      byte[] buffer = new byte[(int)file.length()];
-      inputStream.read(buffer);
+      InputStream inputStream = new FileInputStream(filepath);
+      read(inputStream, promise);
 
-      String base64Content = Base64.encodeToString(buffer, Base64.NO_WRAP);
-
-      promise.resolve(base64Content);
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
     }
+  }
+
+  private void read(InputStream inputStream,Promise promise) throws IOException {
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+      int bytesRead = 0;
+      while (-1 != (bytesRead = inputStream.read())) {
+          outputStream.write(bytesRead);
+      }
+
+      byte[] buffer = outputStream.toByteArray();
+      String base64Content = Base64.encodeToString(buffer, Base64.NO_WRAP);
+
+      promise.resolve(base64Content);
   }
 
   @ReactMethod
