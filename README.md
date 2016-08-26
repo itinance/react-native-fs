@@ -340,7 +340,7 @@ Also recursively deletes directories (works like Linux `rm -rf`).
 
 check if the item exist at `filepath`. If the item does not exist, return false.
 
-### `mkdir(filepath: string, excludeFromBackup?: boolean): Promise<void>`
+### `mkdir(filepath: string, options?: { excludeFromBackup: boolean }): Promise<void>`
 
 Create a directory at `filepath`. Automatically creates parents and does not throw if already exists (works like Linux `mkdir -p`).
 
