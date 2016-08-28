@@ -27,7 +27,7 @@ var getJobId = () => {
 var normalizeFilePath = (path: string) => (path.startsWith('file://') ? path.slice(7) : path);
 
 type MkdirOptions = {
-  RNFSURLIsExcludedFromBackupKey?: boolean;
+  NSURLIsExcludedFromBackupKey?: boolean; // iOS only
 };
 
 type ReadDirItem = {
@@ -54,7 +54,7 @@ type DownloadFileOptions = {
   fromUrl: string;          // URL to download file from
   toFile: string;           // Local filesystem path to save the file to
   headers?: Headers;        // An object of headers to be passed to the server
-  background?: boolean;
+  background?: boolean;     // iOS only
   progressDivider?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
