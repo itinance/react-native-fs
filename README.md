@@ -10,6 +10,7 @@ Native filesystem access for react-native
 - `uploadFiles` promise result `response` property is now `body`
 - A boolean is no longer returned from any method except `exists`
 - `downloadFile` and `uploadFiles` return an object of the form `{ jobId: number, promise: Promise }`
+- `mkdir` takes optional 2nd parameter `options` for iOS users to set the `NSURLIsExcludedFromBackupKey` attribute
 
 ## Usage (iOS)
 
@@ -340,11 +341,17 @@ Also recursively deletes directories (works like Linux `rm -rf`).
 
 check if the item exist at `filepath`. If the item does not exist, return false.
 
-### `mkdir(filepath: string, excludeFromBackup?: boolean): Promise<void>`
+### `mkdir(filepath: string, options?: MkdirOptions): Promise<void>`
+
+```
+type MkdirOptions = {
+  NSURLIsExcludedFromBackupKey?: boolean; // iOS only
+};
+```
 
 Create a directory at `filepath`. Automatically creates parents and does not throw if already exists (works like Linux `mkdir -p`).
 
-(IOS only): If `excludeFromBackup` is true, then `NSURLIsExcludedFromBackupKey` attribute will be set. Apple will *reject* apps for storing offline cache data that does not have this attribute.
+(IOS only): The `NSURLIsExcludedFromBackupKey` property can be provided to set this attribute on iOS platforms. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
 ### `downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> }`
 
