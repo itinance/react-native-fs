@@ -377,6 +377,23 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     promise.resolve(info);
   }
 
+  @ReactMethod
+  public void scanFile(String path, final Promise promise) {
+    MediaScannerConnection.scanFile(this.getReactApplicationContext(),
+      new String[]{path},
+      null,
+      new MediaScannerConnection.MediaScannerConnectionClient() {
+        @Override
+        public void onMediaScannerConnected() {}
+
+        @Override
+        public void onScanCompleted(String path, Uri uri) {
+          promise.resolve(null);
+        }
+      }
+    );
+  }
+  
   private void reject(Promise promise, String filepath, Exception ex) {
     if (ex instanceof FileNotFoundException) {
       rejectFileNotFound(promise, filepath);
@@ -399,8 +416,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     final Map<String, Object> constants = new HashMap<>();
 
     constants.put(RNFSDocumentDirectory, 0);
-    constants.put(NSDownloadsDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath());
-    constants.put(NSMusicDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath());
+    constants.put(RNFSDownloadsDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath());
+    constants.put(RNFSMusicDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath());
     constants.put(RNFSDocumentDirectoryPath, this.getReactApplicationContext().getFilesDir().getAbsolutePath());
     constants.put(RNFSTemporaryDirectoryPath, null);
     constants.put(RNFSPicturesDirectoryPath, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath());
@@ -421,7 +438,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     } else {
       constants.put(RNFSExternalDirectoryPath, null);
     }
-    
+
     return constants;
   }
 }
