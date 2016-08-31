@@ -9,6 +9,8 @@ import android.os.StatFs;
 import android.util.Base64;
 import android.support.annotation.Nullable;
 import android.util.SparseArray;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -393,7 +395,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       }
     );
   }
-  
+
   private void reject(Promise promise, String filepath, Exception ex) {
     if (ex instanceof FileNotFoundException) {
       rejectFileNotFound(promise, filepath);
