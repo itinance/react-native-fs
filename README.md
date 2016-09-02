@@ -19,6 +19,10 @@ First you need to install react-native-fs:
 ```javascript
 npm install react-native-fs --save
 ```
+### Adding with React Native Link 
+Since React Native v0.32 (Sep-2016) , rnpm (React Native Package Manager) is already merged in the React Native Core. You can find more information on their github https://github.com/rnpm/rnpm. So from now on, this is the only command you need to install dependencies to xcode:
+
+react native link
 
 ### Adding with CocoaPods
 
