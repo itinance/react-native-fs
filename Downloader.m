@@ -1,4 +1,5 @@
 #import "Downloader.h"
+#import "AppDelegate.h"
 
 @implementation RNFSDownloadParams
 
@@ -43,8 +44,11 @@
 
   NSURLSessionConfiguration *config;
   if (_params.background) {
+      NSLog(@"downloadFile BACKGROUND");
+
     NSString *uuid = [[NSUUID UUID] UUIDString];
     config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:uuid];
+    config.sessionSendsLaunchEvents = YES;
   } else {
     config = [NSURLSessionConfiguration defaultSessionConfiguration];
   }
@@ -88,6 +92,8 @@
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location
 {
+    NSLog(@"didFinishDownloadingToURL. Status: %d. Bytes: %d", _statusCode, _bytesWritten);
+
   NSURL *destURL = [NSURL fileURLWithPath:_params.toFile];
   NSFileManager *fm = [NSFileManager defaultManager];
   NSError *error = nil;
@@ -102,6 +108,8 @@
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionTask *)downloadTask didCompleteWithError:(NSError *)error
 {
+    NSLog(@"didCompleteWithError");
+
   return _params.errorCallback(error);
 }
 
@@ -116,6 +124,21 @@
                                    }];
 
   return _params.errorCallback(error);
+}
+
+
+- (void)URLSessionDidFinishEventsForBackgroundURLSession:(NSURLSession *)session
+{
+    NSLog(@"URLSessionDidFinishEventsForBackgroundURLSession");
+
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+
+    
+    if (appDelegate.sessionCompletionHandler) {
+        void (^completionHandler)() = appDelegate.sessionCompletionHandler;
+        appDelegate.sessionCompletionHandler = nil;
+        completionHandler();
+    }
 }
 
 @end

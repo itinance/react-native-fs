@@ -20,7 +20,7 @@ typedef void (^ProgressCallback)(NSNumber*, NSNumber*);
 
 @end
 
-@interface RNFSDownloader : NSObject <NSURLSessionDelegate, NSURLSessionDownloadDelegate>
+@interface RNFSDownloader : NSObject <NSURLSessionDelegate, NSURLSessionDownloadDelegate> 
 
 - (void)downloadFile:(RNFSDownloadParams*)params;
 - (void)stopDownload;

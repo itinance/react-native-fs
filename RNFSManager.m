@@ -266,12 +266,23 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   params.progressDivider = progressDivider;
 
   params.completeCallback = ^(NSNumber* statusCode, NSNumber* bytesWritten) {
-    NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,
-                                                                                     @"statusCode": statusCode}];
-    if (bytesWritten) {
-      [result setObject:bytesWritten forKey: @"bytesWritten"];
-    }
-    return resolve(result);
+      @try{
+          NSLog(@"completeCallback. Status: %d. Bytes: %d Job: %d", statusCode, bytesWritten, jobId);
+          if (statusCode == nil && jobId == nil) {
+              NSLog(@"completeCallback empty");
+
+              return;
+          }
+          NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,
+                                                                                           @"statusCode": @200}];
+          if (bytesWritten) {
+              [result setObject:bytesWritten forKey: @"bytesWritten"];
+          }
+          return resolve(result);
+      } @catch (NSException* exception) {
+          NSLog(@"Got exception: %@    Reason: %@", exception.name, exception.reason);
+      }
+
   };
 
   params.errorCallback = ^(NSError* error) {
@@ -454,5 +465,6 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
            @"RNFSFileTypeDirectory": NSFileTypeDirectory
            };
 }
+
 
 @end

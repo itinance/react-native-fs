@@ -8,7 +8,11 @@
 
 #import "RCTBridgeModule.h"
 #import "RCTLog.h"
+#import <UIKit/UIKit.h>
 
 @interface RNFSManager : NSObject <RCTBridgeModule>
+
+
+
 
 @end
