@@ -442,16 +442,19 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
 
 - (NSDictionary *)constantsToExport
 {
+  NSString *NSTemporaryDirectoryPath = [NSTemporaryDirectory() stringByReplacingOccurrencesOfString:@"/$"
+                                        withString:@""
+                                        options:NSRegularExpressionSearch
+                                        range:NSMakeRange(0, [NSTemporaryDirectory() length])];
   return @{
-           @"RNFSMainBundlePath": [[NSBundle mainBundle] bundlePath],
-           @"RNFSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
-           @"RNFSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
-           @"RNFSExternalDirectoryPath": [NSNull null],
-           @"RNFSExternalStorageDirectoryPath": [NSNull null],
-           @"RNFSTemporaryDirectoryPath": NSTemporaryDirectory(),
-           @"RNFSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
-           @"RNFSFileTypeRegular": NSFileTypeRegular,
-           @"RNFSFileTypeDirectory": NSFileTypeDirectory
+           @"MainBundlePath": [[NSBundle mainBundle] bundlePath],
+           @"NSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
+           @"NSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
+           @"NSExternalDirectoryPath": [NSNull null],
+           @"NSTemporaryDirectoryPath": NSTemporaryDirectoryPath,
+           @"NSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
+           @"NSFileTypeRegular": NSFileTypeRegular,
+           @"NSFileTypeDirectory": NSFileTypeDirectory
            };
 }
 
