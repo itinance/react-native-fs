@@ -1,6 +1,6 @@
 {
   "name": "react-native-fs",
-  "version": "1.5.1",
+  "version": "2.0.1-rc.2",
   "description": "Native filesystem access for react-native",
   "main": "FS.common.js",
   "scripts": {
@@ -16,16 +16,20 @@
     "ios",
     "android",
     "fs",
-    "filesystem"
+    "filesystem",
+    "download",
+    "upload",
+    "file-transfer"
   ],
   "author": "Johannes Lumpe <johannes@lum.pe> (https://github.com/johanneslumpe)",
   "license": "MIT",
   "dependencies": {
     "base-64": "^0.1.0",
-    "bluebird": "^2.9.25",
     "utf8": "^2.1.1"
   },
   "devDependencies": {
-    "react-native": "*"
+    "flow-bin": "0.27.0",
+    "react": "^15.2.1",
+    "react-native": "^0.30.0"
   }
 }

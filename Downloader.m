@@ -1,12 +1,12 @@
 #import "Downloader.h"
 
-@implementation DownloadParams
+@implementation RNFSDownloadParams
 
 @end
 
-@interface Downloader()
+@interface RNFSDownloader()
 
-@property (copy) DownloadParams* params;
+@property (copy) RNFSDownloadParams* params;
 
 @property (retain) NSURLSession* session;
 @property (retain) NSURLSessionTask* task;
@@ -19,9 +19,9 @@
 
 @end
 
-@implementation Downloader
+@implementation RNFSDownloader
 
-- (void)downloadFile:(DownloadParams*)params
+- (void)downloadFile:(RNFSDownloadParams*)params
 {
   _params = params;
 
@@ -105,10 +105,17 @@
   return _params.errorCallback(error);
 }
 
-
 - (void)stopDownload
 {
   [_task cancel];
+
+  NSError *error = [NSError errorWithDomain:@"RNFS"
+                                       code:@"Aborted"
+                                   userInfo:@{
+                                     NSLocalizedDescriptionKey: @"Download has been aborted"
+                                   }];
+
+  return _params.errorCallback(error);
 }
 
 @end

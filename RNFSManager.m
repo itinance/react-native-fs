@@ -32,7 +32,8 @@ RCT_EXPORT_MODULE();
 }
 
 RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSFileManager *fileManager = [NSFileManager defaultManager];
   NSError *error = nil;
@@ -52,28 +53,30 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
   }];
 
   if (error) {
-    return callback([self makeErrorPayload:error]);
+    return [self reject:reject withError:error];
   }
 
-  callback(@[[NSNull null], contents]);
+  resolve(contents);
 }
 
 RCT_EXPORT_METHOD(exists:(NSString *)filepath
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(__unused RCTPromiseRejectBlock)reject)
 {
   BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filepath];
 
-  callback(@[[NSNull null], [NSNumber numberWithBool:fileExists]]);
+  resolve([NSNumber numberWithBool:fileExists]);
 }
 
 RCT_EXPORT_METHOD(stat:(NSString *)filepath
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSError *error = nil;
   NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
 
   if (error) {
-    return callback([self makeErrorPayload:error]);
+    return [self reject:reject withError:error];
   }
 
   attributes = @{
@@ -84,29 +87,29 @@ RCT_EXPORT_METHOD(stat:(NSString *)filepath
                  @"mode": @([[NSString stringWithFormat:@"%ld", (long)[(NSNumber *)[attributes objectForKey:NSFilePosixPermissions] integerValue]] integerValue])
                  };
 
-  callback(@[[NSNull null], attributes]);
+  resolve(attributes);
 }
 
 RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
                   contents:(NSString *)base64Content
-                  attributes:(NSDictionary *)attributes
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
 
-  BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
+  BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:nil];
 
   if (!success) {
-    return callback(@[[NSString stringWithFormat:@"Could not write file at path %@", filepath]]);
+    return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
   }
 
-  return callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
+  return resolve(nil);
 }
 
 RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
                   contents:(NSString *)base64Content
-                  attributes:(NSDictionary *)attributes
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
 
@@ -114,12 +117,12 @@ RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
 
   if (![fM fileExistsAtPath:filepath])
   {
-    BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
+    BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:nil];
 
     if (!success) {
-      return callback(@[[NSString stringWithFormat:@"Could not write file at path %@", filepath]]);
+      return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
     } else {
-      return callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
+      return resolve(nil);
     }
   }
 
@@ -129,34 +132,37 @@ RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
     [fH seekToEndOfFile];
     [fH writeData:data];
 
-    return callback(@[[NSNull null], [NSNumber numberWithBool:true], filepath]);
+    return resolve(nil);
   } @catch (NSException *e) {
-    return callback([self makeErrorPayload:e]);
+    return [self reject:reject withError:e];
   }
 }
 
 RCT_EXPORT_METHOD(unlink:(NSString*)filepath
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSFileManager *manager = [NSFileManager defaultManager];
   BOOL exists = [manager fileExistsAtPath:filepath isDirectory:false];
 
   if (!exists) {
-    return callback(@[[NSString stringWithFormat:@"File at path %@ does not exist", filepath]]);
+    return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
   }
+
   NSError *error = nil;
   BOOL success = [manager removeItemAtPath:filepath error:&error];
 
   if (!success) {
-    return callback([self makeErrorPayload:error]);
+    return [self reject:reject withError:error];
   }
 
-  callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
+  resolve(nil);
 }
 
-RCT_EXPORT_METHOD(mkdir:(NSString*)filepath
-                  excludeFromBackup:(BOOL)excludeFromBackup
-                  callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(mkdir:(NSString *)filepath
+                  options:(NSDictionary *)options
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSFileManager *manager = [NSFileManager defaultManager];
 
@@ -164,36 +170,55 @@ RCT_EXPORT_METHOD(mkdir:(NSString*)filepath
   BOOL success = [manager createDirectoryAtPath:filepath withIntermediateDirectories:YES attributes:nil error:&error];
 
   if (!success) {
-    return callback([self makeErrorPayload:error]);
+    return [self reject:reject withError:error];
   }
 
   NSURL *url = [NSURL fileURLWithPath:filepath];
 
-  success = [url setResourceValue: [NSNumber numberWithBool: excludeFromBackup] forKey: NSURLIsExcludedFromBackupKey error: &error];
+  if ([[options allKeys] containsObject:@"NSURLIsExcludedFromBackupKey"]) {
+    NSNumber *value = options[@"NSURLIsExcludedFromBackupKey"];
+    success = [url setResourceValue: value forKey: NSURLIsExcludedFromBackupKey error: &error];
 
-  if (!success) {
-    return callback([self makeErrorPayload:error]);
+    if (!success) {
+      return [self reject:reject withError:error];
+    }
   }
 
-  callback(@[[NSNull null], [NSNumber numberWithBool:success], filepath]);
+  resolve(nil);
 }
 
 RCT_EXPORT_METHOD(readFile:(NSString *)filepath
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
+  BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filepath];
+
+  if (!fileExists) {
+    return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
+  }
+
+  NSError *error = nil;
+
+  NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
+
+  if (error) {
+    return [self reject:reject withError:error];
+  }
+
+  if ([attributes objectForKey:NSFileType] == NSFileTypeDirectory) {
+    return reject(@"EISDIR", @"EISDIR: illegal operation on a directory, read", nil);
+  }
+
   NSData *content = [[NSFileManager defaultManager] contentsAtPath:filepath];
   NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
 
-  if (!base64Content) {
-    return callback(@[[NSString stringWithFormat:@"Could not read file at path %@", filepath]]);
-  }
-
-  callback(@[[NSNull null], base64Content]);
+  resolve(base64Content);
 }
 
 RCT_EXPORT_METHOD(moveFile:(NSString *)filepath
                   destPath:(NSString *)destPath
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSFileManager *manager = [NSFileManager defaultManager];
 
@@ -201,15 +226,16 @@ RCT_EXPORT_METHOD(moveFile:(NSString *)filepath
   BOOL success = [manager moveItemAtPath:filepath toPath:destPath error:&error];
 
   if (!success) {
-    return callback([self makeErrorPayload:error]);
+    return [self reject:reject withError:error];
   }
 
-  callback(@[[NSNull null], [NSNumber numberWithBool:success], destPath]);
+  resolve(nil);
 }
 
 RCT_EXPORT_METHOD(copyFile:(NSString *)filepath
                   destPath:(NSString *)destPath
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSFileManager *manager = [NSFileManager defaultManager];
 
@@ -217,16 +243,17 @@ RCT_EXPORT_METHOD(copyFile:(NSString *)filepath
   BOOL success = [manager copyItemAtPath:filepath toPath:destPath error:&error];
 
   if (!success) {
-    return callback([self makeErrorPayload:error]);
+    return [self reject:reject withError:error];
   }
 
-  callback(@[[NSNull null], [NSNumber numberWithBool:success], destPath]);
+  resolve(nil);
 }
 
 RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
-  DownloadParams* params = [DownloadParams alloc];
+  RNFSDownloadParams* params = [RNFSDownloadParams alloc];
 
   NSNumber* jobId = options[@"jobId"];
   params.fromUrl = options[@"fromUrl"];
@@ -244,11 +271,11 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
     if (bytesWritten) {
       [result setObject:bytesWritten forKey: @"bytesWritten"];
     }
-    return callback(@[[NSNull null], result]);
+    return resolve(result);
   };
 
   params.errorCallback = ^(NSError* error) {
-    return callback([self makeErrorPayload:error]);
+    return [self reject:reject withError:error];
   };
 
   params.beginCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSDictionary* headers) {
@@ -268,7 +295,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
 
   if (!self.downloaders) self.downloaders = [[NSMutableDictionary alloc] init];
 
-  Downloader* downloader = [Downloader alloc];
+  RNFSDownloader* downloader = [RNFSDownloader alloc];
 
   [downloader downloadFile:params];
 
@@ -277,7 +304,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
 
 RCT_EXPORT_METHOD(stopDownload:(nonnull NSNumber *)jobId)
 {
-  Downloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
+  RNFSDownloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
 
   if (downloader != nil) {
     [downloader stopDownload];
@@ -285,9 +312,10 @@ RCT_EXPORT_METHOD(stopDownload:(nonnull NSNumber *)jobId)
 }
 
 RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
-  UploadParams* params = [UploadParams alloc];
+  RNFSUploadParams* params = [RNFSUploadParams alloc];
 
   NSNumber* jobId = options[@"jobId"];
   params.toUrl = options[@"toUrl"];
@@ -302,17 +330,16 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
   params.completeCallback = ^(NSString* body, NSURLResponse *resp) {
 
     NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,
-                                                                                     @"body": body,
-                                                                                     @"response": body}];
+                                                                                     @"body": body}];
     if ([resp isKindOfClass:[NSHTTPURLResponse class]]) {
       [result setValue:((NSHTTPURLResponse *)resp).allHeaderFields forKey:@"headers"];
       [result setValue:[NSNumber numberWithUnsignedInteger:((NSHTTPURLResponse *)resp).statusCode] forKey:@"statusCode"];
     }
-    return callback(@[[NSNull null], result]);
+    return resolve(result);
   };
 
   params.errorCallback = ^(NSError* error) {
-    return callback([self makeErrorPayload:error]);
+    return [self reject:reject withError:error];
   };
 
   params.beginCallback = ^() {
@@ -329,7 +356,7 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
 
   if (!self.uploaders) self.uploaders = [[NSMutableDictionary alloc] init];
 
-  Uploader* uploader = [Uploader alloc];
+  RNFSUploader* uploader = [RNFSUploader alloc];
 
   [uploader uploadFiles:params];
 
@@ -338,7 +365,7 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
 
 RCT_EXPORT_METHOD(stopUpload:(nonnull NSNumber *)jobId)
 {
-  Uploader* uploader = [self.uploaders objectForKey:[jobId stringValue]];
+  RNFSUploader* uploader = [self.uploaders objectForKey:[jobId stringValue]];
 
   if (uploader != nil) {
     [uploader stopUpload];
@@ -346,7 +373,8 @@ RCT_EXPORT_METHOD(stopUpload:(nonnull NSNumber *)jobId)
 }
 
 RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
-                  callback:(RCTResponseSenderBlock)callback)
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSString *path = [[NSBundle mainBundle].bundlePath stringByAppendingFormat:@"/%@.bundle", bundleNamed];
   NSBundle *bundle = [NSBundle bundleWithPath:path];
@@ -361,23 +389,24 @@ RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
   }
 
   if (path) {
-    callback(@[[NSNull null], path]);
+    resolve(path);
   } else {
-    callback(@[[NSError errorWithDomain:NSPOSIXErrorDomain
-                                   code:NSFileNoSuchFileError
-                               userInfo:nil].localizedDescription,
-               [NSNull null]]);
+    NSError *error = [NSError errorWithDomain:NSPOSIXErrorDomain
+                                         code:NSFileNoSuchFileError
+                                     userInfo:nil];
+
+    [self reject:reject withError:error];
   }
 }
 
-RCT_EXPORT_METHOD(getFSInfo:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
   unsigned long long totalSpace = 0;
   unsigned long long totalFreeSpace = 0;
 
   __autoreleasing NSError *error = nil;
   NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-  NSDictionary *dictionary = [[NSFileManager defaultManager] attributesOfFileSystemForPath:[paths lastObject] error: &error];
+  NSDictionary *dictionary = [[NSFileManager defaultManager] attributesOfFileSystemForPath:[paths lastObject] error:&error];
 
   if (dictionary) {
     NSNumber *fileSystemSizeInBytes = [dictionary objectForKey: NSFileSystemSize];
@@ -385,14 +414,12 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTResponseSenderBlock)callback)
     totalSpace = [fileSystemSizeInBytes unsignedLongLongValue];
     totalFreeSpace = [freeFileSystemSizeInBytes unsignedLongLongValue];
 
-    callback(@[[NSNull null],
-               @{
-                 @"totalSpace": [NSNumber numberWithUnsignedLongLong:totalSpace],
-                 @"freeSpace": [NSNumber numberWithUnsignedLongLong:totalFreeSpace]
-                 }
-               ]);
+    resolve(@{
+      @"totalSpace": [NSNumber numberWithUnsignedLongLong:totalSpace],
+      @"freeSpace": [NSNumber numberWithUnsignedLongLong:totalFreeSpace]
+    });
   } else {
-    callback(@[error, [NSNull null]]);
+    [self reject:reject withError:error];
   }
 }
 
@@ -401,12 +428,10 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTResponseSenderBlock)callback)
   return @([date timeIntervalSince1970]);
 }
 
-- (NSArray *)makeErrorPayload:(NSError *)error
+- (void)reject:(RCTPromiseRejectBlock)reject withError:(NSError *)error
 {
-  return @[@{
-             @"description": error.localizedDescription,
-             @"code": @(error.code)
-             }];
+  NSString *codeWithDomain = [NSString stringWithFormat:@"E%@%zd", error.domain.uppercaseString, error.code];
+  reject(codeWithDomain, error.localizedDescription, error);
 }
 
 - (NSString *)getPathForDirectory:(int)directory
@@ -418,14 +443,15 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTResponseSenderBlock)callback)
 - (NSDictionary *)constantsToExport
 {
   return @{
-           @"MainBundlePath": [[NSBundle mainBundle] bundlePath],
-           @"NSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
-           @"NSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
-           @"NSExternalDirectoryPath": [NSNull null],
-           @"NSTemporaryDirectoryPath": NSTemporaryDirectory(),
-           @"NSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
-           @"NSFileTypeRegular": NSFileTypeRegular,
-           @"NSFileTypeDirectory": NSFileTypeDirectory
+           @"RNFSMainBundlePath": [[NSBundle mainBundle] bundlePath],
+           @"RNFSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
+           @"RNFSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
+           @"RNFSExternalDirectoryPath": [NSNull null],
+           @"RNFSExternalStorageDirectoryPath": [NSNull null],
+           @"RNFSTemporaryDirectoryPath": NSTemporaryDirectory(),
+           @"RNFSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
+           @"RNFSFileTypeRegular": NSFileTypeRegular,
+           @"RNFSFileTypeDirectory": NSFileTypeDirectory
            };
 }
 

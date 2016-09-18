@@ -1,0 +1,11 @@
+[ignore]
+.*/node_modules/react_native/.*
+
+[include]
+
+[libs]
+
+[options]
+
+[version]
+0.28.0
