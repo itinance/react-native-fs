@@ -12,6 +12,7 @@
 #import "Downloader.h"
 #import "Uploader.h"
 #import "RCTEventDispatcher.h"
+#import <CommonCrypto/CommonDigest.h>
 
 @interface RNFSManager()
 
@@ -213,6 +214,75 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
   NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
 
   resolve(base64Content);
+}
+
+RCT_EXPORT_METHOD(hash:(NSString *)filepath
+                  algorithm:(NSString *)algorithm
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filepath];
+
+  if (!fileExists) {
+    return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
+  }
+
+  NSError *error = nil;
+
+  NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
+
+  if (error) {
+    return [self reject:reject withError:error];
+  }
+
+  if ([attributes objectForKey:NSFileType] == NSFileTypeDirectory) {
+    return reject(@"EISDIR", @"EISDIR: illegal operation on a directory, read", nil);
+  }
+
+  NSData *content = [[NSFileManager defaultManager] contentsAtPath:filepath];
+
+  NSArray *keys = [NSArray arrayWithObjects:@"md5", @"sha1", @"sha224", @"sha256", @"sha384", @"sha512", nil];
+
+  NSArray *digestLengths = [NSArray arrayWithObjects:
+    @CC_MD5_DIGEST_LENGTH,
+    @CC_SHA1_DIGEST_LENGTH,
+    @CC_SHA224_DIGEST_LENGTH,
+    @CC_SHA256_DIGEST_LENGTH,
+    @CC_SHA384_DIGEST_LENGTH,
+    @CC_SHA512_DIGEST_LENGTH,
+    nil];
+
+  NSDictionary *keysToDigestLengths = [NSDictionary dictionaryWithObjects:digestLengths forKeys:keys];
+
+  int digestLength = [[keysToDigestLengths objectForKey:algorithm] intValue];
+
+  if (!digestLength) {
+    return reject(@"Error", [NSString stringWithFormat:@"Invalid hash algorithm '%@'", algorithm], nil);
+  }
+
+  unsigned char buffer[digestLength];
+
+  if ([algorithm isEqualToString:@"md5"]) {
+    CC_MD5(content.bytes, (CC_LONG)content.length, buffer);
+  } else if ([algorithm isEqualToString:@"sha1"]) {
+    CC_SHA1(content.bytes, (CC_LONG)content.length, buffer);
+  } else if ([algorithm isEqualToString:@"sha224"]) {
+    CC_SHA224(content.bytes, (CC_LONG)content.length, buffer);
+  } else if ([algorithm isEqualToString:@"sha256"]) {
+    CC_SHA256(content.bytes, (CC_LONG)content.length, buffer);
+  } else if ([algorithm isEqualToString:@"sha384"]) {
+    CC_SHA384(content.bytes, (CC_LONG)content.length, buffer);
+  } else if ([algorithm isEqualToString:@"sha512"]) {
+    CC_SHA512(content.bytes, (CC_LONG)content.length, buffer);
+  } else {
+    return reject(@"Error", [NSString stringWithFormat:@"Invalid hash algorithm '%@'", algorithm], nil);
+  }
+
+  NSMutableString *output = [NSMutableString stringWithCapacity:digestLength * 2];
+  for(int i = 0; i < digestLength; i++)
+    [output appendFormat:@"%02x",buffer[i]];
+
+  resolve(output);
 }
 
 RCT_EXPORT_METHOD(moveFile:(NSString *)filepath
