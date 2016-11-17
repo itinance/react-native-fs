@@ -20,7 +20,7 @@ First you need to install react-native-fs:
 npm install react-native-fs --save
 ```
 
-## Adding automatically with react-native link
+### Adding automatically with react-native link
 
 At the command line, in your project folder:
 
