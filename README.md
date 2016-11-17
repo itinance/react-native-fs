@@ -20,6 +20,14 @@ First you need to install react-native-fs:
 npm install react-native-fs --save
 ```
 
+### Adding automatically with react-native link
+
+At the command line, in your project folder, type:
+
+`react-native link react-native-fs`
+
+Done! No need to worry about manually adding the library to your project.
+
 ### Adding with CocoaPods
 
 Add the RNFS pod to your list of application pods in your Podfile, using the path from the Podfile to the installed module:
