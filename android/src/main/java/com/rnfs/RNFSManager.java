@@ -18,6 +18,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URL;
 
+import java.security.MessageDigest;
+
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -118,6 +120,53 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       String base64Content = Base64.encodeToString(buffer, Base64.NO_WRAP);
 
       promise.resolve(base64Content);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
+  public void hash(String filepath, String algorithm, Promise promise) {
+    try {
+      Map<String, String> algorithms = new HashMap<>();
+
+      algorithms.put("md5", "MD5");
+      algorithms.put("sha1", "SHA-1");
+      algorithms.put("sha224", "SHA-224");
+      algorithms.put("sha256", "SHA-256");
+      algorithms.put("sha384", "SHA-384");
+      algorithms.put("sha512", "SHA-512");
+
+      if (!algorithms.containsKey(algorithm)) throw new Exception("Invalid hash algorithm");
+
+      File file = new File(filepath);
+
+      if (file.isDirectory()) {
+        rejectFileIsDirectory(promise);
+        return;
+      }
+
+      if (!file.exists()) {
+        rejectFileNotFound(promise, filepath);
+        return;
+      }
+
+      MessageDigest md = MessageDigest.getInstance(algorithms.get(algorithm));
+
+      FileInputStream inputStream = new FileInputStream(filepath);
+      byte[] buffer = new byte[(int)file.length()];
+
+      int read;
+      while ((read = inputStream.read(buffer)) != -1) {
+        md.update(buffer, 0, read);
+      }
+
+      StringBuilder hexString = new StringBuilder();
+      for (byte digestByte : md.digest())
+        hexString.append(String.format("%02x", digestByte));
+
+      promise.resolve(hexString.toString());
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);

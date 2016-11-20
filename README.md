@@ -349,6 +349,10 @@ Also recursively deletes directories (works like Linux `rm -rf`).
 
 check if the item exist at `filepath`. If the item does not exist, return false.
 
+### `hash(filepath: string, algorithm: string): Promise<string>`
+
+Reads the file at `path` and returns its checksum as determined by `algorithm`, which can be one of `md5`, `sha1`, `sha224`, `sha256`, `sha384`, `sha512`.
+
 ### `mkdir(filepath: string, options?: MkdirOptions): Promise<void>`
 
 ```
