@@ -323,6 +323,10 @@ Reads the file at `path` and return contents. `encoding` can be one of `utf8` (d
 
 Note: you will take quite a performance hit if you are reading big files
 
+### `readAsset(assetName: string, encoding?: string): Promise<string>` (android only)
+
+Like the readFile method, reads the asset with `assetName` and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+
 ### `writeFile(filepath: string, contents: string, encoding?: string): Promise<void>`
 
 Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
