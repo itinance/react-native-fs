@@ -86,7 +86,7 @@
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
-  return _params.errorCallback(error);
+  return error ? _params.errorCallback(error) : nil;
 }
 
 
