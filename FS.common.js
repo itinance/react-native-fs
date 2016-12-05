@@ -118,6 +118,54 @@ type FSInfoResult = {
   freeSpace: number;    // The amount of available storage space on the device (in bytes).
 };
 
+/**
+ * Generic function used by readFile and readFileAssets
+ */
+function readFileGeneric(filepath: string, encodingOrOptions:?string, command: Function) {
+  var options = {
+    encoding: 'utf8'
+  };
+
+  if (encodingOrOptions) {
+    if (typeof encodingOrOptions === 'string') {
+      options.encoding = encodingOrOptions;
+    } else if (typeof encodingOrOptions === 'object') {
+      options = encodingOrOptions;
+    }
+  }
+
+  return command(normalizeFilePath(filepath)).then((b64) => {
+    var contents;
+
+    if (options.encoding === 'utf8') {
+      contents = utf8.decode(base64.decode(b64));
+    } else if (options.encoding === 'ascii') {
+      contents = base64.decode(b64);
+    } else if (options.encoding === 'base64') {
+      contents = b64;
+    } else {
+      throw new Error('Invalid encoding type "' + String(options.encoding) + '"');
+    }
+
+    return contents;
+  });
+}
+
+/**
+ * Generic function used by readDir and readDirAssets
+ */
+function readDirGeneric(dirpath: string, command: Function) {
+  return command(normalizeFilePath(dirpath)).then(files => {
+    return files.map(file => ({
+      name: file.name,
+      path: file.path,
+      size: file.size,
+      isFile: () => file.type === RNFSFileTypeRegular,
+      isDirectory: () => file.type === RNFSFileTypeDirectory,
+    }));
+  });
+}
+
 var RNFS = {
 
   mkdir(filepath: string, options: MkdirOptions = {}): Promise<void> {
@@ -157,40 +205,28 @@ var RNFS = {
   },
 
   readDir(dirpath: string): Promise<ReadDirItem[]> {
-    return RNFSManager.readDir(normalizeFilePath(dirpath)).then(files => {
-      return files.map(file => ({
-        name: file.name,
-        path: file.path,
-        size: file.size,
-        isFile: () => file.type === RNFSFileTypeRegular,
-        isDirectory: () => file.type === RNFSFileTypeDirectory,
-      }));
-    });
+    return readDirGeneric(dirpath, RNFSManager.readDir);
   },
 
   // Android-only
-  readDirAssets(dirpath): Promise<ReadDirItem[]> {
-    return RNFSManager.readDirAssets(dirpath).then(files => {
-          return files.map(file => ({
-            name: file.name,
-            path: file.path,
-            size: file.size,
-            isFile: () => file.type === NSFileTypeRegular,
-            isDirectory: () => file.type === NSFileTypeDirectory,
-          }));
-        })
-        .catch(convertError)
+  readDirAssets(dirpath: string): Promise<ReadDirItem[]> {
+    if (!RNFSManager.readDirAssets) {
+      throw new Error('Not available on this platform');
+    }
+    return readDirGeneric(dirpath, RNFSManager.readDirAssets);
   },
 
   // Android-only
-  existsAssets(filepath) {
-    return _existsAssets(filepath)
-      .catch(convertError);
+  existsAssets(filepath: string) {
+    if (!RNFSManager.readFileAssets) {
+      throw new Error('Not available on this platform');
+    }
+    return RNFSManager.existsAssets(filepath);
   },
 
   // Node style version (lowercase d). Returns just the names
   readdir(dirpath: string): Promise<string[]> {
-    return RNFS.readDir(normalizeFilePath(dirpath)).then(files => {
+    return RNFSManager.readDir(normalizeFilePath(dirpath)).then(files => {
       return files.map(file => file.name);
     });
   },
@@ -209,39 +245,15 @@ var RNFS = {
   },
 
   readFile(filepath: string, encodingOrOptions?: any): Promise<string> {
-    var options = {
-      encoding: 'utf8'
-    };
-
-    if (encodingOrOptions) {
-      if (typeof encodingOrOptions === 'string') {
-        options.encoding = encodingOrOptions;
-      } else if (typeof encodingOrOptions === 'object') {
-        options = encodingOrOptions;
-      }
-    }
-
-    return RNFSManager.readFile(normalizeFilePath(filepath)).then((b64) => {
-      var contents;
-
-      if (options.encoding === 'utf8') {
-        contents = utf8.decode(base64.decode(b64));
-      } else if (options.encoding === 'ascii') {
-        contents = base64.decode(b64);
-      } else if (options.encoding === 'base64') {
-        contents = b64;
-      } else {
-        throw new Error('Invalid encoding type "' + String(options.encoding) + '"');
-      }
-
-      return contents;
-    });
+    return readFileGeneric(filepath, encodingOrOptions, RNFSManager.readFile);
   },
 
-
   // Android only
-  readFileAssets(filepath, encoding) {
-    return readFileActual(filepath, encoding, _readFileAssets);
+  readFileAssets(filepath: string, encodingOrOptions?: any): Promise<string> {
+    if (!RNFSManager.readFileAssets) {
+      throw new Error('Not available on this platform');
+    }
+    return readFileGeneric(filepath, encodingOrOptions, RNFSManager.readFileAssets);
   },
 
   hash(filepath: string, algorithm: string): Promise<string> {
@@ -249,12 +261,11 @@ var RNFS = {
   },
 
   // Android only
-  copyFileAssets(filepath, destination) {
-    if (!_copyFileAssets) {
-      throw new Error("Not available on this platform");
+  copyFileAssets(filepath: string, destPath:string) {
+    if (!RNFSManager.copyFileAssets) {
+      throw new Error('Not available on this platform');
     }
-    return _copyFileAssets(filepath, destination)
-        .catch(convertError);
+    return RNFSManager.copyFileAssets(normalizeFilePath(filepath), normalizeFilePath(destPath)).then(() => void 0);
   },
 
   writeFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
