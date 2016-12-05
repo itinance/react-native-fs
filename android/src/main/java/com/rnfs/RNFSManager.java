@@ -1,37 +1,35 @@
 package com.rnfs;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.HashMap;
-
-import android.os.Environment;
-import android.os.StatFs;
-import android.util.Base64;
-import android.support.annotation.Nullable;
-import android.util.SparseArray;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.os.Environment;
+import android.os.StatFs;
+import android.support.annotation.Nullable;
+import android.util.Base64;
+import android.util.SparseArray;
 
-import java.io.File;
-import java.io.OutputStream;
-import java.io.InputStream;
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.net.URL;
-
-import java.security.MessageDigest;
-
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RNFSManager extends ReactContextBaseJavaModule {
 
@@ -129,25 +127,24 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void readFileAssets(String filepath, Callback callback) {
+  public void readFileAssets(String filepath, Promise promise) {
     InputStream stream = null;
     try {
       // ensure isn't a directory
       AssetManager assetManager = getReactApplicationContext().getAssets();
       stream = assetManager.open(filepath, 0);
       if (stream == null) {
-        callback.invoke(makeErrorPayload(new Exception("Failed to open file")));
+        reject(promise, filepath, new Exception("Failed to open file"));
         return;
       }
 
       byte[] buffer = new byte[stream.available()];
       stream.read(buffer);
       String base64Content = Base64.encodeToString(buffer, Base64.NO_WRAP);
-
-      callback.invoke(null, base64Content);
+      promise.resolve(base64Content);;
     } catch (Exception ex) {
       ex.printStackTrace();
-      callback.invoke(makeErrorPayload(ex));
+      reject(promise, filepath, ex);
     } finally {
       if (stream != null) {
         try {
@@ -278,7 +275,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void readDirAssets(String directory, Callback callback) {
+  public void readDirAssets(String directory, Promise promise) {
     try {
       AssetManager assetManager = getReactApplicationContext().getAssets();
       String[] list = assetManager.list(directory);
@@ -307,35 +304,34 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
         fileMaps.pushMap(fileMap);
       }
-      callback.invoke(null, fileMaps);
+      promise.resolve(fileMaps);
 
     } catch (IOException e) {
-      e.printStackTrace();
-      callback.invoke(makeErrorPayload(e));
+      reject(promise, directory, e);
     }
   }
 
   @ReactMethod
-  public void copyFileAssets(String assetPath, String destination, Callback callback) {
+  public void copyFileAssets(String assetPath, String destination, Promise promise) {
     AssetManager assetManager = getReactApplicationContext().getAssets();
     try {
       InputStream in = assetManager.open(assetPath);
-      copyInputStream(in, assetPath, destination, callback);
+      copyInputStream(in, assetPath, destination, promise);
     } catch (IOException e) {
       // Default error message is just asset name, so make a more helpful error here.
-      callback.invoke(makeErrorPayload(new Exception(String.format("Asset '%s' could not be opened", assetPath))));
+      reject(promise, assetPath, new Exception(String.format("Asset '%s' could not be opened", assetPath)));
     }
   }
 
   @ReactMethod
-  public void existsAssets(String filepath, Callback callback) {
+  public void existsAssets(String filepath, Promise promise) {
     try {
       AssetManager assetManager = getReactApplicationContext().getAssets();
 
       try {
         String[] list = assetManager.list(filepath);
         if (list != null && list.length > 0) {
-          callback.invoke(null, true);
+          promise.resolve(true);
           return;
         }
       } catch (Exception ignored) {
@@ -346,28 +342,20 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       InputStream fileStream = null;
       try {
         fileStream = assetManager.open(filepath);
-        callback.invoke(null, true);
+        promise.resolve(true);
       } catch (Exception ex) {
-        callback.invoke(null, false); // asset doesn't exist
+        promise.resolve(false); // don't throw an error, resolve false
       } finally {
         if (fileStream != null) {
-          fileStream.close();
+          try {
+            fileStream.close();
+          } catch (Exception ignored) {
+          }
         }
       }
     } catch (Exception ex) {
       ex.printStackTrace();
-      callback.invoke(makeErrorPayload(ex));
-    }
-  }
-
-  @ReactMethod
-  public void copyFile(String source, String destination, Callback callback) {
-    try {
-      InputStream in = new FileInputStream(source);
-      copyInputStream(in, source, destination, callback);
-    } catch (FileNotFoundException e) {
-      // Default error message is just asset name, so make a more helpful error here.
-      callback.invoke(makeErrorPayload(new Exception(String.format("File '%s' could not be found", source))));
+      reject(promise, filepath, ex);
     }
   }
 
@@ -376,32 +364,32 @@ public class RNFSManager extends ReactContextBaseJavaModule {
    * @param in InputStream from assets or file
    * @param source source path (only used for logging errors)
    * @param destination destination path
-   * @param callback React Callback
-     */
-  private void copyInputStream(InputStream in, String source, String destination, Callback callback) {
+   * @param promise React Callback
+   */
+  private void copyInputStream(InputStream in, String source, String destination, Promise promise) {
     OutputStream out = null;
     try {
       File outFile = new File(destination);
       try {
         out = new FileOutputStream(outFile);
       } catch (FileNotFoundException e) {
-        callback.invoke(makeErrorPayload(e));
+        reject(promise, source, e);
         return;
       }
 
       try {
-        byte[] buffer = new byte[1024*10]; // 10k buffer
+        byte[] buffer = new byte[1024 * 10]; // 10k buffer
         int read;
-        while((read = in.read(buffer)) != -1){
+        while ((read = in.read(buffer)) != -1) {
           out.write(buffer, 0, read);
         }
       } catch (IOException e) {
-        callback.invoke(makeErrorPayload(new Exception(String.format("Failed to copy '%s' to %s (%s)", source, destination, e.getLocalizedMessage()))));
+        reject(promise, source, new Exception(String.format("Failed to copy '%s' to %s (%s)", source, destination, e.getLocalizedMessage())));
+        return;
       }
 
       // Success!
-      callback.invoke();
-
+      promise.resolve(null);
     } finally {
       if (in != null) {
         try {
@@ -485,8 +473,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private void sendEvent(ReactContext reactContext, String eventName, @Nullable WritableMap params) {
     reactContext
-    .getJSModule(RCTNativeAppEventEmitter.class)
-    .emit(eventName, params);
+            .getJSModule(RCTNativeAppEventEmitter.class)
+            .emit(eventName, params);
   }
 
   @ReactMethod
@@ -628,9 +616,9 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
     File externalStorageDirectory = Environment.getExternalStorageDirectory();
     if (externalStorageDirectory != null) {
-        constants.put(RNFSExternalStorageDirectoryPath, externalStorageDirectory.getAbsolutePath());
+      constants.put(RNFSExternalStorageDirectoryPath, externalStorageDirectory.getAbsolutePath());
     } else {
-        constants.put(RNFSExternalStorageDirectoryPath, null);
+      constants.put(RNFSExternalStorageDirectoryPath, null);
     }
 
     File externalDirectory = this.getReactApplicationContext().getExternalFilesDir(null);
