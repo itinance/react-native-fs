@@ -226,7 +226,7 @@ var RNFS = {
 
   // Node style version (lowercase d). Returns just the names
   readdir(dirpath: string): Promise<string[]> {
-    return RNFSManager.readDir(normalizeFilePath(dirpath)).then(files => {
+    return RNFS.readDir(normalizeFilePath(dirpath)).then(files => {
       return files.map(file => file.name);
     });
   },
