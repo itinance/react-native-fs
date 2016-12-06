@@ -297,6 +297,27 @@ type ReadDirItem = {
 };
 ```
 
+### `readDirAssets(dirpath: string): Promise<ReadDirItem[]>`
+
+Reads the contents of `dirpath ` in the Android app's assets folder.
+`dirpath ` is the relative path to the file from the root of the `assets` folder.
+
+The returned promise resolves with an array of objects with the following properties:
+
+```
+type ReadDirItem = {
+  name: string;     // The name of the item
+  path: string;     // The absolute path to the item
+  size: string;     // Size in bytes. 
+  						// Note that the size of files compressed during the creation of the APK (such as JSON files) cannot be determined. 
+  						// `size` will be set to -1 in this case.
+  isFile: () => boolean;        // Is the file just a file?
+  isDirectory: () => boolean;   // Is the file a directory?
+};
+```
+
+Note: Android only.
+
 ### `readdir(dirpath: string): Promise<string[]>`
 
 Node.js style version of `readDir` that returns only the names. Note the lowercase `d`.
@@ -323,6 +344,14 @@ Reads the file at `path` and return contents. `encoding` can be one of `utf8` (d
 
 Note: you will take quite a performance hit if you are reading big files
 
+### `readFileAssets(filepath:string, encoding?: string): Promise<string>`
+
+Reads the file at `path` in the Android app's assets folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+
+`filepath` is the relative path to the file from the root of the `assets` folder.
+
+Note: Android only.
+
 ### `writeFile(filepath: string, contents: string, encoding?: string): Promise<void>`
 
 Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
@@ -339,6 +368,14 @@ Moves the file located at `filepath` to `destPath`. This is more performant than
 
 Copies the file located at `filepath` to `destPath`.
 
+Note: On Android copyFile will overwrite `destPath` if it already exists. On iOS an error will be thrown if the file already exists.
+
+### `copyFileAssets(filepath: string, destPath: string): Promise<void>`
+
+Copies the file at `filepath ` in the Android app's assets folder and copies it to the given `destPath ` path.
+
+Note: Android only. Will overwrite destPath if it already exists
+
 ### `unlink(filepath: string): Promise<void>`
 
 Unlinks the item at `filepath`. If the item does not exist, an error will be thrown.
@@ -347,7 +384,11 @@ Also recursively deletes directories (works like Linux `rm -rf`).
 
 ### `exists(filepath: string): Promise<boolean>`
 
-check if the item exist at `filepath`. If the item does not exist, return false.
+Check if the item exists at `filepath`. If the item does not exist, return false.
+
+### `existsAssets(filepath: string): Promise<boolean>`
+
+Check in the Android assets folder if the item exists. `filepath` is the relative path from the root of the assets folder. If the item does not exist, return false.
 
 ### `hash(filepath: string, algorithm: string): Promise<string>`
 
