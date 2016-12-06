@@ -402,8 +402,6 @@ type MkdirOptions = {
 };
 ```
 
-### `promise mkdir(filepath [, excludeFromBackup])`
-
 Create a directory at `filepath`. Automatically creates parents and does not throw if already exists (works like Linux `mkdir -p`).
 
 (IOS only): The `NSURLIsExcludedFromBackupKey` property can be provided to set this attribute on iOS platforms. Apple will *reject* apps for storing offline cache data that does not have this attribute.
