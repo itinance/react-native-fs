@@ -211,15 +211,15 @@ var RNFS = {
   // Android-only
   readDirAssets(dirpath: string): Promise<ReadDirItem[]> {
     if (!RNFSManager.readDirAssets) {
-      throw new Error('Not available on this platform');
+      throw new Error('readDirAssets is not available on this platform');
     }
     return readDirGeneric(dirpath, RNFSManager.readDirAssets);
   },
 
   // Android-only
   existsAssets(filepath: string) {
-    if (!RNFSManager.readFileAssets) {
-      throw new Error('Not available on this platform');
+    if (!RNFSManager.existsAssets) {
+      throw new Error('existsAssets is not available on this platform');
     }
     return RNFSManager.existsAssets(filepath);
   },
@@ -251,7 +251,7 @@ var RNFS = {
   // Android only
   readFileAssets(filepath: string, encodingOrOptions?: any): Promise<string> {
     if (!RNFSManager.readFileAssets) {
-      throw new Error('Not available on this platform');
+      throw new Error('readFileAssets is not available on this platform');
     }
     return readFileGeneric(filepath, encodingOrOptions, RNFSManager.readFileAssets);
   },
@@ -263,7 +263,7 @@ var RNFS = {
   // Android only
   copyFileAssets(filepath: string, destPath:string) {
     if (!RNFSManager.copyFileAssets) {
-      throw new Error('Not available on this platform');
+      throw new Error('copyFileAssets is not available on this platform');
     }
     return RNFSManager.copyFileAssets(normalizeFilePath(filepath), normalizeFilePath(destPath)).then(() => void 0);
   },
