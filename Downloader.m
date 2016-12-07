@@ -100,9 +100,9 @@
   return _params.completeCallback(_statusCode, _bytesWritten);
 }
 
-- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionTask *)downloadTask didCompleteWithError:(NSError *)error
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
-  return _params.errorCallback(error);
+  return error ? _params.errorCallback(error) : nil;
 }
 
 - (void)stopDownload
