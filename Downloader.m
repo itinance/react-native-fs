@@ -102,7 +102,9 @@
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
-  return error ? _params.errorCallback(error) : nil;
+  if (error && error.code != -999) {
+    _params.errorCallback(error);
+  }
 }
 
 - (void)stopDownload
