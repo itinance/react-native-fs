@@ -43,6 +43,8 @@ type StatResult = {
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
   mode: number;     // UNIX file mode
+  ctime: number;    // Created date
+  utime: number;    // Updated date
   isFile: () => boolean;        // Is the file just a file?
   isDirectory: () => boolean;   // Is the file a directory?
 };
