@@ -12,7 +12,7 @@
 
 #import <RCTTest/RCTTestRunner.h>
 
-#import "RCTAssert.h"
+#import <React/RCTAssert.h>
 
 @interface IntegrationTestsTests : XCTestCase
 
