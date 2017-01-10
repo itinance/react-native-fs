@@ -7,11 +7,11 @@
 //
 
 #import "RNFSManager.h"
-#import "RCTBridge.h"
+#import <React/RCTBridge.h>
+#import <React/RCTEventDispatcher.h>
 #import "NSArray+Map.h"
 #import "Downloader.h"
 #import "Uploader.h"
-#import "RCTEventDispatcher.h"
 #import <CommonCrypto/CommonDigest.h>
 
 @interface RNFSManager()
