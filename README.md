@@ -20,6 +20,12 @@ First you need to install react-native-fs:
 npm install react-native-fs --save
 ```
 
+**Note:** If your react-native version is < 0.40 install with this tag instead:
+
+```
+npm install react-native-fs@2.0.1-rc.2 --save
+```
+
 ### Adding automatically with react-native link
 
 At the command line, in your project folder, type:
