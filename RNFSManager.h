@@ -6,8 +6,8 @@
 //  Copyright (c) 2015 Johannes Lumpe. All rights reserved.
 //
 
-#import <React/RCTBridgeModule.h>
-#import <React/RCTLog.h>
+#import "RCTBridgeModule.h"
+#import "RCTLog.h"
 
 @interface RNFSManager : NSObject <RCTBridgeModule>
 
