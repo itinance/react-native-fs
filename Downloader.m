@@ -109,15 +109,17 @@
 
 - (void)stopDownload
 {
-  [_task cancel];
+  if (_task.state == NSURLSessionTaskStateRunning) {
+    [_task cancel];
 
-  NSError *error = [NSError errorWithDomain:@"RNFS"
-                                       code:@"Aborted"
-                                   userInfo:@{
-                                     NSLocalizedDescriptionKey: @"Download has been aborted"
-                                   }];
+    NSError *error = [NSError errorWithDomain:@"RNFS"
+                                         code:@"Aborted"
+                                     userInfo:@{
+                                       NSLocalizedDescriptionKey: @"Download has been aborted"
+                                     }];
 
-  return _params.errorCallback(error);
+    return _params.errorCallback(error);
+  }
 }
 
 @end
