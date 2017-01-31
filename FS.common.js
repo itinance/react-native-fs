@@ -186,6 +186,10 @@ var RNFS = {
     return RNFSManager.pathForBundle(bundleNamed);
   },
 
+  pathForGroup(groupName: string): Promise<string> {
+    return RNFSManager.pathForGroup(groupName);
+  },
+
   getFSInfo(): Promise<FSInfoResult> {
     return RNFSManager.getFSInfo();
   },

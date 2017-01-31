@@ -471,6 +471,19 @@ RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
   }
 }
 
+RCT_EXPORT_METHOD(pathForGroup:(nonnull NSString *)groupId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NSURL *groupURL = [[NSFileManager defaultManager]containerURLForSecurityApplicationGroupIdentifier: groupId];
+
+  if (!groupURL) {
+    return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no directory for group '%@' found", groupId], nil);
+  } else {
+    resolve([groupURL path]);
+  }
+}
+
 RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
   unsigned long long totalSpace = 0;
