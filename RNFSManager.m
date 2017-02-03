@@ -6,11 +6,17 @@
 //  Copyright (c) 2015 Johannes Lumpe. All rights reserved.
 //
 
+#import "RNFSManager.h"
+
 #if __has_include("RCTBridge.h")
 #import "RCTBridge.h"
 #else
 #import <React/RCTBridge.h>
 #endif
+
+#import "NSArray+Map.h"
+#import "Downloader.h"
+#import "Uploader.h"
 
 #if __has_include("RCTEventDispatcher.h")
 #import "RCTEventDispatcher.h"
@@ -18,10 +24,6 @@
 #import <React/RCTEventDispatcher.h>
 #endif
 
-#import "RNFSManager.h"
-#import "NSArray+Map.h"
-#import "Downloader.h"
-#import "Uploader.h"
 #import <CommonCrypto/CommonDigest.h>
 
 @interface RNFSManager()
