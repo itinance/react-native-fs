@@ -8,12 +8,6 @@
 
 #import "RNFSManager.h"
 
-#if __has_include("RCTBridge.h")
-#import "RCTBridge.h"
-#else
-#import <React/RCTBridge.h>
-#endif
-
 #import "NSArray+Map.h"
 #import "Downloader.h"
 #import "Uploader.h"
