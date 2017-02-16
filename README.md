@@ -468,7 +468,7 @@ If `progressDivider` = 0, you will receive all `progressCallback` calls, default
                            for your project in XCode.
 
 
-### `stopDownload(jobId: number): Promise<void>`
+### `stopDownload(jobId: number): void`
 
 Abort the current download job with this ID. The partial file will remain on the filesystem.
 
