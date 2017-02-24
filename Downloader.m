@@ -27,7 +27,7 @@
 
   _bytesWritten = 0;
 
-  NSURL* url = [NSURL URLWithString:_params.fromUrl];
+  NSURL* url = [NSURL URLWithString:[_params.fromUrl stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 
   [[NSFileManager defaultManager] createFileAtPath:_params.toFile contents:nil attributes:nil];
   _fileHandle = [NSFileHandle fileHandleForWritingAtPath:_params.toFile];
