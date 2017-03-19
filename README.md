@@ -386,13 +386,11 @@ Note: On Android copyFile will overwrite `destPath` if it already exists. On iOS
 
 Copies the file at `filepath ` in the Android app's assets folder and copies it to the given `destPath ` path.
 
-Note: Android only.
+Note: Android only. Will overwrite destPath if it already exists
 
 ### `copyFileRaw(filename: string, destPath: string): Promise<void>`
 
 Copies Android raw resource whose name is `filename` and copies it to the given `destPath ` path.
-
-Note: Android only.
 
 Note: Android only. Will overwrite destPath if it already exists
 
