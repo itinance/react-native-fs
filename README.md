@@ -314,8 +314,8 @@ The returned promise resolves with an array of objects with the following proper
 type ReadDirItem = {
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
-  size: string;     // Size in bytes. 
-  						// Note that the size of files compressed during the creation of the APK (such as JSON files) cannot be determined. 
+  size: string;     // Size in bytes.
+  						// Note that the size of files compressed during the creation of the APK (such as JSON files) cannot be determined.
   						// `size` will be set to -1 in this case.
   isFile: () => boolean;        // Is the file just a file?
   isDirectory: () => boolean;   // Is the file a directory?
@@ -358,6 +358,12 @@ Reads the file at `path` in the Android app's assets folder and return contents.
 
 Note: Android only.
 
+### `readFileRaw(filename:string, encoding?: string): Promise<string>`
+
+Reads Android raw resource file whose name is `filename` and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+
+Note: Android only.
+
 ### `writeFile(filepath: string, contents: string, encoding?: string): Promise<void>`
 
 Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
@@ -380,6 +386,14 @@ Note: On Android copyFile will overwrite `destPath` if it already exists. On iOS
 
 Copies the file at `filepath ` in the Android app's assets folder and copies it to the given `destPath ` path.
 
+Note: Android only.
+
+### `copyFileRaw(filename: string, destPath: string): Promise<void>`
+
+Copies Android raw resource whose name is `filename` and copies it to the given `destPath ` path.
+
+Note: Android only.
+
 Note: Android only. Will overwrite destPath if it already exists
 
 ### `unlink(filepath: string): Promise<void>`
@@ -395,6 +409,14 @@ Check if the item exists at `filepath`. If the item does not exist, return false
 ### `existsAssets(filepath: string): Promise<boolean>`
 
 Check in the Android assets folder if the item exists. `filepath` is the relative path from the root of the assets folder. If the item does not exist, return false.
+
+Note: Android only.
+
+### `existsRaw(filename: string): Promise<boolean>`
+
+Check in the Android raw resource if the resource exists. `filename` is the name of raw resource. If the resource does not exist, return false.
+
+Note: Android only.
 
 ### `hash(filepath: string, algorithm: string): Promise<string>`
 
