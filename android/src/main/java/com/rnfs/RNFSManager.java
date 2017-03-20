@@ -358,7 +358,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       InputStream in = getReactApplicationContext().getResources().openRawResource(res);
       copyInputStream(in, filename, destination, promise);
     } catch (Exception e) {
-      reject(promise, filename, new Exception(String.format("Asset '%s' could not be opened", filename)));
+      reject(promise, filename, new Exception(String.format("Raw '%s' could not be opened", filename)));
     }
   }
 
