@@ -75,6 +75,17 @@ RCT_EXPORT_METHOD(exists:(NSString *)filepath
   resolve([NSNumber numberWithBool:fileExists]);
 }
 
+RCT_EXPORT_METHOD(existsRes:(NSString *)filename
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(__unused RCTPromiseRejectBlock)reject)
+{
+    NSString *prefix = [[filename componentsSeparatedByString:@"."] objectAtIndex:1];
+    NSString *name = [[filename componentsSeparatedByString:@"."] objectAtIndex:0];
+    NSString * filepath = [[NSBundle mainBundle] pathForResource:name ofType:prefix];
+    resolve([NSNumber numberWithBool:!(nil == filepath || 0 ==filepath.length)]);
+}
+
+
 RCT_EXPORT_METHOD(stat:(NSString *)filepath
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -222,6 +233,36 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
   resolve(base64Content);
 }
 
+RCT_EXPORT_METHOD(readFileRes:(NSString *)filename
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSString *prefix = [[filename componentsSeparatedByString:@"."] objectAtIndex:1];
+    NSString *name = [[filename componentsSeparatedByString:@"."] objectAtIndex:0];
+    NSString * filepath = [[NSBundle mainBundle] pathForResource:name ofType:prefix];
+    
+    if (nil == filepath || 0 ==filepath.length) {
+        return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
+    }
+    
+    NSError *error = nil;
+    
+    NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
+    
+    if (error) {
+        return [self reject:reject withError:error];
+    }
+    
+    if ([attributes objectForKey:NSFileType] == NSFileTypeDirectory) {
+        return reject(@"EISDIR", @"EISDIR: illegal operation on a directory, read", nil);
+    }
+    
+    NSData *content = [[NSFileManager defaultManager] contentsAtPath:filepath];
+    NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
+    
+    resolve(base64Content);
+}
+
 RCT_EXPORT_METHOD(hash:(NSString *)filepath
                   algorithm:(NSString *)algorithm
                   resolver:(RCTPromiseResolveBlock)resolve
@@ -323,6 +364,25 @@ RCT_EXPORT_METHOD(copyFile:(NSString *)filepath
   }
 
   resolve(nil);
+}
+
+RCT_EXPORT_METHOD(copyFileRes:(NSString *)filename
+                  destPath:(NSString *)destPath
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSString *prefix = [[filename componentsSeparatedByString:@"."] objectAtIndex:1];
+    NSString *name = [[filename componentsSeparatedByString:@"."] objectAtIndex:0];
+    NSFileManager *manager = [NSFileManager defaultManager];
+    NSString * filepath = [[NSBundle mainBundle] pathForResource:name ofType:prefix];
+    NSError *error = nil;
+    BOOL success = [manager copyItemAtPath:filepath toPath:destPath error:&error];
+    
+    if (!success) {
+        return [self reject:reject withError:error];
+    }
+    
+    resolve(nil);
 }
 
 RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options

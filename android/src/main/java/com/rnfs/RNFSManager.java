@@ -156,10 +156,13 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void readFileRaw(String filename, Promise promise) {
+  public void readFileRes(String filename, Promise promise) {
+    String prefix = filename.substring(filename.lastIndexOf(".")+1);
+    String name = filename.substring(0, filename.lastIndexOf("."));
+    Boolean isImage = prefix.equals("png") || prefix.equals("jpg") || prefix.equals("jpeg") || prefix.equals("bmp") || prefix.equals("gif") || prefix.equals("webp") || prefix.equals("psd") || prefix.equals("svg") || prefix.equals("tiff");
     InputStream stream = null;
     try {
-      int res = getReactApplicationContext().getResources().getIdentifier(filename, "raw", getReactApplicationContext().getPackageName());
+      int res = getReactApplicationContext().getResources().getIdentifier(name, isImage ? "drawable" : "raw", getReactApplicationContext().getPackageName());
       stream = getReactApplicationContext().getResources().openRawResource(res);
       if (stream == null) {
         reject(promise, filename, new Exception("Failed to open file"));
@@ -352,13 +355,16 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void copyFileRaw(String filename, String destination, Promise promise) {
+  public void copyFileRes(String filename, String destination, Promise promise) {
+    String prefix = filename.substring(filename.lastIndexOf(".")+1);
+    String name = filename.substring(0, filename.lastIndexOf("."));
+    Boolean isImage = prefix.equals("png") || prefix.equals("jpg") || prefix.equals("jpeg") || prefix.equals("bmp") || prefix.equals("gif") || prefix.equals("webp") || prefix.equals("psd") || prefix.equals("svg") || prefix.equals("tiff");
     try {
-      int res = getReactApplicationContext().getResources().getIdentifier(filename, "raw", getReactApplicationContext().getPackageName());
+      int res = getReactApplicationContext().getResources().getIdentifier(name, isImage ? "drawable" : "raw", getReactApplicationContext().getPackageName());
       InputStream in = getReactApplicationContext().getResources().openRawResource(res);
       copyInputStream(in, filename, destination, promise);
     } catch (Exception e) {
-      reject(promise, filename, new Exception(String.format("Raw '%s' could not be opened", filename)));
+      reject(promise, filename, new Exception(String.format("Res '%s' could not be opened", filename)));
     }
   }
 
@@ -399,9 +405,12 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void existsRaw(String filename, Promise promise) {
+  public void existsRes(String filename, Promise promise) {
     try {
-      int res = getReactApplicationContext().getResources().getIdentifier(filename, "raw", getReactApplicationContext().getPackageName());
+      String prefix = filename.substring(filename.lastIndexOf(".")+1);
+      String name = filename.substring(0, filename.lastIndexOf("."));
+      Boolean isImage = prefix.equals("png") || prefix.equals("jpg") || prefix.equals("jpeg") || prefix.equals("bmp") || prefix.equals("gif") || prefix.equals("webp") || prefix.equals("psd") || prefix.equals("svg") || prefix.equals("tiff");
+      int res = getReactApplicationContext().getResources().getIdentifier(name, isImage ? "drawable" : "raw", getReactApplicationContext().getPackageName());
       if (res > 0) {
         promise.resolve(true);
       } else {

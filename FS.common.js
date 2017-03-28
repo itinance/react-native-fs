@@ -227,11 +227,11 @@ var RNFS = {
   },
 
   // Android-only
-  existsRaw(filename: string) {
-    if (!RNFSManager.existsRaw) {
-      throw new Error('existsRaw is not available on this platform');
+  existsRes(filename: string) {
+    if (!RNFSManager.existsRes) {
+      throw new Error('existsRes is not available on this platform');
     }
-    return RNFSManager.existsRaw(filename);
+    return RNFSManager.existsRes(filename);
   },
 
   // Node style version (lowercase d). Returns just the names
@@ -267,11 +267,11 @@ var RNFS = {
   },
 
   // Android only
-  readFileRaw(filename: string, encodingOrOptions?: any): Promise<string> {
-    if (!RNFSManager.readFileRaw) {
-      throw new Error('readFileRaw is not available on this platform');
+  readFileRes(filename: string, encodingOrOptions?: any): Promise<string> {
+    if (!RNFSManager.readFileRes) {
+      throw new Error('readFileRes is not available on this platform');
     }
-    return readFileGeneric(filename, encodingOrOptions, RNFSManager.readFileRaw);
+    return readFileGeneric(filename, encodingOrOptions, RNFSManager.readFileRes);
   },
 
   hash(filepath: string, algorithm: string): Promise<string> {
@@ -287,11 +287,11 @@ var RNFS = {
   },
 
   // Android only
-  copyFileRaw(filename: string, destPath:string) {
-    if (!RNFSManager.copyFileRaw) {
-      throw new Error('copyFileRaw is not available on this platform');
+  copyFileRes(filename: string, destPath:string) {
+    if (!RNFSManager.copyFileRes) {
+      throw new Error('copyFileRes is not available on this platform');
     }
-    return RNFSManager.copyFileAssets(filename, normalizeFilePath(destPath)).then(() => void 0);
+    return RNFSManager.copyFileRes(filename, normalizeFilePath(destPath)).then(() => void 0);
   },
 
   writeFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {

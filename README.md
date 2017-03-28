@@ -358,7 +358,7 @@ Reads the file at `path` in the Android app's assets folder and return contents.
 
 Note: Android only.
 
-### `readFileRaw(filename:string, encoding?: string): Promise<string>`
+### `readFileRes(filename:string, encoding?: string): Promise<string>`
 
 Reads Android raw resource file whose name is `filename` and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
@@ -388,7 +388,7 @@ Copies the file at `filepath ` in the Android app's assets folder and copies it 
 
 Note: Android only. Will overwrite destPath if it already exists
 
-### `copyFileRaw(filename: string, destPath: string): Promise<void>`
+### `copyFileRes(filename: string, destPath: string): Promise<void>`
 
 Copies Android raw resource whose name is `filename` and copies it to the given `destPath ` path.
 
@@ -410,7 +410,7 @@ Check in the Android assets folder if the item exists. `filepath` is the relativ
 
 Note: Android only.
 
-### `existsRaw(filename: string): Promise<boolean>`
+### `existsRes(filename: string): Promise<boolean>`
 
 Check in the Android raw resource if the resource exists. `filename` is the name of raw resource. If the resource does not exist, return false.
 
