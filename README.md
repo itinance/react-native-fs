@@ -2,6 +2,8 @@
 
 Native filesystem access for react-native
 
+## THIS PROJECT IS NOT ACTIVELY MAINTAINED. Consider using [react-native-fetch-blob](https://github.com/wkh237/react-native-fetch-blob) as a replacement.
+
 ## Breaking change in v2.x
 
 - Removed attributes from `writeFile` and `appendFile` for iOS / Android consistency
