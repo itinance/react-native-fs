@@ -381,9 +381,19 @@ Note: On Android copyFile will overwrite `destPath` if it already exists. On iOS
 
 ### `copyFileAssets(filepath: string, destPath: string): Promise<void>`
 
-Copies the file at `filepath ` in the Android app's assets folder and copies it to the given `destPath ` path.
+Copies the file at `filepath` in the Android app's assets folder and copies it to the given `destPath ` path.
 
 Note: Android only. Will overwrite destPath if it already exists
+
+### `copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number, scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string>`
+
+iOS-ony: copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG?..."
+to a specific destination. It will download the original from iCloud if necessary.
+If width and height is > 0, the image will be resized to a specific size and a specific compression rate. 
+If scale is below 1, the image will be scaled according to the scale-factor (between 0.0 and 1.0)
+The resizeMode is also considered.
+Further information: https://developer.apple.com/reference/photos/phimagemanager/1616964-requestimageforasset
+The promise will on success return the final destination of the file, as it was defined in the destPath-parameter.
 
 ### `unlink(filepath: string): Promise<void>`
 

@@ -12,13 +12,13 @@
 #import "Downloader.h"
 #import "Uploader.h"
 
-#if __has_include("RCTEventDispatcher.h")
-#import "RCTEventDispatcher.h"
-#else
 #import <React/RCTEventDispatcher.h>
-#endif
+#import <React/RCTUtils.h>
+#import <React/RCTImageLoader.h>
 
 #import <CommonCrypto/CommonDigest.h>
+#import <Photos/Photos.h>
+
 
 @interface RNFSManager()
 
@@ -501,6 +501,90 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
   } else {
     [self reject:reject withError:error];
   }
+}
+
+
+/**
+ * iOS Only: copy images from the assets-library (camera-roll) to a specific path, asuming
+ * JPEG-Images. Video-Support will follow up, not implemented yet.
+ * 
+ * It is also supported to scale the image via scale-factor (0.0-1.0) or with a specific 
+ * width and height. Also the resizeMode will be considered.
+ */
+RCT_EXPORT_METHOD(copyAssetsFileIOS: (NSString *) imageUri
+                  toFilepath: (NSString *) destination
+                  width: (NSInteger) width
+                  height: (NSInteger) height
+                  scale: (CGFloat) scale
+                  compression: (CGFloat) compression
+                  resizeMode: (RCTResizeMode) resizeMode
+                  resolver: (RCTPromiseResolveBlock) resolve
+                  rejecter: (RCTPromiseRejectBlock) reject)
+
+{
+    CGSize size = CGSizeMake(width, height);
+    
+    NSURL* url = [NSURL URLWithString:imageUri];
+    PHFetchResult *results = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
+    
+    if (results.count == 0) {
+        NSString *errorText = [NSString stringWithFormat:@"Failed to fetch PHAsset with local identifier %@ with no error message.", imageUri];
+        
+        NSMutableDictionary* details = [NSMutableDictionary dictionary];
+        [details setValue:errorText forKey:NSLocalizedDescriptionKey];
+        NSError *error = [NSError errorWithDomain:@"RNFS" code:500 userInfo:details];
+        [self reject: reject withError:error];
+        return;
+    }
+    
+    PHAsset *asset = [results firstObject];
+    PHImageRequestOptions *imageOptions = [PHImageRequestOptions new];
+    
+    // Allow us to fetch images from iCloud
+    imageOptions.networkAccessAllowed = YES;
+    
+    
+    // Note: PhotoKit defaults to a deliveryMode of PHImageRequestOptionsDeliveryModeOpportunistic
+    // which means it may call back multiple times - we probably don't want that
+    imageOptions.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
+    
+    BOOL useMaximumSize = CGSizeEqualToSize(size, CGSizeZero);
+    CGSize targetSize;
+    if (useMaximumSize) {
+        targetSize = PHImageManagerMaximumSize;
+        imageOptions.resizeMode = PHImageRequestOptionsResizeModeNone;
+    } else {
+        targetSize = CGSizeApplyAffineTransform(size, CGAffineTransformMakeScale(scale, scale));
+        imageOptions.resizeMode = PHImageRequestOptionsResizeModeFast;
+    }
+    
+    PHImageContentMode contentMode = PHImageContentModeAspectFill;
+    if (resizeMode == RCTResizeModeContain) {
+        contentMode = PHImageContentModeAspectFit;
+    }
+    
+    // PHImageRequestID requestID =
+    [[PHImageManager defaultManager] requestImageForAsset:asset
+                                               targetSize:targetSize
+                                              contentMode:contentMode
+                                                  options:imageOptions
+                                            resultHandler:^(UIImage *result, NSDictionary<NSString *, id> *info) {
+        if (result) {
+            
+            NSData *imageData = UIImageJPEGRepresentation(result, compression );
+            [imageData writeToFile:destination atomically:YES];
+            resolve(destination);
+            
+        } else {
+            NSMutableDictionary* details = [NSMutableDictionary dictionary];
+            [details setValue:info[PHImageErrorKey] forKey:NSLocalizedDescriptionKey];
+            NSError *error = [NSError errorWithDomain:@"RNFS" code:501 userInfo:details];
+            [self reject: reject withError:error];
+            
+        }
+    }];
+    
+    
 }
 
 - (NSNumber *)dateToTimeIntervalNumber:(NSDate *)date
