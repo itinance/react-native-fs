@@ -2,7 +2,7 @@
 
 Native filesystem access for react-native
 
-## Changes for v2.2
+## Changes for v2.3
 
 - React-Native 0.40 is minimum required for compiling on iOS (otherwise install an older release, see below)
 - Access to iOS-based "assets-library" is now supported with `copyAssetsFileIOS`
