@@ -161,8 +161,8 @@ function readFileGeneric(filepath: string, encodingOrOptions:?string, command: F
 function readDirGeneric(dirpath: string, command: Function) {
   return command(normalizeFilePath(dirpath)).then(files => {
     return files.map(file => ({
-      created: file.created && new Date(file.created) || null,
-      modified: new Date(file.modified),
+      ctime: file.ctime && new Date(file.ctime * 1000) || null,
+      mtime: new Date(file.mtime * 1000),
       name: file.name,
       path: file.path,
       size: file.size,
