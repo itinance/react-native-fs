@@ -2,7 +2,13 @@
 
 Native filesystem access for react-native
 
-## Breaking change in v2.x
+## Changes for v2.2
+
+- React-Native 0.40 is minimum required for compiling on iOS (otherwise install an older release, see below)
+- Access to iOS-based "assets-library" is now supported with `copyAssetsFileIOS`
+- `readDir` will return now creation- and modification-time of files as with `stat()` (thanks @Ignigena)
+
+## Breaking change in v2.0
 
 - Removed attributes from `writeFile` and `appendFile` for iOS / Android consistency
 - `downloadFile` takes `options` object rather than parameters
