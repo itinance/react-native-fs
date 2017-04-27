@@ -296,8 +296,8 @@ The returned promise resolves with an array of objects with the following proper
 
 ```
 type ReadDirItem = {
-  created: date;     // The creation date of the file (iOS only)
-  modified: date;     // The last modified date of the file
+  ctime: date;     // The creation date of the file (iOS only)
+  mtime: date;     // The last modified date of the file
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
@@ -338,8 +338,8 @@ The promise resolves with an object with the following properties:
 
 ```
 type StatResult = {
-  name: string;     // The name of the item
-  path: string;     // The absolute path to the item
+  ctime: date;     // The creation date of the file
+  mtime: date;     // The last modified date of the file
   size: string;     // Size in bytes
   mode: number;     // UNIX file mode
   isFile: () => boolean;        // Is the file just a file?
