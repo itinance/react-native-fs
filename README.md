@@ -32,6 +32,9 @@ npm install react-native-fs --save
 npm install react-native-fs@2.0.1-rc.2 --save
 ```
 
+As @a-koka pointed out, you should then update your package.json to
+`"react-native-fs": "2.0.1-rc.2"` (without the tilde)
+
 ### Adding automatically with react-native link
 
 At the command line, in your project folder, type:
