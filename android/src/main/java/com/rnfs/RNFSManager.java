@@ -259,7 +259,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       for (File childFile : files) {
         WritableMap fileMap = Arguments.createMap();
 
-        fileMap.putString("mtime", childFile.lastModified());
+        fileMap.putInt("mtime", (int)childFile.lastModified());
         fileMap.putString("name", childFile.getName());
         fileMap.putString("path", childFile.getAbsolutePath());
         fileMap.putInt("size", (int)childFile.length());
