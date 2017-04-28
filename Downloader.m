@@ -88,6 +88,10 @@
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location
 {
+  NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)downloadTask.response;
+  if (!_statusCode) {
+    _statusCode = [NSNumber numberWithLong:httpResponse.statusCode];
+  }
   NSURL *destURL = [NSURL fileURLWithPath:_params.toFile];
   NSFileManager *fm = [NSFileManager defaultManager];
   NSError *error = nil;
