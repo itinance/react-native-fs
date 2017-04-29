@@ -378,6 +378,10 @@ Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `
 
 Append the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`.
 
+### `write(filepath: string, contents: string, position?: number, encoding?: string): Promise<void>`
+
+Write the `contents` to `filepath` at the given random access position. When `position` is `undefined` or `-1` the contents is appended to the end of the file. `encoding` can be one of `utf8` (default), `ascii`, `base64`.
+
 ### `moveFile(filepath: string, destPath: string): Promise<void>`
 
 Moves the file located at `filepath` to `destPath`. This is more performant than reading and then re-writing the file data because the move is done natively and the data doesn't have to be copied or cross the bridge.
