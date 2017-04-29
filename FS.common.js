@@ -339,6 +339,38 @@ var RNFS = {
     return RNFSManager.appendFile(normalizeFilePath(filepath), b64);
   },
 
+  write(filepath: string, contents: string, position?: number, encodingOrOptions?: any): Promise<void> {
+    var b64;
+
+    var options = {
+      encoding: 'utf8'
+    };
+
+    if (encodingOrOptions) {
+      if (typeof encodingOrOptions === 'string') {
+        options.encoding = encodingOrOptions;
+      } else if (typeof encodingOrOptions === 'object') {
+        options = encodingOrOptions;
+      }
+    }
+
+    if (options.encoding === 'utf8') {
+      b64 = base64.encode(utf8.encode(contents));
+    } else if (options.encoding === 'ascii') {
+      b64 = base64.encode(contents);
+    } else if (options.encoding === 'base64') {
+      b64 = contents;
+    } else {
+      throw new Error('Invalid encoding type "' + options.encoding + '"');
+    }
+
+    if (position === undefined) {
+      position = -1;
+    }
+
+    return RNFSManager.write(normalizeFilePath(filepath), b64, position).then(() => void 0);
+  },
+
   downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> } {
     if (typeof options !== 'object') throw new Error('downloadFile: Invalid value for argument `options`');
     if (typeof options.fromUrl !== 'string') throw new Error('downloadFile: Invalid value for property `fromUrl`');
