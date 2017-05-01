@@ -31,8 +31,8 @@ type MkdirOptions = {
 };
 
 type ReadDirItem = {
-  created: ?Date;    // The creation date of the file (iOS only)
-  modified: Date;   // The last modified date of the file
+  ctime: ?Date;    // The creation date of the file (iOS only)
+  mtime: Date;   // The last modified date of the file
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
