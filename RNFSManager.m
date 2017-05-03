@@ -147,6 +147,43 @@ RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
   }
 }
 
+RCT_EXPORT_METHOD(write:(NSString *)filepath
+                  contents:(NSString *)base64Content
+                  position:(NSInteger)position
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
+  
+  NSFileManager *fM = [NSFileManager defaultManager];
+  
+  if (![fM fileExistsAtPath:filepath])
+  {
+    BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:nil];
+    
+    if (!success) {
+      return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
+    } else {
+      return resolve(nil);
+    }
+  }
+  
+  @try {
+    NSFileHandle *fH = [NSFileHandle fileHandleForUpdatingAtPath:filepath];
+    
+    if (position >= 0) {
+      [fH seekToFileOffset:position];
+    } else {
+      [fH seekToEndOfFile];
+    }
+    [fH writeData:data];
+    
+    return resolve(nil);
+  } @catch (NSException *e) {
+    return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: error writing file: '%@'", filepath], nil);
+  }
+}
+
 RCT_EXPORT_METHOD(unlink:(NSString*)filepath
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)

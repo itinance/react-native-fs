@@ -4,7 +4,8 @@
   "description": "Native filesystem access for react-native",
   "main": "FS.common.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "flow": "flow; test $? -eq 0 -o $? -eq 2"
   },
   "repository": {
     "type": "git",
@@ -28,7 +29,7 @@
     "utf8": "^2.1.1"
   },
   "devDependencies": {
-    "flow-bin": "0.27.0",
+    "flow-bin": "0.28.0",
     "react": "^15.4.2",
     "react-native": "^0.40.0"
   }

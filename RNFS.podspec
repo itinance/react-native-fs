@@ -9,7 +9,8 @@ Pod::Spec.new do |s|
   s.summary         = pjson["description"]
   s.license         = pjson["license"]
   s.author          = { "Johannes Lumpe" => "johannes@lum.pe" }
-  s.platform        = :ios, "8.0"
+  s.ios.deployment_target = '8.0'
+  s.tvos.deployment_target = '9.0'
   s.source          = { :git => "https://github.com/itinance/react-native-fs", :tag => "v#{s.version}" }
   s.source_files    = '*.{h,m}'
   s.preserve_paths  = "**/*.js"
