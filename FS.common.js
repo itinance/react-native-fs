@@ -31,6 +31,8 @@ type MkdirOptions = {
 };
 
 type ReadDirItem = {
+  ctime: ?Date;    // The creation date of the file (iOS only)
+  mtime: Date;   // The last modified date of the file
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
@@ -159,6 +161,8 @@ function readFileGeneric(filepath: string, encodingOrOptions:?string, command: F
 function readDirGeneric(dirpath: string, command: Function) {
   return command(normalizeFilePath(dirpath)).then(files => {
     return files.map(file => ({
+      ctime: file.ctime && new Date(file.ctime * 1000) || null,
+      mtime: new Date(file.mtime * 1000),
       name: file.name,
       path: file.path,
       size: file.size,
@@ -274,6 +278,15 @@ var RNFS = {
     return RNFSManager.copyFileAssets(normalizeFilePath(filepath), normalizeFilePath(destPath)).then(() => void 0);
   },
 
+  // iOS only
+  // Copies fotos from asset-library (camera-roll) to a specific location
+  // with a given width or height
+  // @see: https://developer.apple.com/reference/photos/phimagemanager/1616964-requestimageforasset
+  copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number,
+    scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string> {
+    return RNFSManager.copyAssetsFileIOS(imageUri, destPath, width, height, scale, compression, resizeMode );
+  },
+
   writeFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
     var b64;
 
@@ -328,6 +341,38 @@ var RNFS = {
     }
 
     return RNFSManager.appendFile(normalizeFilePath(filepath), b64);
+  },
+
+  write(filepath: string, contents: string, position?: number, encodingOrOptions?: any): Promise<void> {
+    var b64;
+
+    var options = {
+      encoding: 'utf8'
+    };
+
+    if (encodingOrOptions) {
+      if (typeof encodingOrOptions === 'string') {
+        options.encoding = encodingOrOptions;
+      } else if (typeof encodingOrOptions === 'object') {
+        options = encodingOrOptions;
+      }
+    }
+
+    if (options.encoding === 'utf8') {
+      b64 = base64.encode(utf8.encode(contents));
+    } else if (options.encoding === 'ascii') {
+      b64 = base64.encode(contents);
+    } else if (options.encoding === 'base64') {
+      b64 = contents;
+    } else {
+      throw new Error('Invalid encoding type "' + options.encoding + '"');
+    }
+
+    if (position === undefined) {
+      position = -1;
+    }
+
+    return RNFSManager.write(normalizeFilePath(filepath), b64, position).then(() => void 0);
   },
 
   downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> } {

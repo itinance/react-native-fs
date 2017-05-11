@@ -9,7 +9,11 @@
 
 #import "AppDelegate.h"
 
+#if __has_include("RCTRootView.h")
+#import "RCTRootView.h"
+#else
 #import <React/RCTRootView.h>
+#endif
 
 @implementation AppDelegate
 

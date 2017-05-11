@@ -2,7 +2,13 @@
 
 Native filesystem access for react-native
 
-## Breaking change in v2.x
+## Changes for v2.3
+
+- React-Native 0.40 is minimum required for compiling on iOS (otherwise install an older release, see below)
+- Access to iOS-based "assets-library" is now supported with `copyAssetsFileIOS`
+- `readDir` will return now creation- and modification-time of files as with `stat()` (thanks @Ignigena)
+
+## Breaking change in v2.0
 
 - Removed attributes from `writeFile` and `appendFile` for iOS / Android consistency
 - `downloadFile` takes `options` object rather than parameters
@@ -25,6 +31,9 @@ npm install react-native-fs --save
 ```
 npm install react-native-fs@2.0.1-rc.2 --save
 ```
+
+As @a-koka pointed out, you should then update your package.json to
+`"react-native-fs": "2.0.1-rc.2"` (without the tilde)
 
 ### Adding automatically with react-native link
 
@@ -284,6 +293,7 @@ The following constants are available on the `RNFS` export:
 - `CachesDirectoryPath` (`String`) The absolute path to the caches directory
 - `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
 - `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (iOS only)
+- `LibraryDirectoryPath` (`String`) The absolute path to the NSLibraryDirectory (iOS only)
 - `ExternalDirectoryPath` (`String`) The absolute path to the external files, shared directory (android only)
 - `ExternalStorageDirectoryPath` (`String`) The absolute path to the external storage, shared directory (android only)
 
@@ -295,6 +305,8 @@ The returned promise resolves with an array of objects with the following proper
 
 ```
 type ReadDirItem = {
+  ctime: date;     // The creation date of the file (iOS only)
+  mtime: date;     // The last modified date of the file
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
@@ -335,8 +347,8 @@ The promise resolves with an object with the following properties:
 
 ```
 type StatResult = {
-  name: string;     // The name of the item
-  path: string;     // The absolute path to the item
+  ctime: date;     // The creation date of the file
+  mtime: date;     // The last modified date of the file
   size: string;     // Size in bytes
   mode: number;     // UNIX file mode
   isFile: () => boolean;        // Is the file just a file?
@@ -366,6 +378,10 @@ Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `
 
 Append the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`.
 
+### `write(filepath: string, contents: string, position?: number, encoding?: string): Promise<void>`
+
+Write the `contents` to `filepath` at the given random access position. When `position` is `undefined` or `-1` the contents is appended to the end of the file. `encoding` can be one of `utf8` (default), `ascii`, `base64`.
+
 ### `moveFile(filepath: string, destPath: string): Promise<void>`
 
 Moves the file located at `filepath` to `destPath`. This is more performant than reading and then re-writing the file data because the move is done natively and the data doesn't have to be copied or cross the bridge.
@@ -378,9 +394,19 @@ Note: On Android copyFile will overwrite `destPath` if it already exists. On iOS
 
 ### `copyFileAssets(filepath: string, destPath: string): Promise<void>`
 
-Copies the file at `filepath ` in the Android app's assets folder and copies it to the given `destPath ` path.
+Copies the file at `filepath` in the Android app's assets folder and copies it to the given `destPath ` path.
 
 Note: Android only. Will overwrite destPath if it already exists
+
+### `copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number, scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string>`
+
+iOS-ony: copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG?..."
+to a specific destination. It will download the original from iCloud if necessary.
+If width and height is > 0, the image will be resized to a specific size and a specific compression rate. 
+If scale is below 1, the image will be scaled according to the scale-factor (between 0.0 and 1.0)
+The resizeMode is also considered.
+Further information: https://developer.apple.com/reference/photos/phimagemanager/1616964-requestimageforasset
+The promise will on success return the final destination of the file, as it was defined in the destPath-parameter.
 
 ### `unlink(filepath: string): Promise<void>`
 
@@ -465,10 +491,12 @@ If `progressDivider` = 0, you will receive all `progressCallback` calls, default
 (IOS only): `options.background` (`Boolean`) - Whether to continue downloads when the app is not focused (default: `false`)
                            This option is currently only available for iOS, and you must [enable
                            background fetch](https://www.objc.io/issues/5-ios7/multitasking/#background-fetch<Paste>)
-                           for your project in XCode.
+                           for your project in XCode. You only need to enable background fetch in `Info.plist` and set
+                           the fetch interval in `didFinishLaunchingWithOptions`. The `performFetchWithCompletionHandler`
+                           callback is handled by RNFS.
 
 
-### `stopDownload(jobId: number): Promise<void>`
+### `stopDownload(jobId: number): void`
 
 Abort the current download job with this ID. The partial file will remain on the filesystem.
 
