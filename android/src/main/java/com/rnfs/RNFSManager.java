@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
@@ -506,7 +507,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   public void downloadFile(final ReadableMap options, final Promise promise) {
     try {
       File file = new File(options.getString("toFile"));
-      URL url = new URL(options.getString("fromUrl"));
+      URL url = new URL(URLEncoder.encode(options.getString("fromUrl"), "UTF-8"));
       final int jobId = options.getInt("jobId");
       ReadableMap headers = options.getMap("headers");
       int progressDivider = options.getInt("progressDivider");
