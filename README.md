@@ -7,6 +7,7 @@ Native filesystem access for react-native
 - React-Native 0.40 is minimum required for compiling on iOS (otherwise install an older release, see below)
 - Access to iOS-based "assets-library" is now supported with `copyAssetsFileIOS`
 - `readDir` will return now creation- and modification-time of files as with `stat()` (thanks @Ignigena)
+- optional connectionTimeout and readTimeout-Settings on `downloadFile` for Android (thanks @drunksaint)
 
 ## Breaking change in v2.0
 
@@ -449,6 +450,8 @@ type DownloadFileOptions = {
   progressDivider?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
+  connectionTimeout?: number // only supported on Android yet
+  readTimeout?: number       // only supported on Android yet
 };
 ```
 ```
