@@ -60,6 +60,8 @@ type DownloadFileOptions = {
   headers?: Headers;        // An object of headers to be passed to the server
   background?: boolean;     // iOS only
   progressDivider?: number;
+  readTimeout?: number;
+  connectionTimeout?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
 };
@@ -382,6 +384,8 @@ var RNFS = {
     if (options.headers && typeof options.headers !== 'object') throw new Error('downloadFile: Invalid value for property `headers`');
     if (options.background && typeof options.background !== 'boolean') throw new Error('downloadFile: Invalid value for property `background`');
     if (options.progressDivider && typeof options.progressDivider !== 'number') throw new Error('downloadFile: Invalid value for property `progressDivider`');
+    if (options.readTimeout && typeof options.readTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `readTimeout`');
+    if (options.connectionTimeout && typeof options.connectionTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `connectionTimeout`');
 
     var jobId = getJobId();
     var subscriptions = [];
@@ -400,7 +404,9 @@ var RNFS = {
       toFile: normalizeFilePath(options.toFile),
       headers: options.headers || {},
       background: !!options.background,
-      progressDivider: options.progressDivider || 0
+      progressDivider: options.progressDivider || 0,
+      readTimeout: options.readTimeout || 15000,
+      connectionTimeout: options.connectionTimeout || 5000
     };
 
     return {
