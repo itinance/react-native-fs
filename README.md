@@ -49,7 +49,7 @@ Done! No need to worry about manually adding the library to your project.
 Add the RNFS pod to your list of application pods in your Podfile, using the path from the Podfile to the installed module:
 
 ```
-pod 'RNFS', :path => './node_modules/react-native-fs'
+pod 'RNFS', :path => '../node_modules/react-native-fs'
 ```
 
 Install pods as usual:
