@@ -470,6 +470,10 @@ var RNFS = {
     };
   },
 
+  scanFile(path: string): Promise<ReadDirItem[]> {
+    return RNFSManager.scanFile(path);
+  },
+
   MainBundlePath: RNFSManager.RNFSMainBundlePath,
   CachesDirectoryPath: RNFSManager.RNFSCachesDirectoryPath,
   DocumentDirectoryPath: RNFSManager.RNFSDocumentDirectoryPath,
@@ -477,8 +481,9 @@ var RNFS = {
   ExternalStorageDirectoryPath: RNFSManager.RNFSExternalStorageDirectoryPath,
   TemporaryDirectoryPath: RNFSManager.RNFSTemporaryDirectoryPath,
   LibraryDirectoryPath: RNFSManager.RNFSLibraryDirectoryPath,
-  PicturesDirectoryPath: RNFSManager.RNFSPicturesDirectoryPath
-
+  PicturesDirectoryPath: RNFSManager.RNFSPicturesDirectoryPath,
+  DownloadsDirectoryPath: RNFSManager.RNFSDownloadsDirectoryPath,
+  MusicDirectoryPath: RNFSManager.RNFSMusicDirectoryPath
 };
 
 module.exports = RNFS;
