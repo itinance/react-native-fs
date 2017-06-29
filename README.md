@@ -427,6 +427,10 @@ Check in the Android assets folder if the item exists. `filepath` is the relativ
 
 Reads the file at `path` and returns its checksum as determined by `algorithm`, which can be one of `md5`, `sha1`, `sha224`, `sha256`, `sha384`, `sha512`.
 
+### `touch(filepath: string, mtime?: Date, ctime?: Date): Promise<string>`
+
+Sets the modification timestamp `mtime` and creation timestamp `ctime` of the file at `filepath`. Setting `ctime` is only supported on iOS, android always sets both timestamps to `mtime`. 
+
 ### `mkdir(filepath: string, options?: MkdirOptions): Promise<void>`
 
 ```

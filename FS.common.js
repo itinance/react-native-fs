@@ -470,6 +470,16 @@ var RNFS = {
     };
   },
 
+  touch(filepath: string, mtime?: Date, ctime?: Date): Promise<void> {
+    if (ctime && !(ctime instanceof Date)) throw new Error('touch: Invalid value for argument `ctime`');
+    if (mtime && !(mtime instanceof Date)) throw new Error('touch: Invalid value for argument `mtime`');
+    return RNFSManager.touch(
+      normalizeFilePath(filepath),
+      mtime && mtime.getTime(),
+      ctime && ctime.getTime()
+    );
+  },
+
   MainBundlePath: RNFSManager.RNFSMainBundlePath,
   CachesDirectoryPath: RNFSManager.RNFSCachesDirectoryPath,
   DocumentDirectoryPath: RNFSManager.RNFSDocumentDirectoryPath,

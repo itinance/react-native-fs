@@ -615,6 +615,17 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     promise.resolve(info);
   }
 
+  @ReactMethod
+  public void touch(String filepath, double mtime, double ctime, Promise promise) {
+    try {
+      File file = new File(filepath);
+      promise.resolve(file.setLastModified((long) mtime));
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filepath, ex);
+    }
+  }
+
   private void reject(Promise promise, String filepath, Exception ex) {
     if (ex instanceof FileNotFoundException) {
       rejectFileNotFound(promise, filepath);
