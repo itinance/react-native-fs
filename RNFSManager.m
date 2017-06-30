@@ -637,6 +637,38 @@ RCT_EXPORT_METHOD(copyAssetsFileIOS: (NSString *) imageUri
     
 }
 
+RCT_EXPORT_METHOD(touch:(NSString*)filepath
+                  mtime:(NSDate *)mtime
+                  ctime:(NSDate *)ctime
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSFileManager *manager = [NSFileManager defaultManager];
+    BOOL exists = [manager fileExistsAtPath:filepath isDirectory:false];
+
+    if (!exists) {
+        return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file, open '%@'", filepath], nil);
+    }
+
+    NSMutableDictionary *attr = [NSMutableDictionary dictionary];
+
+    if (mtime) {
+        [attr setValue:mtime forKey:NSFileModificationDate];
+    }
+    if (ctime) {
+        [attr setValue:ctime forKey:NSFileCreationDate];
+    }
+
+    NSError *error = nil;
+    BOOL success = [manager setAttributes:attr ofItemAtPath:filepath error:&error];
+
+    if (!success) {
+        return [self reject:reject withError:error];
+    }
+
+    resolve(nil);
+}
+
 - (NSNumber *)dateToTimeIntervalNumber:(NSDate *)date
 {
   return @([date timeIntervalSince1970]);
