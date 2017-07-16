@@ -363,6 +363,12 @@ Reads the file at `path` and return contents. `encoding` can be one of `utf8` (d
 
 Note: you will take quite a performance hit if you are reading big files
 
+### `read(filepath: string, length = 0, position = 0, encodingOrOptions?: any): Promise<string>`
+
+Reads `length` bytes from the given `position` of the file at `path` and returns contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+
+Note: reading big files piece by piece using this method may be useful in terms of performance.
+
 ### `readFileAssets(filepath:string, encoding?: string): Promise<string>`
 
 Reads the file at `path` in the Android app's assets folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
