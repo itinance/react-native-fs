@@ -260,6 +260,36 @@ var RNFS = {
     return readFileGeneric(filepath, encodingOrOptions, RNFSManager.readFile);
   },
 
+  read(filepath: string, length = 0, position = 0, encodingOrOptions?: any): Promise<string> {
+  	var options = {
+      encoding: 'utf8'
+    };
+
+    if (encodingOrOptions) {
+      if (typeof encodingOrOptions === 'string') {
+        options.encoding = encodingOrOptions;
+      } else if (typeof encodingOrOptions === 'object') {
+        options = encodingOrOptions;
+      }
+    }
+
+    return RNFSManager.read(normalizeFilePath(filepath), length, position).then((b64) => {
+      var contents;
+
+      if (options.encoding === 'utf8') {
+        contents = utf8.decode(base64.decode(b64));
+      } else if (options.encoding === 'ascii') {
+        contents = base64.decode(b64);
+      } else if (options.encoding === 'base64') {
+        contents = b64;
+      } else {
+        throw new Error('Invalid encoding type "' + String(options.encoding) + '"');
+      }
+
+      return contents;
+    });
+  },
+
   // Android only
   readFileAssets(filepath: string, encodingOrOptions?: any): Promise<string> {
     if (!RNFSManager.readFileAssets) {
