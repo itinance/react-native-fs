@@ -4,6 +4,7 @@ typedef void (^DownloadCompleteCallback)(NSNumber*, NSNumber*);
 typedef void (^ErrorCallback)(NSError*);
 typedef void (^BeginCallback)(NSNumber*, NSNumber*, NSDictionary*);
 typedef void (^ProgressCallback)(NSNumber*, NSNumber*);
+typedef void (^ResumableCallback)();
 
 @interface RNFSDownloadParams : NSObject
 
@@ -14,6 +15,7 @@ typedef void (^ProgressCallback)(NSNumber*, NSNumber*);
 @property (copy) ErrorCallback errorCallback;                 // Something went wrong
 @property (copy) BeginCallback beginCallback;                 // Download has started (headers received)
 @property (copy) ProgressCallback progressCallback;           // Download is progressing
+@property (copy) ResumableCallback resumableCallback;         // Download has stopped but is resumable
 @property        bool background;                             // Whether to continue download when app is in background
 @property (copy) NSNumber* progressDivider;
 
@@ -24,5 +26,7 @@ typedef void (^ProgressCallback)(NSNumber*, NSNumber*);
 
 - (void)downloadFile:(RNFSDownloadParams*)params;
 - (void)stopDownload;
+- (void)resumeDownload;
+- (BOOL)isResumable;
 
 @end
