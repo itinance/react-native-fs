@@ -1,6 +1,6 @@
 {
   "name": "react-native-fs",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Native filesystem access for react-native",
   "main": "FS.common.js",
   "scripts": {
@@ -34,6 +34,6 @@
     "react-native": "^0.40.0"
   },
   "peerDependencies": {
-    "react-native": "<0.47.0"
+    "react-native": ">=0.40.0"
   }
 }
