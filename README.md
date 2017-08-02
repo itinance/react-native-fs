@@ -2,6 +2,17 @@
 
 Native filesystem access for react-native
 
+## Changes for v2.5
+- breaking change for RN 0.47 at android (https://github.com/facebook/react-native/releases/tag/v0.47.0)
+
+## Changes for v2.4
+- Made new thread for other native processes [ANDROID] (https://github.com/itinance/react-native-fs/commit/ad36b078db9728489155a55c1b7daa42ed191945) thx to [codesinghanoop](https://github.com/codesinghanoop)
+- Upgrade gradle build tools to 25 (https://github.com/itinance/react-native-fs/commit/239bccb9d56fe9308daafb86920ed29eb9e5cfe4) thx to [markusguenther](https://github.com/markusguenther)
+- Fixed Podfile Path-Error (https://github.com/itinance/react-native-fs/commit/9fd51e7e977400f3194c100af88b4c25e7510530) thx to [colorfulberry](https://github.com/colorfulberry)
+- Add read-method with length and position params (https://github.com/itinance/react-native-fs/commit/a39c22be81f0c1f2263dbe60f3cd6cfcc902d2ac) thx to [simitti](https://github.com/simitii)
+
+
+
 ## Changes for v2.3
 
 - React-Native 0.40 is minimum required for compiling on iOS (otherwise install an older release, see below)
