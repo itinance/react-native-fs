@@ -57,12 +57,12 @@ Done! No need to worry about manually adding the library to your project.
 
 ###  ~~Adding with CocoaPods~~
 
+Currently we don't support Cocoapods. If you are familiar with it, please feel free to submit PRs.
+More Info [here](https://github.com/itinance/react-native-fs/issues/308#issuecomment-319803126).
+
  ~~Add the RNFS pod to your list of application pods in your Podfile, using the path from the Podfile to the installed module:~~
 
-  Currently we don't support Cocoapods. If you are familiar with it, please feel free to submit PRs.
-  More Info [here](https://github.com/itinance/react-native-fs/issues/308#issuecomment-319803126).
-
-
+~~
 ```
 pod 'RNFS', :path => '../node_modules/react-native-fs'
 ```
@@ -71,6 +71,7 @@ Install pods as usual:
 ```
 pod install
 ```
+~~
 
 ### Adding Manually in XCode
 
