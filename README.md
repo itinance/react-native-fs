@@ -476,6 +476,7 @@ type DownloadFileOptions = {
   progressDivider?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
+  resumable?: () => void;    // only supported on iOS yet
   connectionTimeout?: number // only supported on Android yet
   readTimeout?: number       // only supported on Android yet
 };
@@ -524,10 +525,27 @@ If `progressDivider` = 0, you will receive all `progressCallback` calls, default
                            the fetch interval in `didFinishLaunchingWithOptions`. The `performFetchWithCompletionHandler`
                            callback is handled by RNFS.
 
+(IOS only): If `options.resumable` is provided, it will be invoked when the download has stopped and and can be resumed using `resumeDownload()`.
 
 ### `stopDownload(jobId: number): void`
 
 Abort the current download job with this ID. The partial file will remain on the filesystem.
+
+### (iOS only) `resumeDownload(jobId: number): void`
+
+Resume the current download job with this ID.
+
+### (iOS only) `isResumable(jobId: number): Promise<bool>`
+
+Check if the the download job with this ID is resumable with `resumeDownload()`.
+
+Example:
+
+```
+if (await RNFS.isResumable(jobId) {
+    RNFS.resumeDownload(jobId)
+}
+```
 
 ### (iOS only) `uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> }`
 
