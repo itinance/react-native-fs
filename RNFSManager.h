@@ -9,6 +9,10 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTLog.h>
 
+typedef void (^CompletionHandler)();
+
 @interface RNFSManager : NSObject <RCTBridgeModule>
+
++(void)setCompletionHandlerForIdentifier: (NSString *)identifier completionHandler: (CompletionHandler)completionHandler;
 
 @end

@@ -224,6 +224,10 @@ var RNFS = {
     RNFSManager.stopUpload(jobId);
   },
 
+  completeHandlerIOS(jobId: number): void {
+    RNFSManager.completeHandlerIOS(jobId);
+  },
+
   readDir(dirpath: string): Promise<ReadDirItem[]> {
     return readDirGeneric(dirpath, RNFSManager.readDir);
   },

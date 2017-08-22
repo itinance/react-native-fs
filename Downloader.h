@@ -24,7 +24,7 @@ typedef void (^ResumableCallback)();
 
 @interface RNFSDownloader : NSObject <NSURLSessionDelegate, NSURLSessionDownloadDelegate>
 
-- (void)downloadFile:(RNFSDownloadParams*)params;
+- (NSString *)downloadFile:(RNFSDownloadParams*)params;
 - (void)stopDownload;
 - (void)resumeDownload;
 - (BOOL)isResumable;
