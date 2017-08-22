@@ -470,7 +470,6 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
 
   [self.downloaders setValue:downloader forKey:[jobId stringValue]];
     if (uuid) {
-        NSLog(@"setting uuid: %@", uuid);
         if (!self.uuids) self.uuids = [[NSMutableDictionary alloc] init];
         [self.uuids setValue:uuid forKey:[jobId stringValue]];
     }
@@ -514,7 +513,6 @@ RCT_EXPORT_METHOD(completeHandlerIOS:(nonnull NSNumber *)jobId)
         NSString *uuid = [self.uuids objectForKey:[jobId stringValue]];
         CompletionHandler completionHandler = [completionHandlers objectForKey:uuid];
         if (completionHandler) {
-            NSLog(@"Calling completion handler on: %@", uuid);
             completionHandler();
             [completionHandlers removeObjectForKey:uuid];
         }
