@@ -508,17 +508,19 @@ RCT_EXPORT_METHOD(isResumable:(nonnull NSNumber *)jobId
     }
 }
 
-RCT_EXPORT_METHOD(completeHandlerIOS:(nonnull NSNumber *)jobId)
+RCT_EXPORT_METHOD(completeHandlerIOS:(nonnull NSNumber *)jobId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     if (self.uuids) {
         NSString *uuid = [self.uuids objectForKey:[jobId stringValue]];
         CompletionHandler completionHandler = [completionHandlers objectForKey:uuid];
         if (completionHandler) {
-            NSLog(@"Calling completion handler on: %@", uuid);
             completionHandler();
             [completionHandlers removeObjectForKey:uuid];
         }
     }
+    resolve(nil);
 }
 
 RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options

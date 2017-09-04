@@ -225,7 +225,7 @@ var RNFS = {
   },
 
   completeHandlerIOS(jobId: number): void {
-    RNFSManager.completeHandlerIOS(jobId);
+    return RNFSManager.completeHandlerIOS(jobId);
   },
 
   readDir(dirpath: string): Promise<ReadDirItem[]> {
