@@ -342,16 +342,17 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         String path = directory.isEmpty() ? childFile : String.format("%s/%s", directory, childFile); // don't allow / at the start when directory is ""
         fileMap.putString("path", path);
         int length = 0;
-        boolean isDirectory = false;
+        boolean isDirectory = true;
         try {
           AssetFileDescriptor assetFileDescriptor = assetManager.openFd(path);
           if (assetFileDescriptor != null) {
             length = (int) assetFileDescriptor.getLength();
             assetFileDescriptor.close();
+            isDirectory = false;
           }
         } catch (IOException ex) {
-          //.. ah.. is a directory!
-          isDirectory = true;
+          //.. ah.. is a directory or a compressed file?
+          isDirectory = ex.getMessage().indexOf("compressed") == -1;
         }
         fileMap.putInt("size", length);
         fileMap.putInt("type", isDirectory ? 1 : 0); // if 0, probably a folder..
