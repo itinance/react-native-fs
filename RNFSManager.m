@@ -723,7 +723,6 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
         NSLog(@"video failure");
       }
       dispatch_group_leave(group);
-      // use URL to get file content
     }
   }];
   dispatch_group_wait(group,  DISPATCH_TIME_FOREVER);
