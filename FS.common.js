@@ -241,6 +241,13 @@ var RNFS = {
     });
   },
 
+  // setReadable for Android
+  setReadable(filepath : string, readable: boolean, ownerOnly: boolean) : Promise<boolean> {
+    return RNFSManager.setReadable(filepath, readable, ownerOnly).then( (result) => {
+      return result;
+    })
+  },
+
   stat(filepath: string): Promise<StatResult> {
     return RNFSManager.stat(normalizeFilePath(filepath)).then((result) => {
       return {
@@ -285,6 +292,14 @@ var RNFS = {
   copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number,
     scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string> {
     return RNFSManager.copyAssetsFileIOS(imageUri, destPath, width, height, scale, compression, resizeMode );
+  },
+
+  // iOS only
+  // Copies fotos from asset-library (camera-roll) to a specific location
+  // with a given width or height
+  // @see: https://developer.apple.com/reference/photos/phimagemanager/1616964-requestimageforasset
+  copyAssetsVideoIOS(imageUri: string, destPath: string): Promise<string> {
+    return RNFSManager.copyAssetsVideoIOS(imageUri, destPath);
   },
 
   writeFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {

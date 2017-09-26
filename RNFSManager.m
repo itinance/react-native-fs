@@ -556,7 +556,15 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
 
 /**
  * iOS Only: copy images from the assets-library (camera-roll) to a specific path, asuming
- * JPEG-Images. Video-Support will follow up, not implemented yet.
+ * JPEG-Images. 
+ * 
+ * Video-Support:
+ * 
+ * One can use this method also to create a thumbNail from a video.
+ * Currently it is impossible to specify a concrete position, the OS will decide wich
+ * Thumbnail you'll get then.
+ * To copy a video from assets-library and save it as a mp4-file, use the method
+ * copyAssetsVideoIOS.
  * 
  * It is also supported to scale the image via scale-factor (0.0-1.0) or with a specific 
  * width and height. Also the resizeMode will be considered.
@@ -633,9 +641,51 @@ RCT_EXPORT_METHOD(copyAssetsFileIOS: (NSString *) imageUri
             
         }
     }];
-    
-    
 }
+
+/**
+ * iOS Only: copy videos from the assets-library (camera-roll) to a specific path as mp4-file.
+ * 
+ * To create a thumbnail from the video, refer to copyAssetsFileIOS
+ */
+RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
+                  atFilepath: (NSString *) destination
+                  resolver: (RCTPromiseResolveBlock) resolve
+                  rejecter: (RCTPromiseRejectBlock) reject)
+
+{
+  NSURL* url = [NSURL URLWithString:imageUri];
+  __block NSURL* videoURL = [NSURL URLWithString:destination];
+  
+  PHFetchResult *phAssetFetchResult = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
+  PHAsset *phAsset = [phAssetFetchResult firstObject];
+  dispatch_group_t group = dispatch_group_create();
+  dispatch_group_enter(group);
+  
+  [[PHImageManager defaultManager] requestAVAssetForVideo:phAsset options:nil resultHandler:^(AVAsset *asset, AVAudioMix *audioMix, NSDictionary *info) {
+    
+    if ([asset isKindOfClass:[AVURLAsset class]]) {
+      NSURL *url = [(AVURLAsset *)asset URL];
+      NSLog(@"Final URL %@",url);
+      NSData *videoData = [NSData dataWithContentsOfURL:url];
+      
+      BOOL writeResult = [videoData writeToFile:destination atomically:true];
+      
+      if(writeResult) {
+        NSLog(@"video success");
+      }
+      else {
+        NSLog(@"video failure");
+      }
+      dispatch_group_leave(group);
+      // use URL to get file content
+    }
+  }];
+  dispatch_group_wait(group,  DISPATCH_TIME_FOREVER);
+  resolve(destination);
+}
+
+
 
 - (NSNumber *)dateToTimeIntervalNumber:(NSDate *)date
 {

@@ -400,13 +400,27 @@ Note: Android only. Will overwrite destPath if it already exists
 
 ### `copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number, scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string>`
 
-iOS-ony: copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG?..."
+iOS-only: copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG?..."
 to a specific destination. It will download the original from iCloud if necessary.
+
 If width and height is > 0, the image will be resized to a specific size and a specific compression rate. 
 If scale is below 1, the image will be scaled according to the scale-factor (between 0.0 and 1.0)
 The resizeMode is also considered.
+
+*Video-Support:*
+
+One can use this method also to create a thumbNail from a video in a specific size.
+Currently it is impossible to specify a concrete position, the OS will decide wich
+Thumbnail you'll get then.
+To copy a video from assets-library and save it as a mp4-file, refer to copyAssetsVideoIOS.
+
 Further information: https://developer.apple.com/reference/photos/phimagemanager/1616964-requestimageforasset
 The promise will on success return the final destination of the file, as it was defined in the destPath-parameter.
+
+### copyAssetsVideoIOS(videoUri: string, destPath: string)
+
+iOS-only: copies a video from assets-library, that is prefixed with 'assets-library://asset/asset.MOV?...'
+to a specific destination.
 
 ### `unlink(filepath: string): Promise<void>`
 

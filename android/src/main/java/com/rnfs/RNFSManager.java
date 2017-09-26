@@ -432,6 +432,22 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void setReadable(String filepath, Boolean readable, Boolean ownerOnly, Promise promise) {
+    try {
+      File file = new File(filepath);
+
+      if (!file.exists()) throw new Exception("File does not exist");
+
+      file.setReadable(readable, ownerOnly);
+
+      promise.resolve(true);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
   public void stat(String filepath, Promise promise) {
     try {
       File file = new File(filepath);
