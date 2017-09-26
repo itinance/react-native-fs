@@ -2,11 +2,23 @@
 
 Native filesystem access for react-native
 
+## Changes for v2.5
+- breaking change for RN 0.47 at android (https://github.com/facebook/react-native/releases/tag/v0.47.0)
+
+## Changes for v2.4
+- Made new thread for other native processes [ANDROID] (https://github.com/itinance/react-native-fs/commit/ad36b078db9728489155a55c1b7daa42ed191945) thx to [codesinghanoop](https://github.com/codesinghanoop)
+- Upgrade gradle build tools to 25 (https://github.com/itinance/react-native-fs/commit/239bccb9d56fe9308daafb86920ed29eb9e5cfe4) thx to [markusguenther](https://github.com/markusguenther)
+- Fixed Podfile Path-Error (https://github.com/itinance/react-native-fs/commit/9fd51e7e977400f3194c100af88b4c25e7510530) thx to [colorfulberry](https://github.com/colorfulberry)
+- Add read-method with length and position params (https://github.com/itinance/react-native-fs/commit/a39c22be81f0c1f2263dbe60f3cd6cfcc902d2ac) thx to [simitti](https://github.com/simitii)
+
+
+
 ## Changes for v2.3
 
 - React-Native 0.40 is minimum required for compiling on iOS (otherwise install an older release, see below)
 - Access to iOS-based "assets-library" is now supported with `copyAssetsFileIOS`
 - `readDir` will return now creation- and modification-time of files as with `stat()` (thanks @Ignigena)
+- optional connectionTimeout and readTimeout-Settings on `downloadFile` for Android (thanks @drunksaint)
 
 ## Breaking change in v2.0
 
@@ -43,18 +55,23 @@ At the command line, in your project folder, type:
 
 Done! No need to worry about manually adding the library to your project.
 
-### Adding with CocoaPods
+###  ~~Adding with CocoaPods~~
 
-Add the RNFS pod to your list of application pods in your Podfile, using the path from the Podfile to the installed module:
+Currently we don't support Cocoapods. If you are familiar with it, please feel free to submit PRs.
+More Info [here](https://github.com/itinance/react-native-fs/issues/308#issuecomment-319803126).
 
+ ~~Add the RNFS pod to your list of application pods in your Podfile, using the path from the Podfile to the installed module:~~
+
+~~
 ```
-pod 'RNFS', :path => './node_modules/react-native-fs'
+pod 'RNFS', :path => '../node_modules/react-native-fs'
 ```
 
 Install pods as usual:
 ```
 pod install
 ```
+~~
 
 ### Adding Manually in XCode
 
@@ -362,6 +379,12 @@ Reads the file at `path` and return contents. `encoding` can be one of `utf8` (d
 
 Note: you will take quite a performance hit if you are reading big files
 
+### `read(filepath: string, length = 0, position = 0, encodingOrOptions?: any): Promise<string>`
+
+Reads `length` bytes from the given `position` of the file at `path` and returns contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+
+Note: reading big files piece by piece using this method may be useful in terms of performance.
+
 ### `readFileAssets(filepath:string, encoding?: string): Promise<string>`
 
 Reads the file at `path` in the Android app's assets folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
@@ -440,6 +463,10 @@ Check in the Android assets folder if the item exists. `filepath` is the relativ
 
 Reads the file at `path` and returns its checksum as determined by `algorithm`, which can be one of `md5`, `sha1`, `sha224`, `sha256`, `sha384`, `sha512`.
 
+### `touch(filepath: string, mtime?: Date, ctime?: Date): Promise<string>`
+
+Sets the modification timestamp `mtime` and creation timestamp `ctime` of the file at `filepath`. Setting `ctime` is only supported on iOS, android always sets both timestamps to `mtime`. 
+
 ### `mkdir(filepath: string, options?: MkdirOptions): Promise<void>`
 
 ```
@@ -463,6 +490,8 @@ type DownloadFileOptions = {
   progressDivider?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
+  connectionTimeout?: number // only supported on Android yet
+  readTimeout?: number       // only supported on Android yet
 };
 ```
 ```

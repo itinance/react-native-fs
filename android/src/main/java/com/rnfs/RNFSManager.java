@@ -151,6 +151,35 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void read(String filepath, int length, int position, Promise promise){
+    try {
+      File file = new File(filepath);
+
+      if (file.isDirectory()) {
+        rejectFileIsDirectory(promise);
+        return;
+      }
+
+      if (!file.exists()) {
+        rejectFileNotFound(promise, filepath);
+        return;
+      }
+
+      FileInputStream inputStream = new FileInputStream(filepath);
+      byte[] buffer = new byte[length];
+      inputStream.skip(position);
+      inputStream.read(buffer,0,length);
+
+      String base64Content = Base64.encodeToString(buffer, Base64.NO_WRAP);
+
+      promise.resolve(base64Content);
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
   public void readFileAssets(String filepath, Promise promise) {
     InputStream stream = null;
     try {
@@ -283,7 +312,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       for (File childFile : files) {
         WritableMap fileMap = Arguments.createMap();
 
-        fileMap.putInt("mtime", (int)childFile.lastModified());
+        fileMap.putDouble("mtime", (double)childFile.lastModified()/1000);
         fileMap.putString("name", childFile.getName());
         fileMap.putString("path", childFile.getAbsolutePath());
         fileMap.putInt("size", (int)childFile.length());
@@ -629,6 +658,17 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     info.putDouble("totalSpace", (double)totalSpace);   // Int32 too small, must use Double
     info.putDouble("freeSpace", (double)freeSpace);
     promise.resolve(info);
+  }
+
+  @ReactMethod
+  public void touch(String filepath, double mtime, double ctime, Promise promise) {
+    try {
+      File file = new File(filepath);
+      promise.resolve(file.setLastModified((long) mtime));
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filepath, ex);
+    }
   }
 
   private void reject(Promise promise, String filepath, Exception ex) {

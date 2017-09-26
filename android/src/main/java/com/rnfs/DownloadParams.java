@@ -23,6 +23,8 @@ public class DownloadParams {
   public File dest;
   public ReadableMap headers;
   public float progressDivider;
+  public int readTimeout;
+  public int connectionTimeout;
   public OnTaskCompleted onTaskCompleted;
   public OnDownloadBegin onDownloadBegin;
   public OnDownloadProgress onDownloadProgress;
