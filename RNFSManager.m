@@ -427,7 +427,14 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   NSNumber* progressDivider = options[@"progressDivider"];
   params.progressDivider = progressDivider;
 
+  __block BOOL callbackFired = NO;
+
   params.completeCallback = ^(NSNumber* statusCode, NSNumber* bytesWritten) {
+    if (callbackFired) {
+      return;
+    }
+    callbackFired = YES;
+
     NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId}];
     if (statusCode) {
       [result setObject:statusCode forKey: @"statusCode"];
@@ -439,6 +446,10 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   };
 
   params.errorCallback = ^(NSError* error) {
+    if (callbackFired) {
+      return;
+    }
+    callbackFired = YES;
     return [self reject:reject withError:error];
   };
 
