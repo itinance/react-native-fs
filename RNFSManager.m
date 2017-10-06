@@ -422,6 +422,8 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   params.headers = headers;
   NSNumber* background = options[@"background"];
   params.background = [background boolValue];
+  NSNumber* discretionary = options[@"discretionary"];
+  params.discretionary = [discretionary boolValue];
   NSNumber* progressDivider = options[@"progressDivider"];
   params.progressDivider = progressDivider;
 
