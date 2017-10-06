@@ -11,8 +11,6 @@ Native filesystem access for react-native
 - Fixed Podfile Path-Error (https://github.com/itinance/react-native-fs/commit/9fd51e7e977400f3194c100af88b4c25e7510530) thx to [colorfulberry](https://github.com/colorfulberry)
 - Add read-method with length and position params (https://github.com/itinance/react-native-fs/commit/a39c22be81f0c1f2263dbe60f3cd6cfcc902d2ac) thx to [simitti](https://github.com/simitii)
 
-
-
 ## Changes for v2.3
 
 - React-Native 0.40 is minimum required for compiling on iOS (otherwise install an older release, see below)
@@ -171,6 +169,18 @@ public class MainApplication extends Application implements ReactApplication {
     }
 ```
 
+## Usage (Windows)
+
+### Adding automatically with react-native link
+
+The `link` command also works for adding the native dependency on Windows:
+
+`react-native link react-native-fs`
+
+### Adding Manually in Visual Studio
+
+Follow the instructions in the ['Linking Libraries'](https://github.com/Microsoft/react-native-windows/blob/master/docs/LinkingLibrariesWindows.md) documentation on the react-native-windows GitHub repo. For the first step of adding the project to the Visual Studio solution file, the path to the project should be `../node_modules/react-native-fs/windows/RNFS/RNFS.csproj`.
+
 ## Examples
 
 ### Basic
@@ -309,7 +319,7 @@ The following constants are available on the `RNFS` export:
 - `MainBundlePath` (`String`) The absolute path to the main bundle directory
 - `CachesDirectoryPath` (`String`) The absolute path to the caches directory
 - `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
-- `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (iOS only)
+- `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (iOS and Windows only)
 - `LibraryDirectoryPath` (`String`) The absolute path to the NSLibraryDirectory (iOS only)
 - `ExternalDirectoryPath` (`String`) The absolute path to the external files, shared directory (android only)
 - `ExternalStorageDirectoryPath` (`String`) The absolute path to the external storage, shared directory (android only)
