@@ -2,6 +2,12 @@
 
 Native filesystem access for react-native
 
+## Changes for v2.8
+- Fix for [#346](https://github.com/itinance/react-native-fs/pull/347): compressed file assets are detected as directories thx to [jacargentina](https://github.com/jacargentina)
+- added support for Video-Assets on iOS (copyAssetsVideoIOS) and setReadable() on Android by [itinance](https://github.com/itinance)
+- Added react-native-windows support for UWP [#337](https://github.com/itinance/react-native-fs/pull/337) thx to [rozele](https://github.com/rozele)
+- Expose the iOS `discretionary` flag on `downloadFile` [#360](https://github.com/itinance/react-native-fs/pull/360) thx to [jamesreggio](https://github.com/jamesreggio)
+
 ## Changes for v2.5
 - breaking change for RN 0.47 at android (https://github.com/facebook/react-native/releases/tag/v0.47.0)
 
