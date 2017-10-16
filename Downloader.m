@@ -45,6 +45,7 @@
   if (_params.background) {
     NSString *uuid = [[NSUUID UUID] UUIDString];
     config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:uuid];
+    config.discretionary = _params.discretionary;
   } else {
     config = [NSURLSessionConfiguration defaultSessionConfiguration];
   }
@@ -88,6 +89,10 @@
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location
 {
+  NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)downloadTask.response;
+  if (!_statusCode) {
+    _statusCode = [NSNumber numberWithLong:httpResponse.statusCode];
+  }
   NSURL *destURL = [NSURL fileURLWithPath:_params.toFile];
   NSFileManager *fm = [NSFileManager defaultManager];
   NSError *error = nil;
@@ -102,7 +107,9 @@
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
-  return error ? _params.errorCallback(error) : nil;
+  if (error && error.code != -999) {
+    _params.errorCallback(error);
+  }
 }
 
 - (void)stopDownload

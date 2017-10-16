@@ -12,13 +12,13 @@
 #import "Downloader.h"
 #import "Uploader.h"
 
-#if __has_include("RCTEventDispatcher.h")
-#import "RCTEventDispatcher.h"
-#else
 #import <React/RCTEventDispatcher.h>
-#endif
+#import <React/RCTUtils.h>
+#import <React/RCTImageLoader.h>
 
 #import <CommonCrypto/CommonDigest.h>
+#import <Photos/Photos.h>
+
 
 @interface RNFSManager()
 
@@ -52,6 +52,8 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
     NSDictionary *attributes = [fileManager attributesOfItemAtPath:path error:nil];
 
     return @{
+             @"ctime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileCreationDate]],
+             @"mtime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileModificationDate]],
              @"name": obj,
              @"path": path,
              @"size": [attributes objectForKey:NSFileSize],
@@ -156,6 +158,43 @@ RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
   }
 }
 
+RCT_EXPORT_METHOD(write:(NSString *)filepath
+                  contents:(NSString *)base64Content
+                  position:(NSInteger)position
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
+  
+  NSFileManager *fM = [NSFileManager defaultManager];
+  
+  if (![fM fileExistsAtPath:filepath])
+  {
+    BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:nil];
+    
+    if (!success) {
+      return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
+    } else {
+      return resolve(nil);
+    }
+  }
+  
+  @try {
+    NSFileHandle *fH = [NSFileHandle fileHandleForUpdatingAtPath:filepath];
+    
+    if (position >= 0) {
+      [fH seekToFileOffset:position];
+    } else {
+      [fH seekToEndOfFile];
+    }
+    [fH writeData:data];
+    
+    return resolve(nil);
+  } @catch (NSException *e) {
+    return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: error writing file: '%@'", filepath], nil);
+  }
+}
+
 RCT_EXPORT_METHOD(unlink:(NSString*)filepath
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -231,6 +270,51 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
   NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
 
   resolve(base64Content);
+}
+
+RCT_EXPORT_METHOD(read:(NSString *)filepath
+                  length: (NSInteger *)length
+                  position: (NSInteger *)position
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filepath];
+    
+    if (!fileExists) {
+        return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
+    }
+    
+    NSError *error = nil;
+    
+    NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
+    
+    if (error) {
+        return [self reject:reject withError:error];
+    }
+    
+    if ([attributes objectForKey:NSFileType] == NSFileTypeDirectory) {
+        return reject(@"EISDIR", @"EISDIR: illegal operation on a directory, read", nil);
+    }
+    
+    // Open the file handler.
+    NSFileHandle *file = [NSFileHandle fileHandleForReadingAtPath:filepath];
+    if (file == nil) {
+        return reject(@"EISDIR", @"EISDIR: Could not open file for reading", nil);
+    }
+    
+    // Seek to the position if there is one.
+    [file seekToFileOffset: (int)position];
+    
+    NSData *content;
+    if ((int)length > 0) {
+        content = [file readDataOfLength: (int)length];
+    } else {
+        content = [file readDataToEndOfFile];
+    }
+    
+    NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
+    
+    resolve(base64Content);
 }
 
 RCT_EXPORT_METHOD(readFileRes:(NSString *)filename
@@ -398,10 +482,19 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   params.headers = headers;
   NSNumber* background = options[@"background"];
   params.background = [background boolValue];
+  NSNumber* discretionary = options[@"discretionary"];
+  params.discretionary = [discretionary boolValue];
   NSNumber* progressDivider = options[@"progressDivider"];
   params.progressDivider = progressDivider;
 
+  __block BOOL callbackFired = NO;
+
   params.completeCallback = ^(NSNumber* statusCode, NSNumber* bytesWritten) {
+    if (callbackFired) {
+      return;
+    }
+    callbackFired = YES;
+
     NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId}];
     if (statusCode) {
       [result setObject:statusCode forKey: @"statusCode"];
@@ -413,6 +506,10 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   };
 
   params.errorCallback = ^(NSError* error) {
+    if (callbackFired) {
+      return;
+    }
+    callbackFired = YES;
     return [self reject:reject withError:error];
   };
 
@@ -537,6 +634,19 @@ RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
   }
 }
 
+RCT_EXPORT_METHOD(pathForGroup:(nonnull NSString *)groupId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NSURL *groupURL = [[NSFileManager defaultManager]containerURLForSecurityApplicationGroupIdentifier: groupId];
+
+  if (!groupURL) {
+    return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no directory for group '%@' found", groupId], nil);
+  } else {
+    resolve([groupURL path]);
+  }
+}
+
 RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
   unsigned long long totalSpace = 0;
@@ -560,6 +670,170 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
     [self reject:reject withError:error];
   }
 }
+
+
+/**
+ * iOS Only: copy images from the assets-library (camera-roll) to a specific path, asuming
+ * JPEG-Images. 
+ * 
+ * Video-Support:
+ * 
+ * One can use this method also to create a thumbNail from a video.
+ * Currently it is impossible to specify a concrete position, the OS will decide wich
+ * Thumbnail you'll get then.
+ * To copy a video from assets-library and save it as a mp4-file, use the method
+ * copyAssetsVideoIOS.
+ * 
+ * It is also supported to scale the image via scale-factor (0.0-1.0) or with a specific 
+ * width and height. Also the resizeMode will be considered.
+ */
+RCT_EXPORT_METHOD(copyAssetsFileIOS: (NSString *) imageUri
+                  toFilepath: (NSString *) destination
+                  width: (NSInteger) width
+                  height: (NSInteger) height
+                  scale: (CGFloat) scale
+                  compression: (CGFloat) compression
+                  resizeMode: (RCTResizeMode) resizeMode
+                  resolver: (RCTPromiseResolveBlock) resolve
+                  rejecter: (RCTPromiseRejectBlock) reject)
+
+{
+    CGSize size = CGSizeMake(width, height);
+    
+    NSURL* url = [NSURL URLWithString:imageUri];
+    PHFetchResult *results = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
+    
+    if (results.count == 0) {
+        NSString *errorText = [NSString stringWithFormat:@"Failed to fetch PHAsset with local identifier %@ with no error message.", imageUri];
+        
+        NSMutableDictionary* details = [NSMutableDictionary dictionary];
+        [details setValue:errorText forKey:NSLocalizedDescriptionKey];
+        NSError *error = [NSError errorWithDomain:@"RNFS" code:500 userInfo:details];
+        [self reject: reject withError:error];
+        return;
+    }
+    
+    PHAsset *asset = [results firstObject];
+    PHImageRequestOptions *imageOptions = [PHImageRequestOptions new];
+    
+    // Allow us to fetch images from iCloud
+    imageOptions.networkAccessAllowed = YES;
+    
+    
+    // Note: PhotoKit defaults to a deliveryMode of PHImageRequestOptionsDeliveryModeOpportunistic
+    // which means it may call back multiple times - we probably don't want that
+    imageOptions.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
+    
+    BOOL useMaximumSize = CGSizeEqualToSize(size, CGSizeZero);
+    CGSize targetSize;
+    if (useMaximumSize) {
+        targetSize = PHImageManagerMaximumSize;
+        imageOptions.resizeMode = PHImageRequestOptionsResizeModeNone;
+    } else {
+        targetSize = CGSizeApplyAffineTransform(size, CGAffineTransformMakeScale(scale, scale));
+        imageOptions.resizeMode = PHImageRequestOptionsResizeModeFast;
+    }
+    
+    PHImageContentMode contentMode = PHImageContentModeAspectFill;
+    if (resizeMode == RCTResizeModeContain) {
+        contentMode = PHImageContentModeAspectFit;
+    }
+    
+    // PHImageRequestID requestID =
+    [[PHImageManager defaultManager] requestImageForAsset:asset
+                                               targetSize:targetSize
+                                              contentMode:contentMode
+                                                  options:imageOptions
+                                            resultHandler:^(UIImage *result, NSDictionary<NSString *, id> *info) {
+        if (result) {
+            
+            NSData *imageData = UIImageJPEGRepresentation(result, compression );
+            [imageData writeToFile:destination atomically:YES];
+            resolve(destination);
+            
+        } else {
+            NSMutableDictionary* details = [NSMutableDictionary dictionary];
+            [details setValue:info[PHImageErrorKey] forKey:NSLocalizedDescriptionKey];
+            NSError *error = [NSError errorWithDomain:@"RNFS" code:501 userInfo:details];
+            [self reject: reject withError:error];
+            
+        }
+    }];
+}
+
+/**
+ * iOS Only: copy videos from the assets-library (camera-roll) to a specific path as mp4-file.
+ * 
+ * To create a thumbnail from the video, refer to copyAssetsFileIOS
+ */
+RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
+                  atFilepath: (NSString *) destination
+                  resolver: (RCTPromiseResolveBlock) resolve
+                  rejecter: (RCTPromiseRejectBlock) reject)
+
+{
+  NSURL* url = [NSURL URLWithString:imageUri];
+  __block NSURL* videoURL = [NSURL URLWithString:destination];
+  
+  PHFetchResult *phAssetFetchResult = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
+  PHAsset *phAsset = [phAssetFetchResult firstObject];
+  dispatch_group_t group = dispatch_group_create();
+  dispatch_group_enter(group);
+  
+  [[PHImageManager defaultManager] requestAVAssetForVideo:phAsset options:nil resultHandler:^(AVAsset *asset, AVAudioMix *audioMix, NSDictionary *info) {
+    
+    if ([asset isKindOfClass:[AVURLAsset class]]) {
+      NSURL *url = [(AVURLAsset *)asset URL];
+      NSLog(@"Final URL %@",url);
+      NSData *videoData = [NSData dataWithContentsOfURL:url];
+      
+      BOOL writeResult = [videoData writeToFile:destination atomically:true];
+      
+      if(writeResult) {
+        NSLog(@"video success");
+      }
+      else {
+        NSLog(@"video failure");
+      }
+      dispatch_group_leave(group);
+    }
+  }];
+  dispatch_group_wait(group,  DISPATCH_TIME_FOREVER);
+  resolve(destination);
+}
+
+RCT_EXPORT_METHOD(touch:(NSString*)filepath
+                  mtime:(NSDate *)mtime
+                  ctime:(NSDate *)ctime
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSFileManager *manager = [NSFileManager defaultManager];
+    BOOL exists = [manager fileExistsAtPath:filepath isDirectory:false];
+
+    if (!exists) {
+        return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file, open '%@'", filepath], nil);
+    }
+
+    NSMutableDictionary *attr = [NSMutableDictionary dictionary];
+
+    if (mtime) {
+        [attr setValue:mtime forKey:NSFileModificationDate];
+    }
+    if (ctime) {
+        [attr setValue:ctime forKey:NSFileCreationDate];
+    }
+
+    NSError *error = nil;
+    BOOL success = [manager setAttributes:attr ofItemAtPath:filepath error:&error];
+
+    if (!success) {
+        return [self reject:reject withError:error];
+    }
+
+    resolve(nil);
+}
+
 
 - (NSNumber *)dateToTimeIntervalNumber:(NSDate *)date
 {

@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.util.HashMap;
@@ -88,6 +89,29 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void write(String filepath, String base64Content, int position, Promise promise) {
+    try {
+      byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
+
+      if (position < 0) {
+        FileOutputStream outputStream = new FileOutputStream(filepath, true);
+        outputStream.write(bytes);
+        outputStream.close();
+      } else {
+        RandomAccessFile file = new RandomAccessFile(filepath, "rw");
+        file.seek(position);
+        file.write(bytes);
+        file.close();
+      }
+
+      promise.resolve(null);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
   public void exists(String filepath, Promise promise) {
     try {
       File file = new File(filepath);
@@ -123,6 +147,35 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
+  public void read(String filepath, int length, int position, Promise promise){
+    try {
+      File file = new File(filepath);
+
+      if (file.isDirectory()) {
+        rejectFileIsDirectory(promise);
+        return;
+      }
+
+      if (!file.exists()) {
+        rejectFileNotFound(promise, filepath);
+        return;
+      }
+
+      FileInputStream inputStream = new FileInputStream(filepath);
+      byte[] buffer = new byte[length];
+      inputStream.skip(position);
+      inputStream.read(buffer,0,length);
+
+      String base64Content = Base64.encodeToString(buffer, Base64.NO_WRAP);
+
+      promise.resolve(base64Content);
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        reject(promise, filepath, ex);
     }
   }
 
@@ -172,7 +225,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       byte[] buffer = new byte[stream.available()];
       stream.read(buffer);
       String base64Content = Base64.encodeToString(buffer, Base64.NO_WRAP);
-      promise.resolve(base64Content);;
+      promise.resolve(base64C`ontent);;
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filename, ex);
@@ -290,6 +343,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       for (File childFile : files) {
         WritableMap fileMap = Arguments.createMap();
 
+        fileMap.putDouble("mtime", (double)childFile.lastModified()/1000);
         fileMap.putString("name", childFile.getName());
         fileMap.putString("path", childFile.getAbsolutePath());
         fileMap.putInt("size", (int)childFile.length());
@@ -319,16 +373,17 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         String path = directory.isEmpty() ? childFile : String.format("%s/%s", directory, childFile); // don't allow / at the start when directory is ""
         fileMap.putString("path", path);
         int length = 0;
-        boolean isDirectory = false;
+        boolean isDirectory = true;
         try {
           AssetFileDescriptor assetFileDescriptor = assetManager.openFd(path);
           if (assetFileDescriptor != null) {
             length = (int) assetFileDescriptor.getLength();
             assetFileDescriptor.close();
+            isDirectory = false;
           }
         } catch (IOException ex) {
-          //.. ah.. is a directory!
-          isDirectory = true;
+          //.. ah.. is a directory or a compressed file?
+          isDirectory = ex.getMessage().indexOf("compressed") == -1;
         }
         fileMap.putInt("size", length);
         fileMap.putInt("type", isDirectory ? 1 : 0); // if 0, probably a folder..
@@ -466,6 +521,22 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         } catch (IOException ignored) {
         }
       }
+    }
+  }
+
+  @ReactMethod
+  public void setReadable(String filepath, Boolean readable, Boolean ownerOnly, Promise promise) {
+    try {
+      File file = new File(filepath);
+
+      if (!file.exists()) throw new Exception("File does not exist");
+
+      file.setReadable(readable, ownerOnly);
+
+      promise.resolve(true);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filepath, ex);
     }
   }
 
@@ -625,7 +696,12 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void pathForBundle(String bundleNamed, Promise promise) {
-    // TODO: Not sure what equilivent would be?
+    // TODO: Not sure what equivalent would be?
+  }
+
+  @ReactMethod
+  public void pathForGroup(String bundleNamed, Promise promise) {
+    // TODO: Not sure what equivalent would be?
   }
 
   @ReactMethod
@@ -646,6 +722,17 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     info.putDouble("totalSpace", (double)totalSpace);   // Int32 too small, must use Double
     info.putDouble("freeSpace", (double)freeSpace);
     promise.resolve(info);
+  }
+
+  @ReactMethod
+  public void touch(String filepath, double mtime, double ctime, Promise promise) {
+    try {
+      File file = new File(filepath);
+      promise.resolve(file.setLastModified((long) mtime));
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filepath, ex);
+    }
   }
 
   private void reject(Promise promise, String filepath, Exception ex) {

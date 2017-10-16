@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		645644281EB8DAA100672408 /* NSArray+Map.m in Sources */ = {isa = PBXBuildFile; fileRef = F1EB08BA1AFD0E6A008F8F2B /* NSArray+Map.m */; };
+		645644291EB8DAA100672408 /* RNFSManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E59BDE1ADD662800ACA28A /* RNFSManager.m */; };
+		6456442A1EB8DAA100672408 /* Downloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BF740761C033A2E0057A1E7 /* Downloader.m */; };
+		6456442B1EB8DAA100672408 /* Uploader.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BB364CB1CDA130000435A01 /* Uploader.m */; };
 		8BB364CC1CDA130000435A01 /* Uploader.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BB364CB1CDA130000435A01 /* Uploader.m */; };
 		8BF740771C033A2E0057A1E7 /* Downloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BF740761C033A2E0057A1E7 /* Downloader.m */; };
 		F1E59BDF1ADD662800ACA28A /* RNFSManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E59BDE1ADD662800ACA28A /* RNFSManager.m */; };
@@ -14,6 +18,15 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		6456441D1EB8DA9100672408 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F12AFB991ADAF8F800E0535D /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -26,6 +39,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		6456441F1EB8DA9100672408 /* libRNFS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNFS.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BB364CA1CDA130000435A01 /* Uploader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Uploader.h; sourceTree = "<group>"; };
 		8BB364CB1CDA130000435A01 /* Uploader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Uploader.m; sourceTree = "<group>"; };
 		8BF740751C033A2E0057A1E7 /* Downloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Downloader.h; sourceTree = "<group>"; };
@@ -38,6 +52,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		6456441C1EB8DA9100672408 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F12AFB981ADAF8F800E0535D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -67,6 +88,7 @@
 			isa = PBXGroup;
 			children = (
 				F12AFB9B1ADAF8F800E0535D /* libRNFS.a */,
+				6456441F1EB8DA9100672408 /* libRNFS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -74,6 +96,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		6456441E1EB8DA9100672408 /* RNFS-tvOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 645644271EB8DA9100672408 /* Build configuration list for PBXNativeTarget "RNFS-tvOS" */;
+			buildPhases = (
+				6456441B1EB8DA9100672408 /* Sources */,
+				6456441C1EB8DA9100672408 /* Frameworks */,
+				6456441D1EB8DA9100672408 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "RNFS-tvOS";
+			productName = "RNFS-tvOS";
+			productReference = 6456441F1EB8DA9100672408 /* libRNFS.a */;
+			productType = "com.apple.product-type.library.static";
+		};
 		F12AFB9A1ADAF8F800E0535D /* RNFS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F12AFBAF1ADAF8F800E0535D /* Build configuration list for PBXNativeTarget "RNFS" */;
@@ -100,6 +139,10 @@
 				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "Johannes Lumpe";
 				TargetAttributes = {
+					6456441E1EB8DA9100672408 = {
+						CreatedOnToolsVersion = 8.3.2;
+						ProvisioningStyle = Automatic;
+					};
 					F12AFB9A1ADAF8F800E0535D = {
 						CreatedOnToolsVersion = 6.3;
 					};
@@ -118,11 +161,23 @@
 			projectRoot = "";
 			targets = (
 				F12AFB9A1ADAF8F800E0535D /* RNFS */,
+				6456441E1EB8DA9100672408 /* RNFS-tvOS */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		6456441B1EB8DA9100672408 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				645644281EB8DAA100672408 /* NSArray+Map.m in Sources */,
+				645644291EB8DAA100672408 /* RNFSManager.m in Sources */,
+				6456442A1EB8DAA100672408 /* Downloader.m in Sources */,
+				6456442B1EB8DAA100672408 /* Uploader.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F12AFB971ADAF8F800E0535D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -137,6 +192,40 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		645644251EB8DA9100672408 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = RNFS;
+				SDKROOT = appletvos;
+				SKIP_INSTALL = YES;
+				TVOS_DEPLOYMENT_TARGET = 10.2;
+			};
+			name = Debug;
+		};
+		645644261EB8DA9100672408 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = RNFS;
+				SDKROOT = appletvos;
+				SKIP_INSTALL = YES;
+				TVOS_DEPLOYMENT_TARGET = 10.2;
+			};
+			name = Release;
+		};
 		F12AFBAD1ADAF8F800E0535D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -250,6 +339,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		645644271EB8DA9100672408 /* Build configuration list for PBXNativeTarget "RNFS-tvOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				645644251EB8DA9100672408 /* Debug */,
+				645644261EB8DA9100672408 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		F12AFB961ADAF8F800E0535D /* Build configuration list for PBXProject "RNFS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
