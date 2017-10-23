@@ -631,6 +631,10 @@ type FSInfoResult = {
 };
 ```
 
+### `getAllExternalFilesDirs(): Promise<ExternalFilesDirs>`
+
+Returns an array with the absolute paths to application-specific directories on all shared/external storage devices where the application can place persistent files it owns. 
+
 ### (iOS only) `pathForGroup(groupIdentifier: string): Promise<string>`
 
 `groupIdentifier` (`string`) Any value from the *com.apple.security.application-groups* entitlements list.

@@ -672,6 +672,16 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     }
   }
 
+  @ReactMethod
+  public void getAllExternalFilesDirs(Promise promise){
+    File[] allExternalFilesDirs = this.getReactApplicationContext().getExternalFilesDirs(null);
+    WritableArray fs = Arguments.createArray();
+    for (File f : allExternalFilesDirs) {
+      fs.pushString(f.getAbsolutePath());
+    }
+    promise.resolve(fs);
+  }
+
   private void reject(Promise promise, String filepath, Exception ex) {
     if (ex instanceof FileNotFoundException) {
       rejectFileNotFound(promise, filepath);
