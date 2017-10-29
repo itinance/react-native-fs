@@ -38,6 +38,11 @@ RCT_EXPORT_MODULE();
   return dispatch_queue_create("pe.lum.rnfs", DISPATCH_QUEUE_SERIAL);
 }
 
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
 RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
