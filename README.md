@@ -359,8 +359,8 @@ The returned promise resolves with an array of objects with the following proper
 type ReadDirItem = {
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
-  size: string;     // Size in bytes. 
-  						// Note that the size of files compressed during the creation of the APK (such as JSON files) cannot be determined. 
+  size: string;     // Size in bytes.
+  						// Note that the size of files compressed during the creation of the APK (such as JSON files) cannot be determined.
   						// `size` will be set to -1 in this case.
   isFile: () => boolean;        // Is the file just a file?
   isDirectory: () => boolean;   // Is the file a directory?
@@ -442,7 +442,7 @@ Note: Android only. Will overwrite destPath if it already exists
 iOS-only: copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG?..."
 to a specific destination. It will download the original from iCloud if necessary.
 
-If width and height is > 0, the image will be resized to a specific size and a specific compression rate. 
+If width and height is > 0, the image will be resized to a specific size and a specific compression rate.
 If scale is below 1, the image will be scaled according to the scale-factor (between 0.0 and 1.0)
 The resizeMode is also considered.
 
@@ -456,7 +456,7 @@ To copy a video from assets-library and save it as a mp4-file, refer to copyAsse
 Further information: https://developer.apple.com/reference/photos/phimagemanager/1616964-requestimageforasset
 The promise will on success return the final destination of the file, as it was defined in the destPath-parameter.
 
-### copyAssetsVideoIOS(videoUri: string, destPath: string)
+### copyAssetsVideoIOS(videoUri: string, destPath: string): Promise<string>
 
 iOS-only: copies a video from assets-library, that is prefixed with 'assets-library://asset/asset.MOV?...'
 to a specific destination.
@@ -481,7 +481,7 @@ Reads the file at `path` and returns its checksum as determined by `algorithm`, 
 
 ### `touch(filepath: string, mtime?: Date, ctime?: Date): Promise<string>`
 
-Sets the modification timestamp `mtime` and creation timestamp `ctime` of the file at `filepath`. Setting `ctime` is only supported on iOS, android always sets both timestamps to `mtime`. 
+Sets the modification timestamp `mtime` and creation timestamp `ctime` of the file at `filepath`. Setting `ctime` is only supported on iOS, android always sets both timestamps to `mtime`.
 
 ### `mkdir(filepath: string, options?: MkdirOptions): Promise<void>`
 
@@ -635,12 +635,12 @@ type FSInfoResult = {
 
 `groupIdentifier` (`string`) Any value from the *com.apple.security.application-groups* entitlements list.
 
-Returns the absolute path to the directory shared for all applications with the same security group identifier. 
+Returns the absolute path to the directory shared for all applications with the same security group identifier.
 This directory can be used to to share files between application of the same developer.
 
 Invalid group identifier will cause a rejection.
 
-For more information read the [Adding an App to an App Group](https://developer.apple.com/library/content/documentation/Miscellaneous/Reference/EntitlementKeyReference/Chapters/EnablingAppSandbox.html#//apple_ref/doc/uid/TP40011195-CH4-SW19) section. 
+For more information read the [Adding an App to an App Group](https://developer.apple.com/library/content/documentation/Miscellaneous/Reference/EntitlementKeyReference/Chapters/EnablingAppSandbox.html#//apple_ref/doc/uid/TP40011195-CH4-SW19) section.
 
 ## Test / Demo app
 
