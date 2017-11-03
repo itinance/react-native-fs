@@ -812,9 +812,4 @@ RCT_EXPORT_METHOD(touch:(NSString*)filepath
            };
 }
 
-+ (BOOL)requiresMainQueueSetup
-{
-    return YES;
-}
-
 @end
