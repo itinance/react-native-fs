@@ -508,7 +508,7 @@ type DownloadFileOptions = {
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
   connectionTimeout?: number // only supported on Android yet
-  readTimeout?: number       // only supported on Android yet
+  readTimeout?: number       // supported on Android and iOS
 };
 ```
 ```

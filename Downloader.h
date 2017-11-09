@@ -17,6 +17,7 @@ typedef void (^ProgressCallback)(NSNumber*, NSNumber*);
 @property        bool background;                             // Whether to continue download when app is in background
 @property        bool discretionary;                          // Whether the file may be downloaded at the OS's discretion (iOS only)
 @property (copy) NSNumber* progressDivider;
+@property (copy) NSNumber* readTimeout;
 
 
 @end
