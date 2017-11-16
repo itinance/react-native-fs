@@ -51,6 +51,7 @@
   }
 
   config.HTTPAdditionalHeaders = _params.headers;
+  config.timeoutIntervalForRequest = [_params.readTimeout intValue] / 1000.0;
 
   _session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:nil];
   _task = [_session downloadTaskWithURL:url];

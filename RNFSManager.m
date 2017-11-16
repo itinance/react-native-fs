@@ -431,6 +431,8 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   params.discretionary = [discretionary boolValue];
   NSNumber* progressDivider = options[@"progressDivider"];
   params.progressDivider = progressDivider;
+  NSNumber* readTimeout = options[@"readTimeout"];
+  params.readTimeout = readTimeout;
 
   __block BOOL callbackFired = NO;
 
