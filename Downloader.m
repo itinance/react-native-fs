@@ -29,18 +29,17 @@
 
   NSURL* url = [NSURL URLWithString:_params.fromUrl];
 
-  if (![[NSFileManager defaultManager] fileExistsAtPath:_params.toFile]) {
-    [[NSFileManager defaultManager] createFileAtPath:_params.toFile contents:nil attributes:nil];
-  }
-  _fileHandle = [NSFileHandle fileHandleForWritingAtPath:_params.toFile];
+  if ([[NSFileManager defaultManager] fileExistsAtPath:_params.toFile]) {
+    _fileHandle = [NSFileHandle fileHandleForWritingAtPath:_params.toFile];
 
-  if (!_fileHandle) {
-    NSError* error = [NSError errorWithDomain:@"Downloader" code:NSURLErrorFileDoesNotExist
-                              userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat: @"Failed to create target file at path: %@", _params.toFile]}];
+    if (!_fileHandle) {
+      NSError* error = [NSError errorWithDomain:@"Downloader" code:NSURLErrorFileDoesNotExist
+                                userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat: @"Failed to write target file at path: %@", _params.toFile]}];
 
-    return _params.errorCallback(error);
-  } else {
-    [_fileHandle closeFile];
+      return _params.errorCallback(error);
+    } else {
+      [_fileHandle closeFile];
+    }
   }
 
   NSURLSessionConfiguration *config;
