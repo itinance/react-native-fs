@@ -32,12 +32,12 @@
 
   NSURL* url = [NSURL URLWithString:_params.fromUrl];
 
-  [[NSFileManager defaultManager] createFileAtPath:_params.toFile contents:nil attributes:nil];
-  _fileHandle = [NSFileHandle fileHandleForWritingAtPath:_params.toFile];
+  if ([[NSFileManager defaultManager] fileExistsAtPath:_params.toFile]) {
+    _fileHandle = [NSFileHandle fileHandleForWritingAtPath:_params.toFile];
 
-  if (!_fileHandle) {
-    NSError* error = [NSError errorWithDomain:@"Downloader" code:NSURLErrorFileDoesNotExist
-                              userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat: @"Failed to create target file at path: %@", _params.toFile]}];
+    if (!_fileHandle) {
+      NSError* error = [NSError errorWithDomain:@"Downloader" code:NSURLErrorFileDoesNotExist
+                                userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat: @"Failed to write target file at path: %@", _params.toFile]}];
 
     _params.errorCallback(error);
       return nil;
@@ -103,8 +103,10 @@
   NSURL *destURL = [NSURL fileURLWithPath:_params.toFile];
   NSFileManager *fm = [NSFileManager defaultManager];
   NSError *error = nil;
-  [fm removeItemAtURL:destURL error:nil];       // Remove file at destination path, if it exists
-  [fm moveItemAtURL:location toURL:destURL error:&error];
+  if([_statusCode integerValue] >= 200 && [_statusCode integerValue] < 300) {
+    [fm removeItemAtURL:destURL error:nil];       // Remove file at destination path, if it exists
+    [fm moveItemAtURL:location toURL:destURL error:&error];
+  }
   if (error) {
     NSLog(@"RNFS download: unable to move tempfile to destination. %@, %@", error, error.userInfo);
   }
