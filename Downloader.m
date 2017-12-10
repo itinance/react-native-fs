@@ -39,10 +39,11 @@
       NSError* error = [NSError errorWithDomain:@"Downloader" code:NSURLErrorFileDoesNotExist
                                 userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat: @"Failed to write target file at path: %@", _params.toFile]}];
 
-    _params.errorCallback(error);
+      _params.errorCallback(error);
       return nil;
-  } else {
-    [_fileHandle closeFile];
+    } else {
+      [_fileHandle closeFile];
+    }
   }
 
   NSURLSessionConfiguration *config;
