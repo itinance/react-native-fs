@@ -327,7 +327,7 @@ RNFS.uploadFiles({
 
 The following constants are available on the `RNFS` export:
 
-- `MainBundlePath` (`String`) The absolute path to the main bundle directory
+- `MainBundlePath` (`String`) The absolute path to the main bundle directory (not available on Android)
 - `CachesDirectoryPath` (`String`) The absolute path to the caches directory
 - `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
 - `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (iOS and Windows only)
