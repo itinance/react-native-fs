@@ -23,11 +23,14 @@
 @interface RNFSManager()
 
 @property (retain) NSMutableDictionary* downloaders;
+@property (retain) NSMutableDictionary* uuids;
 @property (retain) NSMutableDictionary* uploaders;
 
 @end
 
 @implementation RNFSManager
+
+static NSMutableDictionary *completionHandlers;
 
 @synthesize bridge = _bridge;
 
@@ -474,14 +477,22 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
                                                         @"contentLength": contentLength,
                                                         @"bytesWritten": bytesWritten}];
   };
+    
+    params.resumableCallback = ^() {
+        [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadResumable-%@", jobId] body:nil];
+    };
 
   if (!self.downloaders) self.downloaders = [[NSMutableDictionary alloc] init];
 
   RNFSDownloader* downloader = [RNFSDownloader alloc];
 
-  [downloader downloadFile:params];
+  NSString *uuid = [downloader downloadFile:params];
 
   [self.downloaders setValue:downloader forKey:[jobId stringValue]];
+    if (uuid) {
+        if (!self.uuids) self.uuids = [[NSMutableDictionary alloc] init];
+        [self.uuids setValue:uuid forKey:[jobId stringValue]];
+    }
 }
 
 RCT_EXPORT_METHOD(stopDownload:(nonnull NSNumber *)jobId)
@@ -491,6 +502,44 @@ RCT_EXPORT_METHOD(stopDownload:(nonnull NSNumber *)jobId)
   if (downloader != nil) {
     [downloader stopDownload];
   }
+}
+
+RCT_EXPORT_METHOD(resumeDownload:(nonnull NSNumber *)jobId)
+{
+    RNFSDownloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
+    
+    if (downloader != nil) {
+        [downloader resumeDownload];
+    }
+}
+
+RCT_EXPORT_METHOD(isResumable:(nonnull NSNumber *)jobId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject
+)
+{
+    RNFSDownloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
+    
+    if (downloader != nil) {
+        resolve([NSNumber numberWithBool:[downloader isResumable]]);
+    } else {
+        resolve([NSNumber numberWithBool:NO]);
+    }
+}
+
+RCT_EXPORT_METHOD(completeHandlerIOS:(nonnull NSNumber *)jobId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.uuids) {
+        NSString *uuid = [self.uuids objectForKey:[jobId stringValue]];
+        CompletionHandler completionHandler = [completionHandlers objectForKey:uuid];
+        if (completionHandler) {
+            completionHandler();
+            [completionHandlers removeObjectForKey:uuid];
+        }
+    }
+    resolve(nil);
 }
 
 RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
@@ -817,6 +866,12 @@ RCT_EXPORT_METHOD(touch:(NSString*)filepath
            @"RNFSFileTypeRegular": NSFileTypeRegular,
            @"RNFSFileTypeDirectory": NSFileTypeDirectory
            };
+}
+
++(void)setCompletionHandlerForIdentifier: (NSString *)identifier completionHandler: (CompletionHandler)completionHandler
+{
+    if (!completionHandlers) completionHandlers = [[NSMutableDictionary alloc] init];
+    [completionHandlers setValue:completionHandler forKey:identifier];
 }
 
 @end
