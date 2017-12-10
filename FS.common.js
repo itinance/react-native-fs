@@ -201,7 +201,7 @@ var RNFS = {
     return RNFSManager.getFSInfo();
   },
 
-  getAllExternalFilesDirs(): Promise<FSInfoResult> {
+  getAllExternalFilesDirs(): Promise<string> {
     return RNFSManager.getAllExternalFilesDirs();
   },
 

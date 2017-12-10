@@ -654,7 +654,7 @@ type FSInfoResult = {
 };
 ```
 
-### `getAllExternalFilesDirs(): Promise<ExternalFilesDirs>`
+### `getAllExternalFilesDirs(): Promise<string>`
 
 Returns an array with the absolute paths to application-specific directories on all shared/external storage devices where the application can place persistent files it owns. 
 
