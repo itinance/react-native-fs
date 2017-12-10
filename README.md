@@ -4,6 +4,8 @@ Native filesystem access for react-native
 
 ## Changes for v2.9
 - (iOS only) Resumable downloads and better background downloads handling [#335](https://github.com/itinance/react-native-fs/pull/335) by [ptelad](https://github.com/ptelad)
+- (ANdroid only) getAllExternalFilesDirs() added by [ngrj](https://github.com/ngrj)
+- Content URI support [#395](https://github.com/itinance/react-native-fs/pull/395) by [krzysztof-miemiec](https://github.com/krzysztof-miemiec)
 
 ## Changes for v2.8
 - Fix for [#346](https://github.com/itinance/react-native-fs/pull/347): compressed file assets are detected as directories thx to [jacargentina](https://github.com/jacargentina)
