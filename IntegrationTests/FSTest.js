@@ -3,6 +3,8 @@
 
 var RCTTestModule = require('NativeModules').TestModule;
 var React = require('react-native');
+var createClass = require('create-react-class');
+
 var {
   Text,
   View,
@@ -95,7 +97,7 @@ function testCreateAndDeleteFile() {
 
 
 
-var FSTest = React.createClass({
+var FSTest = createClass({
   getInitialState() {
       return {
         messages: 'Initializing...',
