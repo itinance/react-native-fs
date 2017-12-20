@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
-  s.name             = "react-native-fs"
-  s.version          = "2.9.4"
+  s.name             = "RNFS"
+  s.version          = "2.9.5"
   s.summary          = "Native filesystem access for react-native"
   s.license      = 'MIT'
   s.homepage     = 'n/a'
