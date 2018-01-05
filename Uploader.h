@@ -3,7 +3,7 @@
 
 typedef void (^UploadCompleteCallback)(NSString*, NSURLResponse *);
 typedef void (^UploadErrorCallback)(NSError*);
-typedef void (^UploadBeginCallback)();
+typedef void (^UploadBeginCallback)(void);
 typedef void (^UploadProgressCallback)(NSNumber*, NSNumber*);
 
 @interface RNFSUploadParams : NSObject
