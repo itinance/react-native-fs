@@ -7,3 +7,6 @@ x86/
 bin/
 obj/
 .vs/
+
+# Don't publish tests to NPM
+RNFS.Tests/
