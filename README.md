@@ -197,6 +197,7 @@ Follow the instructions in the ['Linking Libraries'](https://github.com/Microsof
 ```javascript
 // require the module
 var RNFS = require('react-native-fs');
+//Requiring the module with ES6 syntax (import RNFS from 'react-native-fs') throws 'Cannot read property 'readDir' of undefined'
 
 // get a list of files and directories in the main bundle
 RNFS.readDir(RNFS.MainBundlePath) // On Android, use "RNFS.DocumentDirectoryPath" (MainBundlePath is not defined)
