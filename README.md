@@ -6,6 +6,7 @@ Native filesystem access for react-native
 - (iOS only) Resumable downloads and better background downloads handling [#335](https://github.com/itinance/react-native-fs/pull/335) by [ptelad](https://github.com/ptelad)
 - (ANdroid only) getAllExternalFilesDirs() added by [ngrj](https://github.com/ngrj)
 - Content URI support [#395](https://github.com/itinance/react-native-fs/pull/395) by [krzysztof-miemiec](https://github.com/krzysztof-miemiec)
+- Fixed Cocoapods-Installation
 
 ## Changes for v2.8
 - Fix for [#346](https://github.com/itinance/react-native-fs/pull/347): compressed file assets are detected as directories thx to [jacargentina](https://github.com/jacargentina)
@@ -65,9 +66,6 @@ At the command line, in your project folder, type:
 Done! No need to worry about manually adding the library to your project.
 
 ###  ~~Adding with CocoaPods~~
-
-Currently we don't support Cocoapods. If you are familiar with it, please feel free to submit PRs.
-More Info [here](https://github.com/itinance/react-native-fs/issues/308#issuecomment-319803126).
 
  ~~Add the RNFS pod to your list of application pods in your Podfile, using the path from the Podfile to the installed module:~~
 

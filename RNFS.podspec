@@ -15,7 +15,6 @@ Pod::Spec.new do |s|
   s.source          = { :git => "https://github.com/itinance/react-native-fs", :tag => "v#{s.version}" }
   s.source_files    = '*.{h,m}'
   s.preserve_paths  = "**/*.js"
-  
-  s.dependency 'React'
 
+  s.dependency 'React'
 end
