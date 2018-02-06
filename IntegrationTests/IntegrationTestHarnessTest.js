@@ -7,7 +7,9 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 'use strict';
+import PropTypes from 'prop-types';
 
+var createClass = require('create-react-class');
 var RCTTestModule = require('NativeModules').TestModule;
 var React = require('react-native');
 var {
@@ -15,10 +17,10 @@ var {
   View,
 } = React;
 
-var IntegrationTestHarnessTest = React.createClass({
+var IntegrationTestHarnessTest = createClass({
   propTypes: {
-    shouldThrow: React.PropTypes.bool,
-    waitOneFrame: React.PropTypes.bool,
+    shouldThrow: PropTypes.bool,
+    waitOneFrame: PropTypes.bool,
   },
 
   getInitialState() {

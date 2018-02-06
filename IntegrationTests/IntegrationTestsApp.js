@@ -11,6 +11,7 @@
 'use strict';
 
 var React = require('react-native');
+var createClass = require('create-react-class');
 
 var {
   AppRegistry,
@@ -30,7 +31,7 @@ TESTS.forEach(
   (test) => AppRegistry.registerComponent(test.displayName, () => test)
 );
 
-var IntegrationTestsApp = React.createClass({
+var IntegrationTestsApp = createClass({
   getInitialState: function() {
     return {
       test: null,
