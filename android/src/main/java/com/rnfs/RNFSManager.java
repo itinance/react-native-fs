@@ -275,7 +275,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       MessageDigest md = MessageDigest.getInstance(algorithms.get(algorithm));
 
       FileInputStream inputStream = new FileInputStream(filepath);
-      byte[] buffer = new byte[(int) file.length()];
+      byte[] buffer = new byte[1024 * 10]; // 10 KB Buffer
 
       int read;
       while ((read = inputStream.read(buffer)) != -1) {
