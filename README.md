@@ -65,11 +65,10 @@ At the command line, in your project folder, type:
 
 Done! No need to worry about manually adding the library to your project.
 
-###  ~~Adding with CocoaPods~~
+###  Adding with CocoaPods
 
- ~~Add the RNFS pod to your list of application pods in your Podfile, using the path from the Podfile to the installed module:~~
+ Add the RNFS pod to your list of application pods in your Podfile, using the path from the Podfile to the installed module:~~
 
-~~
 ```
 pod 'RNFS', :path => '../node_modules/react-native-fs'
 ```
@@ -78,7 +77,6 @@ Install pods as usual:
 ```
 pod install
 ```
-~~
 
 ### Adding Manually in XCode
 
