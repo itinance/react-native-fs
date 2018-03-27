@@ -203,6 +203,10 @@ var RNFS = {
     return RNFSManager.getFSInfo();
   },
 
+  getFSInfoPath(filepath: string): Promise<FSInfoResult> {
+    return RNFSManager.getFSInfoPath(filepath);
+  },
+
   getAllExternalFilesDirs(): Promise<string> {
     return RNFSManager.getAllExternalFilesDirs();
   },
