@@ -178,7 +178,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void exists(String filepath, Promise promise) {
     try {
-      File file = new File(filepath);
+      File file = new File(URLDecoder.decode(filepath, "UTF-8"));
       promise.resolve(file.exists());
     } catch (Exception ex) {
       ex.printStackTrace();
