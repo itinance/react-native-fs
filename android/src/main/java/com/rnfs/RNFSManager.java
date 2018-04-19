@@ -2,9 +2,11 @@ package com.rnfs;
 
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.SparseArray;
@@ -70,6 +72,21 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       uri = Uri.parse("file://" + filepath);
     }
     return uri;
+  }
+
+  private String getOriginalFilepath(String filepath) throws IORejectionException {
+    Uri uri = getFileUri(filepath);
+    String originalFilepath = "";
+    if (uri.getScheme().equals("content")) {
+      try {
+        Cursor cursor = reactContext.getContentResolver().query(uri, null, null, null, null);
+        if (cursor.moveToFirst()) {
+          originalFilepath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+        }
+      } catch (IllegalArgumentException ignored) {
+      }
+    }
+    return originalFilepath;
   }
 
   private InputStream getInputStream(String filepath) throws IORejectionException {
@@ -510,16 +527,17 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void stat(String filepath, Promise promise) {
     try {
-      File file = new File(filepath);
+      String originalFilepath = getOriginalFilepath(filepath);
+      File file = new File(originalFilepath);
 
       if (!file.exists()) throw new Exception("File does not exist");
 
       WritableMap statMap = Arguments.createMap();
-
       statMap.putInt("ctime", (int) (file.lastModified() / 1000));
       statMap.putInt("mtime", (int) (file.lastModified() / 1000));
       statMap.putInt("size", (int) file.length());
       statMap.putInt("type", file.isDirectory() ? 1 : 0);
+      statMap.putString("originalFilepath", originalFilepath);
 
       promise.resolve(statMap);
     } catch (Exception ex) {
