@@ -25,7 +25,7 @@ var getJobId = () => {
   return jobId;
 };
 
-var normalizeFilePath = (path: string) => (path.startsWith('file://') && !path.startsWith('content://') ? path.slice(7) : path);
+var normalizeFilePath = (path: string) => (path.startsWith('file://') ? path.slice(7) : path);
 
 type MkdirOptions = {
   NSURLIsExcludedFromBackupKey?: boolean; // iOS only
@@ -42,13 +42,13 @@ type ReadDirItem = {
 };
 
 type StatResult = {
-  name: ?string;     // The name of the item
+  name: ?string;     // The name of the item TODO: why is this not documented?
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
   mode: number;     // UNIX file mode
   ctime: number;    // Created date
   mtime: number;    // Last modified date
-  originalFilepath: ?string;    // In case of content uri this is the pointed file path, otherwise is the same as path
+  originalFilepath: string;    // In case of content uri this is the pointed file path, otherwise is the same as path
   isFile: () => boolean;        // Is the file just a file?
   isDirectory: () => boolean;   // Is the file a directory?
 };
