@@ -94,8 +94,8 @@ public class Uploader extends AsyncTask<UploadParams,int[],UploadResult> {
                     filename = map.getString("filename");
                     filetype = map.getString("filetype");
                 }catch (NoSuchKeyException e){
-                    name=map.getString("name");
-                    filename=map.getString("name");
+                    name=map.getString("filename");
+                    filename=map.getString("filename");
                     filetype=getMimeType(map.getString("filepath"));
                 }
                 request.writeBytes(twoHyphens + boundary + crlf);
