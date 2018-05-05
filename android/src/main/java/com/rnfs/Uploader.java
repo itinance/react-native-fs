@@ -1,7 +1,6 @@
 package com.rnfs;
 
 import android.os.AsyncTask;
-import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import com.facebook.react.bridge.Arguments;
@@ -149,7 +148,6 @@ public class Uploader extends AsyncTask<UploadParams,int[],UploadResult> {
 
             responseStreamReader.close();
             String response = stringBuilder.toString();
-            Log.d(TAG, "Upload:"+response);
             statusCode=connection.getResponseCode();
             res.headers=responseHeaders;
             res.body=response;

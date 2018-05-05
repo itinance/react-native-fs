@@ -7,7 +7,6 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.support.annotation.Nullable;
 import android.util.Base64;
-import android.util.Log;
 import android.util.SparseArray;
 
 import com.facebook.react.bridge.Arguments;
