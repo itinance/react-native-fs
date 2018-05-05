@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Uploader extends AsyncTask<UploadParams,int[],UploadResult> {
-    private String TAG="Uploader";
     private UploadParams mParams;
     private UploadResult res;
     private AtomicBoolean mAbort = new AtomicBoolean(false);
