@@ -1,10 +1,7 @@
 package com.rnfs;
 
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 
-import java.io.File;
-import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -22,6 +19,7 @@ public class UploadParams {
     public ArrayList<ReadableMap> files;
     public String name;
     public ReadableMap headers;
+    public ReadableMap fields;
     public String method;
     public onUploadComplete onUploadComplete;
     public onUploadProgress onUploadProgress;

@@ -2,8 +2,10 @@ package com.rnfs;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.NoSuchKeyException;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableArray;
@@ -52,43 +54,64 @@ public class Uploader extends AsyncTask<UploadParams,int[],UploadResult> {
         String crlf = "\r\n";
         String twoHyphens = "--";
         String boundary = "*****";
-        int Readed,bufferSize,totalSize,byteRead,statusCode;
+        int Readed,bufferSize,totalSize,byteRead,statusCode,bufferAvailable;
         int fileCount=1;
         BufferedInputStream responseStream=null;
         BufferedReader responseStreamReader=null;
         int maxBufferSize = 1 * 1024 * 1024;
-        String name,filename;
+        String name,filename,filetype;
         Map<String,List<String>> responseHeader;
         try{
             connection = (HttpURLConnection)params.src.openConnection();
             connection.setUseCaches(false);
             connection.setDoOutput(true);
+            connection.setDoInput(true);
             ReadableMapKeySetIterator headerIterator = params.headers.keySetIterator();
-
+            connection.setRequestMethod(params.method);
+            connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
             while (headerIterator.hasNextKey()) {
                 String key = headerIterator.nextKey();
                 String value = params.headers.getString(key);
                 connection.setRequestProperty(key, value);
             }
-            connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
-            connection.setRequestMethod(params.method);
-            request = new DataOutputStream(connection.getOutputStream());
-            request.writeBytes(twoHyphens + boundary + crlf);
-            for(ReadableMap map:params.files) {
-                name=map.getString(  "name");
-                filename=map.getString("filename");
-                Log.d(TAG, "upload file from: "+map.getString("filepath")+"  name:"+map.getString("filename"));
 
+
+            request = new DataOutputStream(connection.getOutputStream());
+
+            ReadableMapKeySetIterator fieldsIterator = params.fields.keySetIterator();
+
+            while (fieldsIterator.hasNextKey()) {
+                request.writeBytes(twoHyphens + boundary + crlf);
+                String key = fieldsIterator.nextKey();
+                String value = params.fields.getString(key);
+                request.writeBytes("Content-Disposition: form-data; name=\""+key+"\""+crlf);
+                request.writeBytes(crlf);
+                request.writeBytes(value);
+                request.writeBytes(crlf);
+            }
+
+            for(ReadableMap map:params.files) {
+                try {
+                    name = map.getString("name");
+                    filename = map.getString("filename");
+                    filetype = map.getString("filetype");
+                }catch (NoSuchKeyException e){
+                    name=map.getString("name");
+                    filename=map.getString("name");
+                    filetype=getMimeType(map.getString("filepath"));
+                }
+                request.writeBytes(twoHyphens + boundary + crlf);
                 File file = new File(map.getString("filepath"));
                 request.writeBytes("Content-Disposition: form-data; name=\"" + name+ "\";filename=\"" +filename + "\"" + crlf);
+                request.writeBytes("Content-Type: "+filetype+crlf);
                 request.writeBytes(crlf);
-
                 byte[] b = new byte[(int) file.length()];
 
                 FileInputStream fileInputStream = new FileInputStream(file);
 
                 Readed = 0;
-                bufferSize = Math.min(1024*16, maxBufferSize);
+                bufferAvailable=4096;
+                bufferSize = Math.min(bufferAvailable, maxBufferSize);
                 byteRead = fileInputStream.read(b, 0, bufferSize);
                 totalSize = b.length;
                 Readed += byteRead;
@@ -106,7 +129,6 @@ public class Uploader extends AsyncTask<UploadParams,int[],UploadResult> {
                 request.writeBytes(crlf);
                 fileCount++;
             }
-            Log.d(TAG, "upload Finished!");
             request.writeBytes(twoHyphens + boundary + twoHyphens + crlf);
             request.flush();
 
@@ -115,7 +137,8 @@ public class Uploader extends AsyncTask<UploadParams,int[],UploadResult> {
             WritableMap responseHeaders=Arguments.createMap();
             Map<String, List<String>> map = connection.getHeaderFields();
             for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-                responseHeaders.putString(entry.getKey(),entry.getValue().toString());
+                int count=0;
+                responseHeaders.putString(entry.getKey(),entry.getValue().get(count));
             }
             StringBuilder stringBuilder = new StringBuilder();
             String line = "";
@@ -128,7 +151,7 @@ public class Uploader extends AsyncTask<UploadParams,int[],UploadResult> {
             String response = stringBuilder.toString();
             Log.d(TAG, "Upload:"+response);
             statusCode=connection.getResponseCode();
-
+            res.headers=responseHeaders;
             res.body=response;
             res.statusCode=statusCode;
         }finally {
@@ -138,7 +161,14 @@ public class Uploader extends AsyncTask<UploadParams,int[],UploadResult> {
             if(responseStreamReader!=null)responseStreamReader.close();
         }
     }
-
+    protected String getMimeType(String path) {
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(path);
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        }
+        return type;
+    }
     protected void stop(){mAbort.set(true);}
 
 }

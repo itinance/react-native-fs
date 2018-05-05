@@ -7,6 +7,7 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.support.annotation.Nullable;
 import android.util.Base64;
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.facebook.react.bridge.Arguments;
@@ -676,6 +677,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       URL url = new URL(options.getString("toUrl"));
       final int jobId = options.getInt("jobId");
       ReadableMap headers = options.getMap("headers");
+      ReadableMap fields = options.getMap("fields");
       String method = options.getString("method");
       ArrayList<ReadableMap> fileList = new ArrayList<>();
       UploadParams params = new UploadParams();
@@ -686,6 +688,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       params.files =fileList;
       params.headers = headers;
       params.method=method;
+      params.fields=fields;
       params.onUploadComplete = new UploadParams.onUploadComplete() {
         public void onUploadComplete(UploadResult res) {
           if (res.exception == null) {
