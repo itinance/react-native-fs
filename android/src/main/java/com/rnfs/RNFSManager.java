@@ -706,7 +706,11 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
       params.onUploadBegin = new UploadParams.onUploadBegin() {
         public void onUploadBegin() {
-          sendEvent(getReactApplicationContext(), "UploadBegin-" + jobId);
+          WritableMap data = Arguments.createMap();
+
+          data.putInt("jobId", jobId);
+
+          sendEvent(getReactApplicationContext(), "UploadBegin-" + jobId, data);
         }
       };
 
