@@ -13,7 +13,7 @@ public class UploadParams {
         void onUploadProgress(int fileCount,int totalBytesExpectedToSend,int totalBytesSent);
     }
     public interface onUploadBegin{
-        void onUploadBegin(int totalBytesExpectedToSend);
+        void onUploadBegin();
     }
     public URL src;
     public ArrayList<ReadableMap> files;
