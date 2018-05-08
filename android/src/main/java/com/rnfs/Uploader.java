@@ -145,7 +145,6 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 stringBuilder.append(line).append("\n");
             }
 
-            responseStreamReader.close();
             String response = stringBuilder.toString();
             statusCode = connection.getResponseCode();
             res.headers = responseHeaders;
