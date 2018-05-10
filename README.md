@@ -4,7 +4,7 @@ Native filesystem access for react-native
 
 ## Changes for v2.9
 - (iOS only) Resumable downloads and better background downloads handling [#335](https://github.com/itinance/react-native-fs/pull/335) by [ptelad](https://github.com/ptelad)
-- (ANdroid only) getAllExternalFilesDirs() added by [ngrj](https://github.com/ngrj)
+- (Android only) getAllExternalFilesDirs() added by [ngrj](https://github.com/ngrj)
 - Content URI support [#395](https://github.com/itinance/react-native-fs/pull/395) by [krzysztof-miemiec](https://github.com/krzysztof-miemiec)
 - Fixed Cocoapods-Installation
 
@@ -654,7 +654,7 @@ type FSInfoResult = {
 };
 ```
 
-### `getAllExternalFilesDirs(): Promise<string>`
+### (Android only) `getAllExternalFilesDirs(): Promise<string>`
 
 Returns an array with the absolute paths to application-specific directories on all shared/external storage devices where the application can place persistent files it owns. 
 
