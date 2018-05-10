@@ -378,7 +378,7 @@ Node.js style version of `readDir` that returns only the names. Note the lowerca
 
 ### `stat(filepath: string): Promise<StatResult>`
 
-Stats an item at `path`.
+Stats an item at `filepath`. If the `filepath` is linked to a virtual file, for example Android Content URI, the `originalPath` can be used to find the pointed file path. 
 The promise resolves with an object with the following properties:
 
 ```
