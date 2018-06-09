@@ -234,7 +234,7 @@ RNFS.readDir(RNFS.MainBundlePath) // On Android, use "RNFS.DocumentDirectoryPath
 var RNFS = require('react-native-fs');
 
 // create a path you want to write to
-// :warning: on iOS, you cannot write into `RNFS.MainBundlePath`, 
+// :warning: on iOS, you cannot write into `RNFS.MainBundlePath`,
 // but `RNFS.DocumentDirectoryPath` exists on both platforms and is writable
 var path = RNFS.DocumentDirectoryPath + '/test.txt';
 
@@ -333,6 +333,7 @@ The following constants are available on the `RNFS` export:
 
 - `MainBundlePath` (`String`) The absolute path to the main bundle directory (not available on Android)
 - `CachesDirectoryPath` (`String`) The absolute path to the caches directory
+- `ExternalCachesDirectoryPath` (`String`) The absolute path to the external caches directory (android only)
 - `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
 - `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (falls back to Caching-Directory on Android)
 - `LibraryDirectoryPath` (`String`) The absolute path to the NSLibraryDirectory (iOS only)
@@ -384,15 +385,17 @@ Node.js style version of `readDir` that returns only the names. Note the lowerca
 
 ### `stat(filepath: string): Promise<StatResult>`
 
-Stats an item at `path`.
+Stats an item at `filepath`. If the `filepath` is linked to a virtual file, for example Android Content URI, the `originalPath` can be used to find the pointed file path. 
 The promise resolves with an object with the following properties:
 
 ```
 type StatResult = {
+  path:            // The same as filepath argument
   ctime: date;     // The creation date of the file
   mtime: date;     // The last modified date of the file
   size: string;     // Size in bytes
   mode: number;     // UNIX file mode
+  originalFilepath: string;    // ANDROID: In case of content uri this is the pointed file path, otherwise is the same as path
   isFile: () => boolean;        // Is the file just a file?
   isDirectory: () => boolean;   // Is the file a directory?
 };
@@ -662,7 +665,7 @@ type FSInfoResult = {
 
 ### (Android only) `getAllExternalFilesDirs(): Promise<string[]>`
 
-Returns an array with the absolute paths to application-specific directories on all shared/external storage devices where the application can place persistent files it owns. 
+Returns an array with the absolute paths to application-specific directories on all shared/external storage devices where the application can place persistent files it owns.
 
 ### (iOS only) `pathForGroup(groupIdentifier: string): Promise<string>`
 
