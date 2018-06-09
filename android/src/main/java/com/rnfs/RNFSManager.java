@@ -15,6 +15,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -30,6 +31,7 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,6 +49,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   private static final String RNFSFileTypeDirectory = "RNFSFileTypeDirectory";
 
   private SparseArray<Downloader> downloaders = new SparseArray<Downloader>();
+  private SparseArray<Uploader> uploaders = new SparseArray<Uploader>();
+
   private ReactApplicationContext reactContext;
 
   public RNFSManager(ReactApplicationContext reactContext) {
@@ -662,6 +666,84 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
     if (downloader != null) {
       downloader.stop();
+    }
+  }
+
+  @ReactMethod
+  public void uploadFiles(final ReadableMap options, final Promise promise) {
+    try {
+      ReadableArray files = options.getArray("files");
+      URL url = new URL(options.getString("toUrl"));
+      final int jobId = options.getInt("jobId");
+      ReadableMap headers = options.getMap("headers");
+      ReadableMap fields = options.getMap("fields");
+      String method = options.getString("method");
+      ArrayList<ReadableMap> fileList = new ArrayList<>();
+      UploadParams params = new UploadParams();
+      for(int i =0;i<files.size();i++){
+        fileList.add(files.getMap(i));
+      }
+      params.src = url;
+      params.files =fileList;
+      params.headers = headers;
+      params.method=method;
+      params.fields=fields;
+      params.onUploadComplete = new UploadParams.onUploadComplete() {
+        public void onUploadComplete(UploadResult res) {
+          if (res.exception == null) {
+            WritableMap infoMap = Arguments.createMap();
+
+            infoMap.putInt("jobId", jobId);
+            infoMap.putInt("statusCode", res.statusCode);
+            infoMap.putMap("headers",res.headers);
+            infoMap.putString("body",res.body);
+            promise.resolve(infoMap);
+          } else {
+            reject(promise, options.getString("toUrl"), res.exception);
+          }
+        }
+      };
+
+      params.onUploadBegin = new UploadParams.onUploadBegin() {
+        public void onUploadBegin() {
+          WritableMap data = Arguments.createMap();
+
+          data.putInt("jobId", jobId);
+
+          sendEvent(getReactApplicationContext(), "UploadBegin-" + jobId, data);
+        }
+      };
+
+      params.onUploadProgress = new UploadParams.onUploadProgress() {
+        public void onUploadProgress(int fileCount,int totalBytesExpectedToSend,int totalBytesSent) {
+          WritableMap data = Arguments.createMap();
+
+          data.putInt("jobId", jobId);
+          data.putInt("FileID",fileCount);
+          data.putInt("totalBytesExpectedToSend", totalBytesExpectedToSend);
+          data.putInt("totalBytesSent", totalBytesSent);
+
+          sendEvent(getReactApplicationContext(), "UploadProgress-" + jobId, data);
+        }
+      };
+
+      Uploader uploader = new Uploader();
+
+      uploader.execute(params);
+
+      this.uploaders.put(jobId, uploader);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, options.getString("toUrl"), ex);
+    }
+  }
+
+  @ReactMethod
+  public void stopUpload(int jobId) {
+    Uploader uploader = this.uploaders.get(jobId);
+
+    if (uploader != null) {
+      uploader.stop();
     }
   }
 
