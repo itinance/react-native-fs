@@ -102,21 +102,21 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                         "Content-Disposition: form-data; name=\"" + name + "\";filename=\"" + filename + "\"" + crlf);
                 request.writeBytes("Content-Type: " + filetype + crlf);
                 request.writeBytes(crlf);
-                byte[] b = new byte[(int) file.length()];
 
                 FileInputStream fileInputStream = new FileInputStream(file);
 
                 Readed = 0;
                 bufferAvailable = 4096;
                 bufferSize = Math.min(bufferAvailable, maxBufferSize);
-                byteRead = fileInputStream.read(b, 0, bufferSize);
-                totalSize = b.length;
+                byte[] b = new byte[bufferSize];
+                totalSize = (int)file.length();
+                byteRead = fileInputStream.read(b, 0, Math.min(totalSize - Readed, bufferSize));
                 Readed += byteRead;
                 while (byteRead > 0) {
                     if (mAbort.get())
                         throw new Exception("Upload has been aborted");
-                    request.write(b, 0, bufferSize);
-                    byteRead = fileInputStream.read(b, 0, bufferSize);
+                    request.write(b, 0, Math.min(totalSize, bufferSize));
+                    byteRead = fileInputStream.read(b, 0, Math.min(totalSize - Readed, bufferSize));
                     if (byteRead == -1) {
                         mParams.onUploadProgress.onUploadProgress(fileCount, totalSize, Readed);
                     } else {
@@ -150,6 +150,8 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             res.headers = responseHeaders;
             res.body = response;
             res.statusCode = statusCode;
+        } catch(Exception ex) {
+            System.out.println(ex.getMessage());
         } finally {
             if (connection != null)
                 connection.disconnect();
