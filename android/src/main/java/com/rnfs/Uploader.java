@@ -115,7 +115,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 while (byteRead > 0) {
                     if (mAbort.get())
                         throw new Exception("Upload has been aborted");
-                    request.write(b, 0, Math.min(totalSize, bufferSize));
+                    request.write(b, 0, byteRead);
                     byteRead = fileInputStream.read(b, 0, Math.min(totalSize - Readed, bufferSize));
                     if (byteRead == -1) {
                         mParams.onUploadProgress.onUploadProgress(fileCount, totalSize, Readed);
@@ -150,7 +150,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             res.headers = responseHeaders;
             res.body = response;
             res.statusCode = statusCode;
-        }  finally {
+        } finally {
             if (connection != null)
                 connection.disconnect();
             if (request != null)
