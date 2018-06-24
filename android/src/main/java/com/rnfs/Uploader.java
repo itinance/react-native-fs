@@ -150,9 +150,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             res.headers = responseHeaders;
             res.body = response;
             res.statusCode = statusCode;
-        } catch(Exception ex) {
-            System.out.println(ex.getMessage());
-        } finally {
+        }  finally {
             if (connection != null)
                 connection.disconnect();
             if (request != null)
