@@ -55,6 +55,10 @@
     config = [NSURLSessionConfiguration defaultSessionConfiguration];
   }
 
+  if (!_params.cacheable) {
+    config.URLCache = nil;
+  }
+
   config.HTTPAdditionalHeaders = _params.headers;
   config.timeoutIntervalForRequest = [_params.readTimeout intValue] / 1000.0;
 
