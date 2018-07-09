@@ -107,6 +107,9 @@
   if([_statusCode integerValue] >= 200 && [_statusCode integerValue] < 300) {
     [fm removeItemAtURL:destURL error:nil];       // Remove file at destination path, if it exists
     [fm moveItemAtURL:location toURL:destURL error:&error];
+    // There are no guarantees about how often URLSession:downloadTask:didWriteData: will fire,
+    // so we read an authoritative number of bytes written here.
+    _bytesWritten = @([fm attributesOfItemAtPath:_params.toFile error:nil].fileSize);
   }
   if (error) {
     NSLog(@"RNFS download: unable to move tempfile to destination. %@, %@", error, error.userInfo);
