@@ -67,13 +67,10 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
       int lengthOfFile = connection.getContentLength();
 
       boolean isRedirect = (
-        statusCode != HttpURLConnection.HTTP_OK &&
-        (
-          statusCode == HttpURLConnection.HTTP_MOVED_PERM ||
-          statusCode == HttpURLConnection.HTTP_MOVED_TEMP ||
-          statusCode == 307 ||
-          statusCode == 308
-        )
+        statusCode == HttpURLConnection.HTTP_MOVED_PERM ||
+        statusCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+        statusCode == 307 ||
+        statusCode == 308
       );
 
       if (isRedirect) {
@@ -81,7 +78,16 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
         connection.disconnect();
 
         connection = (HttpURLConnection) new URL(redirectURL).openConnection();
-        connection.setConnectTimeout(5000);
+        
+        ReadableMapKeySetIterator iterator = param.headers.keySetIterator();
+
+        while (iterator.hasNextKey()) {
+          String key = iterator.nextKey();
+          String value = param.headers.getString(key);
+          connection.setRequestProperty(key, value);
+        }
+        
+        connection.setConnectTimeout(param.readTimeout);
         connection.connect();
 
         statusCode = connection.getResponseCode();
