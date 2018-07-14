@@ -66,22 +66,38 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     return "RNFSManager";
   }
 
-  private Uri getFileUri(String filepath) throws IORejectionException {
-    Uri uri = Uri.parse(filepath);
-    if (uri.getScheme() == null) {
-      // No prefix, assuming that provided path is absolute path to file
-      File file = new File(filepath);
-      if (file.isDirectory()) {
-        throw new IORejectionException("EISDIR", "EISDIR: illegal operation on a directory, read '" + filepath + "'");
+  private Uri getFileUriIfFile(String filepath) throws IORejectionException {
+      Uri uri = Uri.parse(filepath);
+      if (uri.getScheme() == null) {
+          // No prefix, assuming that provided path is absolute path to file
+          File file = new File(filepath);
+          if (file.isDirectory()) {
+              return null;
+          }
+          uri = Uri.parse("file://" + filepath);
       }
-      uri = Uri.parse("file://" + filepath);
+      return uri;
+    }
+
+  private Uri getFileUri(String filepath) throws IORejectionException {
+    Uri uri = getFileUriIfFile(filepath);
+    if (uri == null) {
+        throw new IORejectionException("EISDIR", "EISDIR: illegal operation on a directory, read '" + filepath + "'");
     }
     return uri;
   }
 
   private String getOriginalFilepath(String filepath) throws IORejectionException {
     Uri uri = getFileUri(filepath);
-    String originalFilepath = filepath;
+    String originalFilepath = getOriginalFilepath(uri);
+    if (originalFilepath != null) {
+        return originalFilepath;
+    }
+    return filepath;
+  }
+
+  private String getOriginalFilepath(Uri uri) throws IORejectionException {
+    String originalFilepath = null;
     if (uri.getScheme().equals("content")) {
       try {
         Cursor cursor = reactContext.getContentResolver().query(uri, null, null, null, null);
@@ -532,7 +548,14 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void stat(String filepath, Promise promise) {
     try {
-      String originalFilepath = getOriginalFilepath(filepath);
+      String originalFilepath = null;
+      Uri uri = getFileUriIfFile(filepath);
+      if (uri != null) {
+          originalFilepath = getOriginalFilepath(uri);
+      }
+      if (originalFilepath == null) {
+          originalFilepath = filepath;
+      }
       File file = new File(originalFilepath);
 
       if (!file.exists()) throw new Exception("File does not exist");
