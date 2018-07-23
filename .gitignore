@@ -22,3 +22,8 @@ DerivedData
 # Pods - for those of you who use CocoaPods
 Pods
 update-test.sh
+.vscode/
+android/.gradle/*
+android/gradle/*
+android/*.iml
+android/local.properties

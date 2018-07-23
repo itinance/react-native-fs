@@ -2,9 +2,11 @@ package com.rnfs;
 
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.SparseArray;
@@ -15,6 +17,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -30,6 +33,7 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,12 +45,15 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   private static final String RNFSPicturesDirectoryPath = "RNFSPicturesDirectoryPath";
   private static final String RNFSTemporaryDirectoryPath = "RNFSTemporaryDirectoryPath";
   private static final String RNFSCachesDirectoryPath = "RNFSCachesDirectoryPath";
+  private static final String RNFSExternalCachesDirectoryPath = "RNFSExternalCachesDirectoryPath";
   private static final String RNFSDocumentDirectory = "RNFSDocumentDirectory";
 
   private static final String RNFSFileTypeRegular = "RNFSFileTypeRegular";
   private static final String RNFSFileTypeDirectory = "RNFSFileTypeDirectory";
 
   private SparseArray<Downloader> downloaders = new SparseArray<Downloader>();
+  private SparseArray<Uploader> uploaders = new SparseArray<Uploader>();
+
   private ReactApplicationContext reactContext;
 
   public RNFSManager(ReactApplicationContext reactContext) {
@@ -70,6 +77,21 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       uri = Uri.parse("file://" + filepath);
     }
     return uri;
+  }
+
+  private String getOriginalFilepath(String filepath) throws IORejectionException {
+    Uri uri = getFileUri(filepath);
+    String originalFilepath = filepath;
+    if (uri.getScheme().equals("content")) {
+      try {
+        Cursor cursor = reactContext.getContentResolver().query(uri, null, null, null, null);
+        if (cursor.moveToFirst()) {
+          originalFilepath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+        }
+      } catch (IllegalArgumentException ignored) {
+      }
+    }
+    return originalFilepath;
   }
 
   private InputStream getInputStream(String filepath) throws IORejectionException {
@@ -510,16 +532,17 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void stat(String filepath, Promise promise) {
     try {
-      File file = new File(filepath);
+      String originalFilepath = getOriginalFilepath(filepath);
+      File file = new File(originalFilepath);
 
       if (!file.exists()) throw new Exception("File does not exist");
 
       WritableMap statMap = Arguments.createMap();
-
       statMap.putInt("ctime", (int) (file.lastModified() / 1000));
       statMap.putInt("mtime", (int) (file.lastModified() / 1000));
       statMap.putInt("size", (int) file.length());
       statMap.putInt("type", file.isDirectory() ? 1 : 0);
+      statMap.putString("originalFilepath", originalFilepath);
 
       promise.resolve(statMap);
     } catch (Exception ex) {
@@ -666,6 +689,84 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void uploadFiles(final ReadableMap options, final Promise promise) {
+    try {
+      ReadableArray files = options.getArray("files");
+      URL url = new URL(options.getString("toUrl"));
+      final int jobId = options.getInt("jobId");
+      ReadableMap headers = options.getMap("headers");
+      ReadableMap fields = options.getMap("fields");
+      String method = options.getString("method");
+      ArrayList<ReadableMap> fileList = new ArrayList<>();
+      UploadParams params = new UploadParams();
+      for(int i =0;i<files.size();i++){
+        fileList.add(files.getMap(i));
+      }
+      params.src = url;
+      params.files =fileList;
+      params.headers = headers;
+      params.method=method;
+      params.fields=fields;
+      params.onUploadComplete = new UploadParams.onUploadComplete() {
+        public void onUploadComplete(UploadResult res) {
+          if (res.exception == null) {
+            WritableMap infoMap = Arguments.createMap();
+
+            infoMap.putInt("jobId", jobId);
+            infoMap.putInt("statusCode", res.statusCode);
+            infoMap.putMap("headers",res.headers);
+            infoMap.putString("body",res.body);
+            promise.resolve(infoMap);
+          } else {
+            reject(promise, options.getString("toUrl"), res.exception);
+          }
+        }
+      };
+
+      params.onUploadBegin = new UploadParams.onUploadBegin() {
+        public void onUploadBegin() {
+          WritableMap data = Arguments.createMap();
+
+          data.putInt("jobId", jobId);
+
+          sendEvent(getReactApplicationContext(), "UploadBegin-" + jobId, data);
+        }
+      };
+
+      params.onUploadProgress = new UploadParams.onUploadProgress() {
+        public void onUploadProgress(int fileCount,int totalBytesExpectedToSend,int totalBytesSent) {
+          WritableMap data = Arguments.createMap();
+
+          data.putInt("jobId", jobId);
+          data.putInt("FileID",fileCount);
+          data.putInt("totalBytesExpectedToSend", totalBytesExpectedToSend);
+          data.putInt("totalBytesSent", totalBytesSent);
+
+          sendEvent(getReactApplicationContext(), "UploadProgress-" + jobId, data);
+        }
+      };
+
+      Uploader uploader = new Uploader();
+
+      uploader.execute(params);
+
+      this.uploaders.put(jobId, uploader);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, options.getString("toUrl"), ex);
+    }
+  }
+
+  @ReactMethod
+  public void stopUpload(int jobId) {
+    Uploader uploader = this.uploaders.get(jobId);
+
+    if (uploader != null) {
+      uploader.stop();
+    }
+  }
+
+  @ReactMethod
   public void pathForBundle(String bundleNamed, Promise promise) {
     // TODO: Not sure what equivalent would be?
   }
@@ -762,6 +863,13 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       constants.put(RNFSExternalDirectoryPath, externalDirectory.getAbsolutePath());
     } else {
       constants.put(RNFSExternalDirectoryPath, null);
+    }
+
+    File externalCachesDirectory = this.getReactApplicationContext().getExternalCacheDir();
+    if (externalCachesDirectory != null) {
+      constants.put(RNFSExternalCachesDirectoryPath, externalCachesDirectory.getAbsolutePath());
+    } else {
+      constants.put(RNFSExternalCachesDirectoryPath, null);
     }
 
     return constants;

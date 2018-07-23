@@ -2,9 +2,15 @@
 
 Native filesystem access for react-native
 
+## Changes for v2.10
+- UploadFiles is now also available for Android [#486](https://github.com/itinance/react-native-fs/pull/486) by [hank121314](https://github.com/hank121314)
+- Fixed a memory leak that caused after running many simultaneous upload jobs on iOS [#502](https://github.com/itinance/react-native-fs/pull/502) by [Ignigena](https://github.com/Ignigena)
+- Android: Resolve filepath for content URI [480](https://github.com/itinance/react-native-fs/pull/480) by [andtos90](https://github.com/andtos90)
+- (Android only) Add ExternalCachesDirectoryPath [490](https://github.com/itinance/react-native-fs/pull/490) by [superandrew213](https://github.com/superandrew213)
+
 ## Changes for v2.9
 - (iOS only) Resumable downloads and better background downloads handling [#335](https://github.com/itinance/react-native-fs/pull/335) by [ptelad](https://github.com/ptelad)
-- (ANdroid only) getAllExternalFilesDirs() added by [ngrj](https://github.com/ngrj)
+- (Android only) getAllExternalFilesDirs() added by [ngrj](https://github.com/ngrj)
 - Content URI support [#395](https://github.com/itinance/react-native-fs/pull/395) by [krzysztof-miemiec](https://github.com/krzysztof-miemiec)
 - Fixed Cocoapods-Installation
 
@@ -228,6 +234,8 @@ RNFS.readDir(RNFS.MainBundlePath) // On Android, use "RNFS.DocumentDirectoryPath
 var RNFS = require('react-native-fs');
 
 // create a path you want to write to
+// :warning: on iOS, you cannot write into `RNFS.MainBundlePath`,
+// but `RNFS.DocumentDirectoryPath` exists on both platforms and is writable
 var path = RNFS.DocumentDirectoryPath + '/test.txt';
 
 // write the file
@@ -325,6 +333,7 @@ The following constants are available on the `RNFS` export:
 
 - `MainBundlePath` (`String`) The absolute path to the main bundle directory (not available on Android)
 - `CachesDirectoryPath` (`String`) The absolute path to the caches directory
+- `ExternalCachesDirectoryPath` (`String`) The absolute path to the external caches directory (android only)
 - `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
 - `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (falls back to Caching-Directory on Android)
 - `LibraryDirectoryPath` (`String`) The absolute path to the NSLibraryDirectory (iOS only)
@@ -376,15 +385,17 @@ Node.js style version of `readDir` that returns only the names. Note the lowerca
 
 ### `stat(filepath: string): Promise<StatResult>`
 
-Stats an item at `path`.
+Stats an item at `filepath`. If the `filepath` is linked to a virtual file, for example Android Content URI, the `originalPath` can be used to find the pointed file path. 
 The promise resolves with an object with the following properties:
 
 ```
 type StatResult = {
+  path:            // The same as filepath argument
   ctime: date;     // The creation date of the file
   mtime: date;     // The last modified date of the file
   size: string;     // Size in bytes
   mode: number;     // UNIX file mode
+  originalFilepath: string;    // ANDROID: In case of content uri this is the pointed file path, otherwise is the same as path
   isFile: () => boolean;        // Is the file just a file?
   isDirectory: () => boolean;   // Is the file a directory?
 };
@@ -505,6 +516,7 @@ type DownloadFileOptions = {
   headers?: Headers;        // An object of headers to be passed to the server
   background?: boolean;     // Continue the download in the background after the app terminates (iOS only)
   discretionary?: boolean;  // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
+  cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only, defaults to true)
   progressDivider?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
@@ -652,9 +664,9 @@ type FSInfoResult = {
 };
 ```
 
-### `getAllExternalFilesDirs(): Promise<string>`
+### (Android only) `getAllExternalFilesDirs(): Promise<string[]>`
 
-Returns an array with the absolute paths to application-specific directories on all shared/external storage devices where the application can place persistent files it owns. 
+Returns an array with the absolute paths to application-specific directories on all shared/external storage devices where the application can place persistent files it owns.
 
 ### (iOS only) `pathForGroup(groupIdentifier: string): Promise<string>`
 

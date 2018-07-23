@@ -432,6 +432,8 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   params.background = [background boolValue];
   NSNumber* discretionary = options[@"discretionary"];
   params.discretionary = [discretionary boolValue];
+  NSNumber* cacheable = options[@"cacheable"];
+  params.cacheable = cacheable ? [cacheable boolValue] : YES;
   NSNumber* progressDivider = options[@"progressDivider"];
   params.progressDivider = progressDivider;
   NSNumber* readTimeout = options[@"readTimeout"];
@@ -559,6 +561,7 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
   params.method = method;
 
   params.completeCallback = ^(NSString* body, NSURLResponse *resp) {
+    [self.uploaders removeObjectForKey:[jobId stringValue]];
 
     NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,
                                                                                      @"body": body}];
@@ -570,6 +573,7 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
   };
 
   params.errorCallback = ^(NSError* error) {
+    [self.uploaders removeObjectForKey:[jobId stringValue]];
     return [self reject:reject withError:error];
   };
 
