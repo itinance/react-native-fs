@@ -22,6 +22,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
+import com.facebook.react.bridge.Callback;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
