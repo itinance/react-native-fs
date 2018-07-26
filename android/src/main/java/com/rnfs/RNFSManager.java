@@ -823,6 +823,22 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     promise.resolve(fs);
   }
 
+    @ReactMethod
+    public void MD5(String content, Callback callback) {
+      try {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(content.getBytes());
+        StringBuilder hexString = new StringBuilder();
+        for (byte digestByte : md.digest()){
+          hexString.append(String.format("%02x", digestByte));
+        }
+        callback.invoke(hexString.toString());
+      } catch (Exception ex) {
+        ex.printStackTrace();
+        callback.invoke(ex.getMessage());
+      }
+    }
+
   private void reject(Promise promise, String filepath, Exception ex) {
     if (ex instanceof FileNotFoundException) {
       rejectFileNotFound(promise, filepath);

@@ -184,6 +184,10 @@ function readDirGeneric(dirpath: string, command: Function) {
 
 var RNFS = {
 
+  MD5(content,callback){
+      RNFSManager.MD5(content,callback)
+  },
+
   mkdir(filepath: string, options: MkdirOptions = {}): Promise<void> {
     return RNFSManager.mkdir(normalizeFilePath(filepath), options).then(() => void 0);
   },
