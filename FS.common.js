@@ -145,7 +145,7 @@ function readFileGeneric(filepath: string, encodingOrOptions:?string, command: F
     }
   }
 
-  return command(normalizeFilePath(filepath)).then((b64) => {
+  return command(normalizeFilePath(filepath),options.encoding!=='string').then((b64) => {
     var contents;
 
     if (options.encoding === 'utf8') {
@@ -154,7 +154,10 @@ function readFileGeneric(filepath: string, encodingOrOptions:?string, command: F
       contents = base64.decode(b64);
     } else if (options.encoding === 'base64') {
       contents = b64;
-    } else {
+    } else if(options.encoding ==='string'){
+       contents = b64;
+    }
+    else {
       throw new Error('Invalid encoding type "' + String(options.encoding) + '"');
     }
 
@@ -378,11 +381,14 @@ var RNFS = {
       b64 = base64.encode(contents);
     } else if (options.encoding === 'base64') {
       b64 = contents;
-    } else {
+    } else if(options.encoding ==='string'){
+      b64 = contents;
+    }
+    else {
       throw new Error('Invalid encoding type "' + options.encoding + '"');
     }
 
-    return RNFSManager.writeFile(normalizeFilePath(filepath), b64).then(() => void 0);
+    return RNFSManager.writeFile(normalizeFilePath(filepath), b64,options.encoding!=='string').then(() => void 0);
   },
 
   appendFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
