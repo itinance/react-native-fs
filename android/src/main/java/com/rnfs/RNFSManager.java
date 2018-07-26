@@ -143,19 +143,22 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void writeFile(String filepath, String base64Content, Promise promise) {
-    try {
-      byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
-
-      OutputStream outputStream = getOutputStream(filepath, false);
-      outputStream.write(bytes);
-      outputStream.close();
-
-      promise.resolve(null);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      reject(promise, filepath, ex);
-    }
+  public void writeFile(String filepath, String content, boolean isBase64Content, Promise promise) {
+      try {
+          byte[] bytes;
+          if (isBase64Content) {
+              bytes = Base64.decode(content, Base64.DEFAULT);
+          } else {
+              bytes = content.getBytes();
+          }
+          OutputStream outputStream = getOutputStream(filepath, false);
+          outputStream.write(bytes);
+          outputStream.close();
+          promise.resolve(null);
+      } catch (Exception ex) {
+          ex.printStackTrace();
+          reject(promise, filepath, ex);
+      }
   }
 
   @ReactMethod
@@ -209,17 +212,20 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void readFile(String filepath, Promise promise) {
-    try {
-      InputStream inputStream = getInputStream(filepath);
-      byte[] inputData = getInputStreamBytes(inputStream);
-      String base64Content = Base64.encodeToString(inputData, Base64.NO_WRAP);
-
-      promise.resolve(base64Content);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      reject(promise, filepath, ex);
-    }
+  public void readFile(String filepath, boolean isBase64Content, Promise promise) {
+      try {
+          InputStream inputStream = getInputStream(filepath);
+          byte[] inputData = getInputStreamBytes(inputStream);
+          if (isBase64Content) {
+              String base64Content = Base64.encodeToString(inputData, Base64.NO_WRAP);
+              promise.resolve(base64Content);
+          } else {
+              promise.resolve(new String(inputData, "utf-8"));
+          }
+      } catch (Exception ex) {
+          ex.printStackTrace();
+          reject(promise, filepath, ex);
+      }
   }
 
   @ReactMethod

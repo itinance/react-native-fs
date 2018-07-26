@@ -108,12 +108,18 @@ RCT_EXPORT_METHOD(stat:(NSString *)filepath
 }
 
 RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
-                  contents:(NSString *)base64Content
+                  content:(NSString *)content
+                  isBase64Content:(BOOL)isBase64Content
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
-
+  NSData *data;
+  if(isBase64Content){
+    data = [[NSData alloc] initWithBase64EncodedString:content options:NSDataBase64DecodingIgnoreUnknownCharacters];
+  }
+  else{
+    data=[content dataUsingEncoding:NSUTF8StringEncoding];
+  }
   BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:nil];
 
   if (!success) {
@@ -242,6 +248,7 @@ RCT_EXPORT_METHOD(mkdir:(NSString *)filepath
 }
 
 RCT_EXPORT_METHOD(readFile:(NSString *)filepath
+                  isBase64Content:(BOOL)isBase64Content
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -264,9 +271,14 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
   }
 
   NSData *content = [[NSFileManager defaultManager] contentsAtPath:filepath];
-  NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
-
-  resolve(base64Content);
+  NSString* contentStr;
+  if(isBase64Content){
+    contentStr = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
+  }
+  else{
+    contentStr = [[NSString alloc] initWithData:content encoding:NSUTF8StringEncoding];
+  }
+  resolve(contentStr);
 }
 
 RCT_EXPORT_METHOD(read:(NSString *)filepath
