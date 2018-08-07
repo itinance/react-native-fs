@@ -4,6 +4,12 @@ Native filesystem access for react-native
 
 ## Changes for v2.11
 - Prepared for RN 0.56 thanx to [#535](https://github.com/itinance/react-native-fs/pull/535) by [rmevans9](https://github.com/rmevans9)
+- #503 make sure to return the original file uri if content:// scheme is not used
+- #510 Fixes an IndexOutOfBounds while uploading files in Android
+- #515 Add cacheable option to downloadFile on iOScompletion callback
+- #516 [iOS] Ensure _bytesWritten is correct in download
+- #519 updated compilesdkversion and buildtoolsversion
+- #535 Make this work with RN56
 
 ## Changes for v2.10
 - UploadFiles is now also available for Android [#486](https://github.com/itinance/react-native-fs/pull/486) by [hank121314](https://github.com/hank121314)
