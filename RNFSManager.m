@@ -904,13 +904,11 @@ RCT_EXPORT_METHOD(touch:(NSString*)filepath
            @"RNFSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
            @"RNFSFileTypeRegular": NSFileTypeRegular,
            @"RNFSFileTypeDirectory": NSFileTypeDirectory,
-           @"RNFSFileProtectionKeys": @{
-               @"NSFileProtectionCompleteUntilFirstUserAuthentication":NSFileProtectionCompleteUntilFirstUserAuthentication,
-               @"NSFileProtectionComplete": NSFileProtectionComplete,
-               @"NSFileProtectionCompleteUnlessOpen": NSFileProtectionCompleteUnlessOpen,
-               @"NSFileProtectionNone": NSFileProtectionNone
-             }
-           };
+           @"RNFSFileProtectionComplete": NSFileProtectionComplete,
+           @"RNFSFileProtectionCompleteUnlessOpen": NSFileProtectionCompleteUnlessOpen,
+           @"RNFSFileProtectionCompleteUntilFirstUserAuthentication": NSFileProtectionCompleteUntilFirstUserAuthentication,
+           @"RNFSFileProtectionNone": NSFileProtectionNone
+          };
 }
 
 +(void)setCompletionHandlerForIdentifier: (NSString *)identifier completionHandler: (CompletionHandler)completionHandler
