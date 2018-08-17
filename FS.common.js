@@ -29,6 +29,11 @@ var normalizeFilePath = (path: string) => (path.startsWith('file://') ? path.sli
 
 type MkdirOptions = {
   NSURLIsExcludedFromBackupKey?: boolean; // iOS only
+  NSFileProtectionKey?: string; // IOS only
+};
+
+type FileOptions = {
+    NSFileProtectionKey?: string; // IOS only
 };
 
 type ReadDirItem = {
@@ -185,12 +190,12 @@ var RNFS = {
     return RNFSManager.mkdir(normalizeFilePath(filepath), options).then(() => void 0);
   },
 
-  moveFile(filepath: string, destPath: string): Promise<void> {
-    return RNFSManager.moveFile(normalizeFilePath(filepath), normalizeFilePath(destPath)).then(() => void 0);
+  moveFile(filepath: string, destPath: string, options: FileOptions = {}): Promise<void> {
+    return RNFSManager.moveFile(normalizeFilePath(filepath), normalizeFilePath(destPath), options).then(() => void 0);
   },
 
-  copyFile(filepath: string, destPath: string): Promise<void> {
-    return RNFSManager.copyFile(normalizeFilePath(filepath), normalizeFilePath(destPath)).then(() => void 0);
+  copyFile(filepath: string, destPath: string, options: FileOptions = {}): Promise<void> {
+    return RNFSManager.copyFile(normalizeFilePath(filepath), normalizeFilePath(destPath), options).then(() => void 0);
   },
 
   pathForBundle(bundleNamed: string): Promise<string> {
@@ -368,7 +373,10 @@ var RNFS = {
       if (typeof encodingOrOptions === 'string') {
         options.encoding = encodingOrOptions;
       } else if (typeof encodingOrOptions === 'object') {
-        options = encodingOrOptions;
+        options = {
+            ...options,
+            ...encodingOrOptions
+        };
       }
     }
 
@@ -382,7 +390,7 @@ var RNFS = {
       throw new Error('Invalid encoding type "' + options.encoding + '"');
     }
 
-    return RNFSManager.writeFile(normalizeFilePath(filepath), b64).then(() => void 0);
+    return RNFSManager.writeFile(normalizeFilePath(filepath), b64, options).then(() => void 0);
   },
 
   appendFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
@@ -567,8 +575,8 @@ var RNFS = {
   ExternalStorageDirectoryPath: RNFSManager.RNFSExternalStorageDirectoryPath,
   TemporaryDirectoryPath: RNFSManager.RNFSTemporaryDirectoryPath,
   LibraryDirectoryPath: RNFSManager.RNFSLibraryDirectoryPath,
-  PicturesDirectoryPath: RNFSManager.RNFSPicturesDirectoryPath
-
+  PicturesDirectoryPath: RNFSManager.RNFSPicturesDirectoryPath,
+  FileProtectionKeys: RNFSManager.RNFSFileProtectionKeys
 };
 
 module.exports = RNFS;
