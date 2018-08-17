@@ -362,7 +362,7 @@ var RNFS = {
     return RNFSManager.copyAssetsVideoIOS(imageUri, destPath);
   },
 
-  writeFile(filepath: string, contents: string, encodingOrOptions?: any, fileOptions: FileOptions = {}): Promise<void> {
+  writeFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
     var b64;
 
     var options = {
@@ -373,7 +373,10 @@ var RNFS = {
       if (typeof encodingOrOptions === 'string') {
         options.encoding = encodingOrOptions;
       } else if (typeof encodingOrOptions === 'object') {
-        options = encodingOrOptions;
+        options = {
+            ...options,
+            ...encodingOrOptions
+        };
       }
     }
 
@@ -387,7 +390,7 @@ var RNFS = {
       throw new Error('Invalid encoding type "' + options.encoding + '"');
     }
 
-    return RNFSManager.writeFile(normalizeFilePath(filepath), b64, fileOptions).then(() => void 0);
+    return RNFSManager.writeFile(normalizeFilePath(filepath), b64, options).then(() => void 0);
   },
 
   appendFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
