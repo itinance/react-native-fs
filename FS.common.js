@@ -567,6 +567,10 @@ var RNFS = {
     );
   },
 
+  scanFile(path: string): Promise<ReadDirItem[]> {
+    return RNFSManager.scanFile(path);
+  },
+
   MainBundlePath: RNFSManager.RNFSMainBundlePath,
   CachesDirectoryPath: RNFSManager.RNFSCachesDirectoryPath,
   ExternalCachesDirectoryPath: RNFSManager.RNFSExternalCachesDirectoryPath,
