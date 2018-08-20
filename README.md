@@ -673,7 +673,7 @@ type FSInfoResult = {
 };
 ```
 
-### (Android only) `scanFile(): Promise<string[]>`
+### (Android only) `scanFile(path: string): Promise<string[]>`
 
 Scan the file using [Media Scanner](https://developer.android.com/reference/android/media/MediaScannerConnection).
 
