@@ -102,7 +102,9 @@ type UploadFileOptions = {
   fields?: Fields;          // An object of fields to be passed to the server
   method?: string;          // Default is 'POST', supports 'POST' and 'PUT'
   begin?: (res: UploadBeginCallbackResult) => void;
+  beginCallback?: (res: UploadBeginCallbackResult) => void;
   progress?: (res: UploadProgressCallbackResult) => void;
+  progressCallback?: (res: UploadProgressCallbackResult) => void,
 };
 
 type UploadFileItem = {
