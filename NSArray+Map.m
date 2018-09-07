@@ -11,7 +11,11 @@
   NSMutableArray *result = [NSMutableArray arrayWithCapacity:[self count]];
 
   [self enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-    [result addObject:block(obj, idx)];
+    NSDictionary *parsedBlock = block(obj, idx);
+    if (!parsedBlock) {
+        return;
+    }
+    [result addObject:parsedBlock];
   }];
 
   return result;
