@@ -440,8 +440,11 @@ RCT_EXPORT_METHOD(copyFile:(NSString *)filepath
 {
   NSFileManager *manager = [NSFileManager defaultManager];
 
-  NSError *error = nil;
-  BOOL success = [manager copyItemAtPath:filepath toPath:destPath error:&error];
+    NSURL *filePathUrl = [NSURL URLWithString:[@"file:" stringByAppendingString:filepath]];
+    NSURL *destPathUrl = [NSURL URLWithString:[@"file:" stringByAppendingString:destPath]];
+    NSError *error = nil;
+
+    BOOL success = [manager copyItemAtURL:filePathUrl toURL:destPathUrl error:&error];
 
   if (!success) {
     return [self reject:reject withError:error];
