@@ -334,7 +334,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void copyFile(String filepath, String destPath, Promise promise) {
+  public void copyFile(String filepath, String destPath, ReadableMap options, Promise promise) {
     try {
       copyFile(filepath, destPath);
 
