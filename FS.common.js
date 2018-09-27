@@ -27,16 +27,16 @@ var getJobId = () => {
 
 var normalizeFilePath = (path: string) => (path.startsWith('file://') ? path.slice(7) : path);
 
-type MkdirOptions = {
+export type MkdirOptions = {
   NSURLIsExcludedFromBackupKey?: boolean; // iOS only
   NSFileProtectionKey?: string; // IOS only
 };
 
-type FileOptions = {
+export type FileOptions = {
     NSFileProtectionKey?: string; // IOS only
 };
 
-type ReadDirItem = {
+export type ReadDirItem = {
   ctime: ?Date;    // The creation date of the file (iOS only)
   mtime: ?Date;    // The last modified date of the file
   name: string;     // The name of the item
@@ -46,7 +46,7 @@ type ReadDirItem = {
   isDirectory: () => boolean;   // Is the file a directory?
 };
 
-type StatResult = {
+export type StatResult = {
   name: ?string;     // The name of the item TODO: why is this not documented?
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
@@ -58,10 +58,10 @@ type StatResult = {
   isDirectory: () => boolean;   // Is the file a directory?
 };
 
-type Headers = { [name: string]: string };
-type Fields = { [name: string]: string };
+export type Headers = { [name: string]: string };
+export type Fields = { [name: string]: string };
 
-type DownloadFileOptions = {
+export type DownloadFileOptions = {
   fromUrl: string;          // URL to download file from
   toFile: string;           // Local filesystem path to save the file to
   headers?: Headers;        // An object of headers to be passed to the server
@@ -76,26 +76,26 @@ type DownloadFileOptions = {
   readTimeout?: number;       // supported on Android and iOS
 };
 
-type DownloadBeginCallbackResult = {
+export type DownloadBeginCallbackResult = {
   jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
   statusCode: number;     // The HTTP status code
   contentLength: number;  // The total size in bytes of the download resource
   headers: Headers;       // The HTTP response headers from the server
 };
 
-type DownloadProgressCallbackResult = {
+export type DownloadProgressCallbackResult = {
   jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
   contentLength: number;  // The total size in bytes of the download resource
   bytesWritten: number;   // The number of bytes written to the file so far
 };
 
-type DownloadResult = {
+export type DownloadResult = {
   jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
   statusCode: number;     // The HTTP status code
   bytesWritten: number;   // The number of bytes written to the file
 };
 
-type UploadFileOptions = {
+export type UploadFileOptions = {
   toUrl: string;            // URL to upload file to
   files: UploadFileItem[];  // An array of objects with the file information to be uploaded.
   headers?: Headers;        // An object of headers to be passed to the server
@@ -105,31 +105,31 @@ type UploadFileOptions = {
   progress?: (res: UploadProgressCallbackResult) => void;
 };
 
-type UploadFileItem = {
+export type UploadFileItem = {
   name: string;       // Name of the file, if not defined then filename is used
   filename: string;   // Name of file
   filepath: string;   // Path to file
   filetype: string;   // The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
 };
 
-type UploadBeginCallbackResult = {
+export type UploadBeginCallbackResult = {
   jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
 };
 
-type UploadProgressCallbackResult = {
+export type UploadProgressCallbackResult = {
   jobId: number;                      // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
   totalBytesExpectedToSend: number;   // The total number of bytes that will be sent to the server
   totalBytesSent: number;             // The number of bytes sent to the server
 };
 
-type UploadResult = {
+export type UploadResult = {
   jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
   statusCode: number;   // The HTTP status code
   headers: Headers;     // The HTTP response headers from the server
   body: string;         // The HTTP response body
 };
 
-type FSInfoResult = {
+export type FSInfoResult = {
   totalSpace: number;   // The total amount of storage space on the device (in bytes).
   freeSpace: number;    // The amount of available storage space on the device (in bytes).
 };
