@@ -10,6 +10,9 @@ Native filesystem access for react-native
 - #516 [iOS] Ensure _bytesWritten is correct in download
 - #519 updated compilesdkversion and buildtoolsversion
 - #535 Make this work with RN56
+- #558 [Android] fixed missing parameter in movefile and writefile
+- #557 [Android] copyFile: fix missing parameter on Android
+- #564 [Android] Replace deprecated 'compile' gradle configuration with 'implementation
 
 ## Changes for v2.10
 - UploadFiles is now also available for Android [#486](https://github.com/itinance/react-native-fs/pull/486) by [hank121314](https://github.com/hank121314)
