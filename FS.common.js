@@ -101,6 +101,8 @@ type UploadFileOptions = {
   headers?: Headers;        // An object of headers to be passed to the server
   fields?: Fields;          // An object of fields to be passed to the server
   method?: string;          // Default is 'POST', supports 'POST' and 'PUT'
+  beginCallback?: (res: UploadBeginCallbackResult) => void; // deprecated
+  progressCallback?: (res: UploadProgressCallbackResult) => void; // deprecated
   begin?: (res: UploadBeginCallbackResult) => void;
   progress?: (res: UploadProgressCallbackResult) => void;
 };
