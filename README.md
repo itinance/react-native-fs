@@ -2,6 +2,14 @@
 
 Native filesystem access for react-native
 
+## IMPORTANT
+
+For RN < 0.57 and/or Gradle < 3 you MUST install react-native-fs at version @2.11.17!
+For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version @2.12!
+
+## Changes for v2.12
+- #564 [Android] Upgrade to Gradle 3 (BREAKING compatiblity for < RN 0.57)
+
 ## Changes for v2.11
 - Prepared for RN 0.56 thanx to [#535](https://github.com/itinance/react-native-fs/pull/535) by [rmevans9](https://github.com/rmevans9)
 - #503 make sure to return the original file uri if content:// scheme is not used
@@ -397,7 +405,7 @@ Node.js style version of `readDir` that returns only the names. Note the lowerca
 
 ### `stat(filepath: string): Promise<StatResult>`
 
-Stats an item at `filepath`. If the `filepath` is linked to a virtual file, for example Android Content URI, the `originalPath` can be used to find the pointed file path. 
+Stats an item at `filepath`. If the `filepath` is linked to a virtual file, for example Android Content URI, the `originalPath` can be used to find the pointed file path.
 The promise resolves with an object with the following properties:
 
 ```
