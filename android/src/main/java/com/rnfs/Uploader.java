@@ -100,9 +100,9 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                         "Content-Type: " + filetype + crlf + crlf;
                 long fileLength = file.length() + tail.length();
                 totalFileLength += fileLength;
-                String fileLengthHeader = "Content-length: " + fileLength + crlf;
-                fileHeader[fileCount] = fileHeaderType + fileLengthHeader + crlf;
-                stringData += fileHeaderType + fileLengthHeader + crlf;
+//                String fileLengthHeader = "Content-length: " + fileLength + crlf;
+                fileHeader[fileCount] = fileHeaderType;
+                stringData += fileHeaderType;
                 fileCount++;
             }
             fileCount = 0;
@@ -116,13 +116,12 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             request.writeBytes(metaData);
             for (ReadableMap map : params.files) {
                 request.writeBytes(fileHeader[fileCount]);
-                request.flush();
                 File file = new File(map.getString("filepath"));
                 FileInputStream fis = new FileInputStream(file);
                 int fileLength = (int) file.length();
                 int bytes_read = 0;
                 int bytesReadTotal = 0;
-                int buffer_size = fileLength / 500;
+                int buffer_size = fileLength / 100;
                 byte[] buffer = new byte[buffer_size];
                 while ((bytes_read = fis.read(buffer, 0, Math.min(fileLength - bytesReadTotal, buffer_size))) > 0) {
                     request.write(buffer, 0, bytes_read);
