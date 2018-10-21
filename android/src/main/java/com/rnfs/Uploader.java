@@ -58,13 +58,10 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
         long totalFileLength = 0;
         BufferedInputStream responseStream = null;
         BufferedReader responseStreamReader = null;
-        int maxBufferSize = 1 * 1024 * 1024;
         String name, filename, filetype;
         try {
             connection = (HttpURLConnection) params.src.openConnection();
-            connection.setUseCaches(false);
             connection.setDoOutput(true);
-            connection.setDoInput(true);
             ReadableMapKeySetIterator headerIterator = params.headers.keySetIterator();
             connection.setRequestMethod(params.method);
             connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
@@ -83,7 +80,6 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             }
             stringData += metaData;
             fileHeader = new String[params.files.toArray().length];
-            System.out.println(params.files.toArray().length);
             for (ReadableMap map : params.files) {
                 try {
                     name = map.getString("name");
@@ -96,10 +92,13 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 }
                 File file = new File(map.getString("filepath"));
                 String fileHeaderType = twoHyphens + boundary + crlf +
-                        "Content-Disposition: form-data; name=\"" + name + "\";filename=\"" + filename + "\"" + crlf +
-                        "Content-Type: " + filetype + crlf ;
-                long fileLength = file.length() + tail.length();
-                totalFileLength += fileLength;
+                        "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + filename + "\"" + crlf +
+                        "Content-Type: " + filetype + crlf +"Content-Transfer-Encoding: binary" + crlf;
+                long fileLength = file.length();
+                totalFileLength += fileLength ;
+                if(params.files.toArray().length - 1 == fileCount){
+                    totalFileLength += tail.length();
+                }
                 String fileLengthHeader = "Content-length: " + fileLength + crlf;
                 fileHeader[fileCount] = fileHeaderType + fileLengthHeader + crlf;
                 stringData += fileHeaderType + fileLengthHeader + crlf;
@@ -107,8 +106,8 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             }
             fileCount = 0;
             mParams.onUploadBegin.onUploadBegin();
-            long requestLength = totalFileLength + stringData.length();
-            connection.setRequestProperty("Content-length", "" + requestLength);
+            long requestLength = totalFileLength + stringData.length() + params.files.toArray().length * crlf.length();
+            connection.setRequestProperty("Content-length", "" +(int) requestLength);
             connection.setFixedLengthStreamingMode((int)requestLength);
             connection.connect();
 
@@ -117,13 +116,13 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             for (ReadableMap map : params.files) {
                 request.writeBytes(fileHeader[fileCount]);
                 File file = new File(map.getString("filepath"));
-                FileInputStream fis = new FileInputStream(file);
                 int fileLength = (int) file.length();
                 int bytes_read = 0;
                 int bytesReadTotal = 0;
-                int buffer_size = fileLength / 100;
+                int buffer_size =(int) Math.ceil(fileLength / 100.f);
+                BufferedInputStream bufInput = new BufferedInputStream(new FileInputStream(file));
                 byte[] buffer = new byte[buffer_size];
-                while ((bytes_read = fis.read(buffer, 0, Math.min(fileLength - bytesReadTotal, buffer_size))) > 0) {
+                while ((bytes_read = bufInput.read(buffer)) != -1) {
                     request.write(buffer, 0, bytes_read);
                     bytesReadTotal += bytes_read;
                     mParams.onUploadProgress.onUploadProgress(fileCount + 1, fileLength, bytesReadTotal);
