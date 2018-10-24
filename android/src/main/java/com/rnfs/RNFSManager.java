@@ -734,11 +734,10 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       };
 
       params.onUploadProgress = new UploadParams.onUploadProgress() {
-        public void onUploadProgress(int fileCount,int totalBytesExpectedToSend,int totalBytesSent) {
+        public void onUploadProgress(int totalBytesExpectedToSend,int totalBytesSent) {
           WritableMap data = Arguments.createMap();
 
           data.putInt("jobId", jobId);
-          data.putInt("FileID",fileCount);
           data.putInt("totalBytesExpectedToSend", totalBytesExpectedToSend);
           data.putInt("totalBytesSent", totalBytesSent);
 

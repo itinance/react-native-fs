@@ -10,7 +10,7 @@ public class UploadParams {
         void onUploadComplete(UploadResult res);
     }
     public interface onUploadProgress{
-        void onUploadProgress(int fileCount,int totalBytesExpectedToSend,int totalBytesSent);
+        void onUploadProgress(int totalBytesExpectedToSend,int totalBytesSent);
     }
     public interface onUploadBegin{
         void onUploadBegin();

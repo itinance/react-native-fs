@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,7 +54,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
         String tail = crlf + twoHyphens + boundary + twoHyphens + crlf;
         String metaData = "", stringData = "";
         String[] fileHeader;
-        int bufferSize, totalSize, byteRead, statusCode, bufferAvailable, progress,contentLength;
+        int bufferSize, totalSize, byteRead, statusCode, bufferAvailable, progress,contentLength,byteSentTotal;
         int fileCount = 0;
         long totalFileLength = 0;
         BufferedInputStream responseStream = null;
@@ -113,6 +114,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
 
             request = new DataOutputStream(connection.getOutputStream());
             request.writeBytes(metaData);
+            byteSentTotal = 0;
             for (ReadableMap map : params.files) {
                 request.writeBytes(fileHeader[fileCount]);
                 File file = new File(map.getString("filepath"));
@@ -125,7 +127,8 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 while ((bytes_read = bufInput.read(buffer)) != -1) {
                     request.write(buffer, 0, bytes_read);
                     bytesReadTotal += bytes_read;
-                    mParams.onUploadProgress.onUploadProgress(fileCount + 1, fileLength, bytesReadTotal);
+                    byteSentTotal += bytes_read;
+                    mParams.onUploadProgress.onUploadProgress((int) totalFileLength - tail.length(), byteSentTotal);
                 }
                 request.writeBytes(crlf);
                 fileCount++;
