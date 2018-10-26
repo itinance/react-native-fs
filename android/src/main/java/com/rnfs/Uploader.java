@@ -54,7 +54,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
         String tail = crlf + twoHyphens + boundary + twoHyphens + crlf;
         String metaData = "", stringData = "";
         String[] fileHeader;
-        int bufferSize, totalSize, byteRead, statusCode, bufferAvailable, progress,contentLength,byteSentTotal;
+        int statusCode, byteSentTotal;
         int fileCount = 0;
         long totalFileLength = 0;
         BufferedInputStream responseStream = null;
@@ -120,13 +120,11 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 File file = new File(map.getString("filepath"));
                 int fileLength = (int) file.length();
                 int bytes_read = 0;
-                int bytesReadTotal = 0;
                 int buffer_size =(int) Math.ceil(fileLength / 100.f);
                 BufferedInputStream bufInput = new BufferedInputStream(new FileInputStream(file));
                 byte[] buffer = new byte[buffer_size];
                 while ((bytes_read = bufInput.read(buffer)) != -1) {
                     request.write(buffer, 0, bytes_read);
-                    bytesReadTotal += bytes_read;
                     byteSentTotal += bytes_read;
                     mParams.onUploadProgress.onUploadProgress((int) totalFileLength - tail.length(), byteSentTotal);
                 }
