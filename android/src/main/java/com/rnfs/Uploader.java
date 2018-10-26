@@ -93,7 +93,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 File file = new File(map.getString("filepath"));
                 String fileHeaderType = twoHyphens + boundary + crlf +
                         "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + filename + "\"" + crlf +
-                        "Content-Type: " + filetype + crlf +"Content-Transfer-Encoding: binary" + crlf;
+                        "Content-Type: " + filetype + crlf;
                 long fileLength = file.length();
                 totalFileLength += fileLength ;
                 if(params.files.toArray().length - 1 == fileCount){
