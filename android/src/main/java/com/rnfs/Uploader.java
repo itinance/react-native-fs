@@ -170,7 +170,10 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
         String type = null;
         String extension = MimeTypeMap.getFileExtensionFromUrl(path);
         if (extension != null) {
-            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+        }
+        if (type == null) {
+            type = "*/*";
         }
         return type;
     }
