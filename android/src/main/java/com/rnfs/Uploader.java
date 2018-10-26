@@ -113,14 +113,20 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
 
             request = new DataOutputStream(connection.getOutputStream());
             request.writeBytes(metaData);
+
             byteSentTotal = 0;
+            Runtime run = Runtime.getRuntime();
+            
             for (ReadableMap map : params.files) {
                 request.writeBytes(fileHeader[fileCount]);
                 File file = new File(map.getString("filepath"));
                 int fileLength = (int) file.length();
                 int bytes_read = 0;
-                int buffer_size =(int) Math.ceil(fileLength / 100.f);
                 BufferedInputStream bufInput = new BufferedInputStream(new FileInputStream(file));
+                int buffer_size =(int) Math.ceil(fileLength / 100.f);
+                if(buffer_size > run.freeMemory() / 10.f) {
+                    buffer_size = (int) Math.ceil(run.freeMemory() / 10.f);
+                }
                 byte[] buffer = new byte[buffer_size];
                 while ((bytes_read = bufInput.read(buffer)) != -1) {
                     request.write(buffer, 0, bytes_read);
@@ -129,6 +135,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 }
                 request.writeBytes(crlf);
                 fileCount++;
+                bufInput.close();
             }
             request.writeBytes(tail);
             request.flush();
