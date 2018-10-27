@@ -612,7 +612,7 @@ if (await RNFS.isResumable(jobId) {
 
 For use when using background downloads, tell iOS you are done handling a completed download.
 
-Read more about background donwloads in the [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios) section.
+Read more about background downloads in the [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios) section.
 
 ### (iOS only) `uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> }`
 
