@@ -10,6 +10,7 @@ For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version @2
 
 ## Changes for v2.12
 - #564 [Android] Upgrade to Gradle 3 (BREAKING compatiblity for < RN 0.57)
+- #571 [Android] Fix issue #566 android progress callback not sync and handle uppercase file extension mimetype
 
 ## Changes for v2.11
 - Prepared for RN 0.56 thanx to [#535](https://github.com/itinance/react-native-fs/pull/535) by [rmevans9](https://github.com/rmevans9)
