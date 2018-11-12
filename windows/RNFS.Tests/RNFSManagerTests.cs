@@ -46,7 +46,7 @@ namespace RNFS.Tests
             var hello = "Hello World";
             var base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(hello));
             var promise = new MockPromise();
-            manager.writeFile(path, base64Content, promise);
+            manager.writeFile(path, base64Content, new JObject(), promise);
             await promise.Task;
 
             // Assert
@@ -73,7 +73,7 @@ namespace RNFS.Tests
             var hello = "Hello World";
             var base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(hello));
             var promise = new MockPromise();
-            manager.writeFile(path, base64Content, promise);
+            manager.writeFile(path, base64Content, new JObject(), promise);
             await promise.Task;
 
             // Assert
@@ -100,8 +100,8 @@ namespace RNFS.Tests
             var hello = "Hello World";
             var base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(hello));
             var promise = new MockPromise();
-            manager.writeFile(path, base64Content, promise);
-            await AssertRejectAsync(promise, ex => Assert.IsTrue(ex.InnerException is UnauthorizedAccessException));
+            manager.writeFile(path, base64Content, new JObject(), promise);
+            await AssertRejectAsync(promise, ex => Assert.AreEqual(ex.Message, $"Access to the path '{path}' is denied.", $"Message was {ex.Message}"));
 
             // Cleanup
             Directory.Delete(path);
@@ -116,11 +116,12 @@ namespace RNFS.Tests
 
             // Run test
             var promise = new MockPromise();
-            manager.writeFile("badPath", "", promise);
+            var path = $"{Windows.ApplicationModel.Package.Current.InstalledLocation.Path}\\badPath";
+            manager.writeFile(path, "", new JObject(), promise);
 
             await AssertRejectAsync(
                 promise,
-                ex => Assert.IsTrue(ex.InnerException is UnauthorizedAccessException));
+                ex => Assert.AreEqual(ex.Message, $"Access to the path '{path}' is denied.", $"Message was {ex.Message}"));
         }
 
         [TestMethod]
@@ -218,7 +219,7 @@ namespace RNFS.Tests
             var base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(hello));
             var promise = new MockPromise();
             manager.write(path, base64Content, 0, promise);
-            await AssertRejectAsync(promise, ex => Assert.IsTrue(ex.InnerException is UnauthorizedAccessException));
+            await AssertRejectAsync(promise, ex => Assert.AreEqual(ex.Message, $"Access to the path '{path}' is denied.", $"Message was {ex.Message}"));
 
             // Cleanup
             Directory.Delete(path);
@@ -287,10 +288,11 @@ namespace RNFS.Tests
 
             // Run test
             var promise = new MockPromise();
-            manager.write("badPath", "", 0, promise);
+            var path = $"{Windows.ApplicationModel.Package.Current.InstalledLocation.Path}\\badPath";
+            manager.write(path, "", 0, promise);
             await AssertRejectAsync(
                 promise,
-                ex => Assert.IsTrue(ex.InnerException is UnauthorizedAccessException));
+                ex => Assert.AreEqual(ex.Message, $"Access to the path '{path}' is denied.", $"Message was {ex.Message}"));
         }
 
         [TestMethod]
@@ -692,7 +694,7 @@ namespace RNFS.Tests
             // Run test
             var newPath = Path.Combine(tempFolder, Guid.NewGuid().ToString());
             var promise = new MockPromise();
-            manager.copyFile(path, newPath, promise);
+            manager.copyFile(path, newPath, new JObject(), promise);
             await promise.Task;
 
             // Assert
@@ -717,7 +719,7 @@ namespace RNFS.Tests
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
             var newPath = Path.Combine(tempFolder, Guid.NewGuid().ToString());
             var promise = new MockPromise();
-            manager.copyFile(path, newPath, promise);
+            manager.copyFile(path, newPath, new JObject(), promise);
             await AssertRejectAsync(promise, ex => Assert.AreEqual("ENOENT", ex.Code));
         }
 
@@ -1066,7 +1068,7 @@ namespace RNFS.Tests
             // Run test
             var promise = new MockPromise();
             manager.mkdir(path, null, promise);
-            await AssertRejectAsync(promise, ex => Assert.IsTrue(ex.InnerException is IOException));
+            await AssertRejectAsync(promise, ex => Assert.AreEqual(ex.Message, $"Cannot create '{path}' because a file or directory with the same name already exists.", $"Message was {ex.Message}"));
 
             // Cleanup
             File.Delete(path);
@@ -1105,11 +1107,12 @@ namespace RNFS.Tests
 
             // Run test
             var promise = new MockPromise();
-            manager.mkdir("badPath", null, promise);
+            var path = $"{Windows.ApplicationModel.Package.Current.InstalledLocation.Path}\\badPath";
+            manager.mkdir(path, null, promise);
 
             await AssertRejectAsync(
                 promise,
-                ex => Assert.IsTrue(ex.InnerException is UnauthorizedAccessException));
+                ex => Assert.AreEqual($"Access to the path '{path}' is denied.", ex.Message, $"Message was {ex.Message}"));
         }
 
         [TestMethod]
@@ -1213,7 +1216,7 @@ namespace RNFS.Tests
                 ConvertToUnixTimestamp(mtime),
                 ConvertToUnixTimestamp(ctime),
                 promise);
-            await AssertRejectAsync(promise, ex => Assert.IsTrue(ex.InnerException is UnauthorizedAccessException));
+            await AssertRejectAsync(promise, ex => Assert.AreEqual(ex.Message, $"Access to the path '{path}' is denied.", $"Message was {ex.Message}"));
 
             // Cleanup
             Directory.Delete(path);
@@ -1402,7 +1405,7 @@ namespace RNFS.Tests
 
             var promise = new MockPromise();
             manager.downloadFile(options, promise);
-            await AssertRejectAsync(promise, ex => Assert.IsTrue(ex.InnerException is UnauthorizedAccessException));
+            await AssertRejectAsync(promise, ex => Assert.AreEqual(ex.Message, $"Access to the path '{path}' is denied.", $"Message was {ex.Message}"));
 
             // Cleanup
             Directory.Delete(path);
@@ -1470,7 +1473,7 @@ namespace RNFS.Tests
             var promise = new MockPromise();
             manager.downloadFile(options, promise);
             manager.stopDownload(1);
-            await AssertRejectAsync(promise, ex => Assert.IsTrue(ex.InnerException is TaskCanceledException));
+            await AssertRejectAsync(promise, ex => Assert.AreEqual("A task was canceled.", ex.Message, ex.Message));
             Assert.IsFalse(new FileInfo(path).Exists);
         }
 
@@ -1592,11 +1595,16 @@ namespace RNFS.Tests
                 _tcs.SetException(new RejectException(null, null, exception));
             }
 
+            public void Reject(string code, string message, string stack, JToken userInfo)
+            {
+              _tcs.SetException(new RejectException(code, message));
+            }
+
             public void Resolve(object value)
             {
-                _tcs.SetResult(value);
+              _tcs.SetResult(value);
             }
-        }
+    }
 
         class RejectException : Exception
         {
