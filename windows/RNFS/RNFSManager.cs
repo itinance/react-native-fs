@@ -104,7 +104,7 @@ namespace RNFS
         }
 
         [ReactMethod]
-        public async void writeFile(string filepath, string base64Content, IPromise promise)
+        public async void writeFile(string filepath, string base64Content, JObject options, IPromise promise)
         {
             try
             {
@@ -300,7 +300,7 @@ namespace RNFS
         }
 
         [ReactMethod]
-        public async void copyFile(string filepath, string destPath, IPromise promise)
+        public async void copyFile(string filepath, string destPath, JObject options, IPromise promise)
         {
             try
             {
@@ -603,7 +603,7 @@ namespace RNFS
                 return;
             }
 
-            promise.Reject(null, ex.Message, ex);
+            promise.Reject(ex);
         }
 
         private void RejectFileNotFound(IPromise promise, String filepath)
