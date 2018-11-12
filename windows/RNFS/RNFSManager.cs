@@ -550,7 +550,7 @@ namespace RNFS
                     });
 
                     // TODO: open file on background thread?
-                    var totalRead = 0;
+                    long totalRead = 0;
                     using (var fileStream = File.OpenWrite(filepath))
                     using (var stream = await response.Content.ReadAsStreamAsync())
                     {
