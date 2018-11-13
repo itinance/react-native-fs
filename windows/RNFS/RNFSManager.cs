@@ -285,7 +285,7 @@ namespace RNFS
         }
 
         [ReactMethod]
-        public void moveFile(string filepath, string destPath, IPromise promise)
+        public void moveFile(string filepath, string destPath, JObject options, IPromise promise)
         {
             try
             {

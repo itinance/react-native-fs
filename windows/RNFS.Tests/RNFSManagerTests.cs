@@ -650,7 +650,7 @@ namespace RNFS.Tests
             // Run test
             var newPath = Path.Combine(tempFolder, Guid.NewGuid().ToString());
             var promise = new MockPromise();
-            manager.moveFile(path, newPath, promise);
+            manager.moveFile(path, newPath, new JObject(), promise);
             await promise.Task;
 
             // Assert
@@ -674,7 +674,7 @@ namespace RNFS.Tests
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
             var newPath = Path.Combine(tempFolder, Guid.NewGuid().ToString());
             var promise = new MockPromise();
-            manager.moveFile(path, newPath, promise);
+            manager.moveFile(path, newPath, new JObject(), promise);
             await AssertRejectAsync(promise, ex => Assert.AreEqual("ENOENT", ex.Code));
         }
 
