@@ -628,7 +628,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
             infoMap.putInt("jobId", jobId);
             infoMap.putInt("statusCode", res.statusCode);
-            infoMap.putInt("bytesWritten", res.bytesWritten);
+            infoMap.putDouble("bytesWritten", (double)res.bytesWritten);
 
             promise.resolve(infoMap);
           } else {
@@ -638,7 +638,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       };
 
       params.onDownloadBegin = new DownloadParams.OnDownloadBegin() {
-        public void onDownloadBegin(int statusCode, int contentLength, Map<String, String> headers) {
+        public void onDownloadBegin(int statusCode, long contentLength, Map<String, String> headers) {
           WritableMap headersMap = Arguments.createMap();
 
           for (Map.Entry<String, String> entry : headers.entrySet()) {
@@ -649,7 +649,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
           data.putInt("jobId", jobId);
           data.putInt("statusCode", statusCode);
-          data.putInt("contentLength", contentLength);
+          data.putDouble("contentLength", (double)contentLength);
           data.putMap("headers", headersMap);
 
           sendEvent(getReactApplicationContext(), "DownloadBegin-" + jobId, data);
@@ -657,12 +657,12 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       };
 
       params.onDownloadProgress = new DownloadParams.OnDownloadProgress() {
-        public void onDownloadProgress(int contentLength, int bytesWritten) {
+        public void onDownloadProgress(long contentLength, long bytesWritten) {
           WritableMap data = Arguments.createMap();
 
           data.putInt("jobId", jobId);
-          data.putInt("contentLength", contentLength);
-          data.putInt("bytesWritten", bytesWritten);
+          data.putDouble("contentLength", (double)contentLength);
+          data.putDouble("bytesWritten", (double)bytesWritten);
 
           sendEvent(getReactApplicationContext(), "DownloadProgress-" + jobId, data);
         }
