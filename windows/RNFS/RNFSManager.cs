@@ -104,7 +104,7 @@ namespace RNFS
         }
 
         [ReactMethod]
-        public async void writeFile(string filepath, string base64Content, IPromise promise)
+        public async void writeFile(string filepath, string base64Content, JObject _, IPromise promise)
         {
             try
             {
