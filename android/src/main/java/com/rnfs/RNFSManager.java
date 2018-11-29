@@ -2,14 +2,17 @@ package com.rnfs;
 
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.content.ContentUris;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
 import android.provider.MediaStore;
+import android.provider.DocumentsContract;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.SparseArray;
+import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -81,17 +84,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private String getOriginalFilepath(String filepath) throws IORejectionException {
     Uri uri = getFileUri(filepath);
-    String originalFilepath = filepath;
-    if (uri.getScheme().equals("content")) {
-      try {
-        Cursor cursor = reactContext.getContentResolver().query(uri, null, null, null, null);
-        if (cursor.moveToFirst()) {
-          originalFilepath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-        }
-      } catch (IllegalArgumentException ignored) {
-      }
-    }
-    return originalFilepath;
+    return FileUtils.getPath(reactContext, uri);
   }
 
   private InputStream getInputStream(String filepath) throws IORejectionException {
