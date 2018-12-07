@@ -3,6 +3,7 @@
   "version": "2.12.1",
   "description": "Native filesystem access for react-native",
   "main": "FS.common.js",
+  "typings": "index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
