@@ -107,19 +107,16 @@ type FSInfoResult = {
 	freeSpace: number // The amount of available storage space on the device (in bytes).
 }
 
-export function mkdir(
-	filepath: string,
-	options: MkdirOptions = {}
-): Promise<void>
+export function mkdir(filepath: string, options?: MkdirOptions): Promise<void>
 export function moveFile(
 	filepath: string,
 	destPath: string,
-	options: FileOptions = {}
+	options?: FileOptions
 ): Promise<void>
 export function copyFile(
 	filepath: string,
 	destPath: string,
-	options: FileOptions = {}
+	options?: FileOptions
 ): Promise<void>
 export function pathForBundle(bundleNamed: string): Promise<string>
 export function pathForGroup(groupName: string): Promise<string>
@@ -132,7 +129,7 @@ export function stopDownload(jobId: number): void
 
 export function resumeDownload(jobId: number): void
 
-export function isResumable(jobId: number): Promise<bool>
+export function isResumable(jobId: number): Promise<boolean>
 
 export function stopUpload(jobId: number): void
 
@@ -148,7 +145,7 @@ export function readDirAssets(dirpath: string): Promise<ReadDirItem[]>
 /**
  * Android-only
  */
-export function existsAssets(filepath: string): Promise<bool>
+export function existsAssets(filepath: string): Promise<boolean>
 
 /**
  * Node style version (lowercase d). Returns just the names
@@ -172,8 +169,8 @@ export function readFile(
 ): Promise<string>
 export function read(
 	filepath: string,
-	length: number = 0,
-	position: number = 0,
+	length?: number,
+	position?: number,
 	encodingOrOptions?: any
 ): Promise<string>
 
@@ -206,9 +203,9 @@ export function copyAssetsFileIOS(
 	destPath: string,
 	width: number,
 	height: number,
-	scale: number = 1.0,
-	compression: number = 1.0,
-	resizeMode: string = "contain"
+	scale?: number = 1.0,
+	compression?: number = 1.0,
+	resizeMode?: string = "contain"
 ): Promise<string>
 
 /**
