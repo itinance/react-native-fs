@@ -203,9 +203,9 @@ export function copyAssetsFileIOS(
 	destPath: string,
 	width: number,
 	height: number,
-	scale?: number = 1.0,
-	compression?: number = 1.0,
-	resizeMode?: string = "contain"
+	scale?: number,
+	compression?: number,
+	resizeMode?: string
 ): Promise<string>
 
 /**
