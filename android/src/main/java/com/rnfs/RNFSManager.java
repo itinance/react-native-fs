@@ -317,9 +317,9 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void moveFile(String filepath, String destPath, ReadableMap options, Promise promise) {
+  public void moveFile(final String filepath, String destPath, ReadableMap options, final Promise promise) {
     try {
-      File inFile = new File(filepath);
+      final File inFile = new File(filepath);
 
       if (!inFile.renameTo(new File(destPath))) {
         new CopyFileTask() {
