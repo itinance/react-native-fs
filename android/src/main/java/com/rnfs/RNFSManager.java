@@ -322,6 +322,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
       if (!inFile.renameTo(new File(destPath))) {
         new CopyFileTask() {
+          @Override
           protected void onPostExecute (Exception ex) {
             if (ex == null) {
               inFile.delete();
@@ -330,7 +331,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
               ex.printStackTrace();
               reject(promise, filepath, ex);
             }
-          }.execute(filepath, destPath);
+          }
+        }.execute(filepath, destPath);
       } else {
           promise.resolve(true);
       }
@@ -343,6 +345,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void copyFile(final String filepath, final String destPath, ReadableMap options, final Promise promise) {
     new CopyFileTask() {
+      @Override
       protected void onPostExecute (Exception ex) {
         if (ex == null) {
           promise.resolve(null);
@@ -350,6 +353,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
           ex.printStackTrace();
           reject(promise, filepath, ex);
         }
+      }
     }.execute(filepath, destPath);
   }
 
