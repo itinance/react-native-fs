@@ -11,6 +11,8 @@ import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.SparseArray;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -838,6 +840,22 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       fs.pushString(f.getAbsolutePath());
     }
     promise.resolve(fs);
+  }
+
+  @ReactMethod
+  public void scanFile(String path, final Promise promise) {
+    MediaScannerConnection.scanFile(this.getReactApplicationContext(),
+      new String[]{path},
+      null,
+      new MediaScannerConnection.MediaScannerConnectionClient() {
+        @Override
+        public void onMediaScannerConnected() {}
+         @Override
+        public void onScanCompleted(String path, Uri uri) {
+          promise.resolve(path);
+        }
+      }
+    );
   }
 
   private void reject(Promise promise, String filepath, Exception ex) {
