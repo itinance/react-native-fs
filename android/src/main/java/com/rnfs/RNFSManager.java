@@ -67,12 +67,12 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     return "RNFSManager";
   }
 
-  private Uri getFileUri(String filepath) throws IORejectionException {
+  private Uri getFileUri(String filepath, boolean isDirectoryAllowed) throws IORejectionException {
     Uri uri = Uri.parse(filepath);
     if (uri.getScheme() == null) {
       // No prefix, assuming that provided path is absolute path to file
       File file = new File(filepath);
-      if (file.isDirectory()) {
+      if (!isDirectoryAllowed && file.isDirectory()) {
         throw new IORejectionException("EISDIR", "EISDIR: illegal operation on a directory, read '" + filepath + "'");
       }
       uri = Uri.parse("file://" + filepath);
@@ -80,8 +80,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     return uri;
   }
 
-  private String getOriginalFilepath(String filepath) throws IORejectionException {
-    Uri uri = getFileUri(filepath);
+  private String getOriginalFilepath(String filepath, boolean isDirectoryAllowed) throws IORejectionException {
+    Uri uri = getFileUri(filepath, isDirectoryAllowed);
     String originalFilepath = filepath;
     if (uri.getScheme().equals("content")) {
       try {
@@ -96,7 +96,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   private InputStream getInputStream(String filepath) throws IORejectionException {
-    Uri uri = getFileUri(filepath);
+    Uri uri = getFileUri(filepath, false);
     InputStream stream;
     try {
       stream = reactContext.getContentResolver().openInputStream(uri);
@@ -110,7 +110,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   private OutputStream getOutputStream(String filepath, boolean append) throws IORejectionException {
-    Uri uri = getFileUri(filepath);
+    Uri uri = getFileUri(filepath, false);
     OutputStream stream;
     try {
       stream = reactContext.getContentResolver().openOutputStream(uri, append ? "wa" : "w");
@@ -556,7 +556,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void stat(String filepath, Promise promise) {
     try {
-      String originalFilepath = getOriginalFilepath(filepath);
+      String originalFilepath = getOriginalFilepath(filepath, true);
       File file = new File(originalFilepath);
 
       if (!file.exists()) throw new Exception("File does not exist");
@@ -621,8 +621,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private void sendEvent(ReactContext reactContext, String eventName, @Nullable WritableMap params) {
     reactContext
-        .getJSModule(RCTNativeAppEventEmitter.class)
-        .emit(eventName, params);
+            .getJSModule(RCTNativeAppEventEmitter.class)
+            .emit(eventName, params);
   }
 
   @ReactMethod
