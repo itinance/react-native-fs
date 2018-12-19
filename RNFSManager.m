@@ -813,8 +813,13 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
   PHAsset *phAsset = [phAssetFetchResult firstObject];
   dispatch_group_t group = dispatch_group_create();
   dispatch_group_enter(group);
+  
+  PHVideoRequestOptions *options = [[PHVideoRequestOptions alloc]init];
+  options.version = PHVideoRequestOptionsVersionOriginal;
+  options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
+  options.networkAccessAllowed = YES;
 
-  [[PHImageManager defaultManager] requestAVAssetForVideo:phAsset options:nil resultHandler:^(AVAsset *asset, AVAudioMix *audioMix, NSDictionary *info) {
+  [[PHImageManager defaultManager] requestAVAssetForVideo:phAsset options:options resultHandler:^(AVAsset *asset, AVAudioMix *audioMix, NSDictionary *info) {
 
     if ([asset isKindOfClass:[AVURLAsset class]]) {
       NSURL *url = [(AVURLAsset *)asset URL];
