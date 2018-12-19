@@ -809,8 +809,10 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
   NSURL* url = [NSURL URLWithString:imageUri];
   __block NSURL* videoURL = [NSURL URLWithString:destination];
   __block NSError *error = nil;
+  
   PHFetchResult *phAssetFetchResult = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
   PHAsset *phAsset = [phAssetFetchResult firstObject];
+    
   PHVideoRequestOptions *options = [[PHVideoRequestOptions alloc] init];
   options.networkAccessAllowed = YES;
   options.version = PHVideoRequestOptionsVersionOriginal;
