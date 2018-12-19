@@ -9,6 +9,8 @@ For RN < 0.57 and/or Gradle < 3 you MUST install react-native-fs at version @2.1
 For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version @2.12!
 
 ## Changes for v2.12
+- #601 [iOS] Another fix for copyAssetsVideoIOS
+- #599 [iOS] Fix for copyAssetsVideoIOS regarding iCloud-Files
 - #564 [Android] Upgrade to Gradle 3 (BREAKING compatiblity for < RN 0.57)
 - #571 [Android] Fix issue #566 android progress callback not sync and handle uppercase file extension mimetype
 
