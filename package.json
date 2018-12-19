@@ -3,6 +3,7 @@
   "version": "2.13.0",
   "description": "Native filesystem access for react-native",
   "main": "FS.common.js",
+  "typings": "index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
@@ -31,9 +32,10 @@
   "devDependencies": {
     "flow-bin": "0.28.0",
     "react": "^16.2.0",
-    "react-native": "^0.51.0",
+    "react-native": "^0.57.0",
     "prop-types": "15.6.0",
-    "create-react-class": "^15.6.2"
+    "create-react-class": "^15.6.2",
+    "react-native-windows": "^0.57.0"
   },
   "peerDependencies": {
     "react": "^16.2.0",

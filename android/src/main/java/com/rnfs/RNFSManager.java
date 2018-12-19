@@ -4,12 +4,15 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.StatFs;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.SparseArray;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -66,12 +69,12 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     return "RNFSManager";
   }
 
-  private Uri getFileUri(String filepath) throws IORejectionException {
+  private Uri getFileUri(String filepath, boolean isDirectoryAllowed) throws IORejectionException {
     Uri uri = Uri.parse(filepath);
     if (uri.getScheme() == null) {
       // No prefix, assuming that provided path is absolute path to file
       File file = new File(filepath);
-      if (file.isDirectory()) {
+      if (!isDirectoryAllowed && file.isDirectory()) {
         throw new IORejectionException("EISDIR", "EISDIR: illegal operation on a directory, read '" + filepath + "'");
       }
       uri = Uri.parse("file://" + filepath);
@@ -79,8 +82,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     return uri;
   }
 
-  private String getOriginalFilepath(String filepath) throws IORejectionException {
-    Uri uri = getFileUri(filepath);
+  private String getOriginalFilepath(String filepath, boolean isDirectoryAllowed) throws IORejectionException {
+    Uri uri = getFileUri(filepath, isDirectoryAllowed);
     String originalFilepath = filepath;
     if (uri.getScheme().equals("content")) {
       try {
@@ -95,7 +98,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   private InputStream getInputStream(String filepath) throws IORejectionException {
-    Uri uri = getFileUri(filepath);
+    Uri uri = getFileUri(filepath, false);
     InputStream stream;
     try {
       stream = reactContext.getContentResolver().openInputStream(uri);
@@ -109,7 +112,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   private OutputStream getOutputStream(String filepath, boolean append) throws IORejectionException {
-    Uri uri = getFileUri(filepath);
+    Uri uri = getFileUri(filepath, false);
     OutputStream stream;
     try {
       stream = reactContext.getContentResolver().openOutputStream(uri, append ? "wa" : "w");
@@ -316,17 +319,26 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void moveFile(String filepath, String destPath, ReadableMap options, Promise promise) {
+  public void moveFile(final String filepath, String destPath, ReadableMap options, final Promise promise) {
     try {
-      File inFile = new File(filepath);
+      final File inFile = new File(filepath);
 
       if (!inFile.renameTo(new File(destPath))) {
-        copyFile(filepath, destPath);
-
-        inFile.delete();
+        new CopyFileTask() {
+          @Override
+          protected void onPostExecute (Exception ex) {
+            if (ex == null) {
+              inFile.delete();
+              promise.resolve(true);
+            } else {
+              ex.printStackTrace();
+              reject(promise, filepath, ex);
+            }
+          }
+        }.execute(filepath, destPath);
+      } else {
+          promise.resolve(true);
       }
-
-      promise.resolve(true);
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
@@ -334,28 +346,42 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void copyFile(String filepath, String destPath, ReadableMap options, Promise promise) {
-    try {
-      copyFile(filepath, destPath);
-
-      promise.resolve(null);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      reject(promise, filepath, ex);
-    }
+  public void copyFile(final String filepath, final String destPath, ReadableMap options, final Promise promise) {
+    new CopyFileTask() {
+      @Override
+      protected void onPostExecute (Exception ex) {
+        if (ex == null) {
+          promise.resolve(null);
+        } else {
+          ex.printStackTrace();
+          reject(promise, filepath, ex);
+        }
+      }
+    }.execute(filepath, destPath);
   }
 
-  private void copyFile(String filepath, String destPath) throws IOException, IORejectionException {
-    InputStream in = getInputStream(filepath);
-    OutputStream out = getOutputStream(destPath, false);
+  private class CopyFileTask extends AsyncTask<String, Void, Exception> {
+    protected Exception doInBackground(String... paths) {
+      try {
+        String filepath = paths[0];
+        String destPath = paths[1];
 
-    byte[] buffer = new byte[1024];
-    int length;
-    while ((length = in.read(buffer)) > 0) {
-      out.write(buffer, 0, length);
+        InputStream in = getInputStream(filepath);
+        OutputStream out = getOutputStream(destPath, false);
+
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = in.read(buffer)) > 0) {
+          out.write(buffer, 0, length);
+          Thread.yield();
+        }
+        in.close();
+        out.close();
+        return null;
+      } catch (Exception ex) {
+        return ex;
+      }
     }
-    in.close();
-    out.close();
   }
 
   @ReactMethod
@@ -532,7 +558,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void stat(String filepath, Promise promise) {
     try {
-      String originalFilepath = getOriginalFilepath(filepath);
+      String originalFilepath = getOriginalFilepath(filepath, true);
       File file = new File(originalFilepath);
 
       if (!file.exists()) throw new Exception("File does not exist");
@@ -597,8 +623,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private void sendEvent(ReactContext reactContext, String eventName, @Nullable WritableMap params) {
     reactContext
-        .getJSModule(RCTNativeAppEventEmitter.class)
-        .emit(eventName, params);
+            .getJSModule(RCTNativeAppEventEmitter.class)
+            .emit(eventName, params);
   }
 
   @ReactMethod
@@ -814,6 +840,22 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       fs.pushString(f.getAbsolutePath());
     }
     promise.resolve(fs);
+  }
+
+  @ReactMethod
+  public void scanFile(String path, final Promise promise) {
+    MediaScannerConnection.scanFile(this.getReactApplicationContext(),
+      new String[]{path},
+      null,
+      new MediaScannerConnection.MediaScannerConnectionClient() {
+        @Override
+        public void onMediaScannerConnected() {}
+         @Override
+        public void onScanCompleted(String path, Uri uri) {
+          promise.resolve(path);
+        }
+      }
+    );
   }
 
   private void reject(Promise promise, String filepath, Exception ex) {

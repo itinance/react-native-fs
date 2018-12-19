@@ -370,6 +370,8 @@ The following constants are available on the `RNFS` export:
 - `ExternalDirectoryPath` (`String`) The absolute path to the external files, shared directory (android only)
 - `ExternalStorageDirectoryPath` (`String`) The absolute path to the external storage, shared directory (android only)
 
+IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request permissions (on Android) to read and write on the external storage, here an example: [React Native Offical Doc] (https://facebook.github.io/react-native/docs/permissionsandroid)
+
 ### `readDir(dirpath: string): Promise<ReadDirItem[]>`
 
 Reads the contents of `path`. This must be an absolute path. Use the above path constants to form a usable file path.
@@ -693,6 +695,10 @@ type FSInfoResult = {
   freeSpace: number;    // The amount of available storage space on the device (in bytes).
 };
 ```
+
+### (Android only) `scanFile(path: string): Promise<string[]>`
+
+Scan the file using [Media Scanner](https://developer.android.com/reference/android/media/MediaScannerConnection).
 
 ### (Android only) `getAllExternalFilesDirs(): Promise<string[]>`
 
