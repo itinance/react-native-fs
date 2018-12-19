@@ -816,6 +816,11 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
   
   dispatch_group_t group = dispatch_group_create();
   dispatch_group_enter(group);
+  
+  PHVideoRequestOptions *options = [[PHVideoRequestOptions alloc]init];
+  options.version = PHVideoRequestOptionsVersionOriginal;
+  options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
+  options.networkAccessAllowed = YES;
 
   [[PHImageManager defaultManager] requestAVAssetForVideo:phAsset options:options resultHandler:^(AVAsset *asset, AVAudioMix *audioMix, NSDictionary *info) {
 
