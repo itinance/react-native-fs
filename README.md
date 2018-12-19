@@ -8,6 +8,12 @@ For RN < 0.57 and/or Gradle < 3 you MUST install react-native-fs at version @2.1
 
 For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version @2.12!
 
+## Changes for v2.13
+- #544 [Android] Add scanFile method
+- #597 [Android] Perform copyFile in background thread to prevent UI blocking
+- #587 [Windows] Fixed implementation for Windows
+- #585 [Android] Fix EISDIR on stat directory
+
 ## Changes for v2.12
 - #601 [iOS] Another fix for copyAssetsVideoIOS
 - #599 [iOS] Fix for copyAssetsVideoIOS regarding iCloud-Files
