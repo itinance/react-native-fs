@@ -4,6 +4,7 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.StatFs;
 import android.provider.MediaStore;
@@ -316,17 +317,26 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void moveFile(String filepath, String destPath, ReadableMap options, Promise promise) {
+  public void moveFile(final String filepath, String destPath, ReadableMap options, final Promise promise) {
     try {
-      File inFile = new File(filepath);
+      final File inFile = new File(filepath);
 
       if (!inFile.renameTo(new File(destPath))) {
-        copyFile(filepath, destPath);
-
-        inFile.delete();
+        new CopyFileTask() {
+          @Override
+          protected void onPostExecute (Exception ex) {
+            if (ex == null) {
+              inFile.delete();
+              promise.resolve(true);
+            } else {
+              ex.printStackTrace();
+              reject(promise, filepath, ex);
+            }
+          }
+        }.execute(filepath, destPath);
+      } else {
+          promise.resolve(true);
       }
-
-      promise.resolve(true);
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
@@ -334,28 +344,42 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void copyFile(String filepath, String destPath, ReadableMap options, Promise promise) {
-    try {
-      copyFile(filepath, destPath);
-
-      promise.resolve(null);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      reject(promise, filepath, ex);
-    }
+  public void copyFile(final String filepath, final String destPath, ReadableMap options, final Promise promise) {
+    new CopyFileTask() {
+      @Override
+      protected void onPostExecute (Exception ex) {
+        if (ex == null) {
+          promise.resolve(null);
+        } else {
+          ex.printStackTrace();
+          reject(promise, filepath, ex);
+        }
+      }
+    }.execute(filepath, destPath);
   }
 
-  private void copyFile(String filepath, String destPath) throws IOException, IORejectionException {
-    InputStream in = getInputStream(filepath);
-    OutputStream out = getOutputStream(destPath, false);
+  private class CopyFileTask extends AsyncTask<String, Void, Exception> {
+    protected Exception doInBackground(String... paths) {
+      try {
+        String filepath = paths[0];
+        String destPath = paths[1];
 
-    byte[] buffer = new byte[1024];
-    int length;
-    while ((length = in.read(buffer)) > 0) {
-      out.write(buffer, 0, length);
+        InputStream in = getInputStream(filepath);
+        OutputStream out = getOutputStream(destPath, false);
+
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = in.read(buffer)) > 0) {
+          out.write(buffer, 0, length);
+          Thread.yield();
+        }
+        in.close();
+        out.close();
+        return null;
+      } catch (Exception ex) {
+        return ex;
+      }
     }
-    in.close();
-    out.close();
   }
 
   @ReactMethod
