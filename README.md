@@ -13,6 +13,7 @@ For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version @2
 - #597 [Android] Perform copyFile in background thread to prevent UI blocking
 - #587 [Windows] Fixed implementation for Windows
 - #585 [Android] Fix EISDIR on stat directory
+- #583 [Android] fix Android downloadFile overflow contentLength and bytesWritten
 
 ## Changes for v2.12
 - #601 [iOS] Another fix for copyAssetsVideoIOS
