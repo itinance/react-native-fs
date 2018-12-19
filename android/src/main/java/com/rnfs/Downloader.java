@@ -19,7 +19,7 @@ import android.os.AsyncTask;
 
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 
-public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult> {
+public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult> {
   private DownloadParams mParam;
   private AtomicBoolean mAbort = new AtomicBoolean(false);
   DownloadResult res;
@@ -64,7 +64,7 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
       connection.connect();
 
       int statusCode = connection.getResponseCode();
-      int lengthOfFile = connection.getContentLength();
+      long lengthOfFile = connection.getContentLengthLong();
 
       boolean isRedirect = (
         statusCode != HttpURLConnection.HTTP_OK &&
@@ -85,7 +85,7 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
         connection.connect();
 
         statusCode = connection.getResponseCode();
-        lengthOfFile = connection.getContentLength();
+        lengthOfFile = connection.getContentLengthLong();
       }
       if(statusCode >= 200 && statusCode < 300) {
         Map<String, List<String>> headers = connection.getHeaderFields();
@@ -107,7 +107,7 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
         output = new FileOutputStream(param.dest);
 
         byte data[] = new byte[8 * 1024];
-        int total = 0;
+        long total = 0;
         int count;
         double lastProgressValue = 0;
 
@@ -116,14 +116,14 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
 
           total += count;
           if (param.progressDivider <= 0) {
-            publishProgress(new int[]{lengthOfFile, total});
+            publishProgress(new long[]{lengthOfFile, total});
           } else {
             double progress = Math.round(((double) total * 100) / lengthOfFile);
             if (progress % param.progressDivider == 0) {
               if ((progress != lastProgressValue) || (total == lengthOfFile)) {
                 Log.d("Downloader", "EMIT: " + String.valueOf(progress) + ", TOTAL:" + String.valueOf(total));
                 lastProgressValue = progress;
-                publishProgress(new int[]{lengthOfFile, total});
+                publishProgress(new long[]{lengthOfFile, total});
               }
             }
           }
@@ -146,7 +146,7 @@ public class Downloader extends AsyncTask<DownloadParams, int[], DownloadResult>
   }
 
   @Override
-  protected void onProgressUpdate(int[]... values) {
+  protected void onProgressUpdate(long[]... values) {
     super.onProgressUpdate(values);
     mParam.onDownloadProgress.onDownloadProgress(values[0][0], values[0][1]);
   }

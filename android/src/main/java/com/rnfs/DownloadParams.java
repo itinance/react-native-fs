@@ -12,11 +12,11 @@ public class DownloadParams {
   }
 
   public interface OnDownloadBegin {
-    void onDownloadBegin(int statusCode, int contentLength, Map<String, String> headers);
+    void onDownloadBegin(int statusCode, long contentLength, Map<String, String> headers);
   }
 
   public interface OnDownloadProgress {
-    void onDownloadProgress(int contentLength, int bytesWritten);
+    void onDownloadProgress(long contentLength, long bytesWritten);
   }
 
   public URL src;
