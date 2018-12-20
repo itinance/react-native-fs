@@ -64,7 +64,16 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
       connection.connect();
 
       int statusCode = connection.getResponseCode();
-      long lengthOfFile = connection.getContentLengthLong();
+      long lengthOfFile;
+      try
+      {
+        lengthOfFile = connection.getContentLengthLong();
+      }
+      catch (NoSuchMethodError e)
+      {
+        // getContentLengthLong has been added in Java 7 and Android SDK 24, fall back to integer on older runtime engines
+        lengthOfFile = connection.getContentLength();
+      }
 
       boolean isRedirect = (
         statusCode != HttpURLConnection.HTTP_OK &&
