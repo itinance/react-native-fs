@@ -64,7 +64,7 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
       connection.connect();
 
       int statusCode = connection.getResponseCode();
-      long lengthOfFile = connection.getContentLengthLong();
+      long lengthOfFile = getContentLength(connection);
 
       boolean isRedirect = (
         statusCode != HttpURLConnection.HTTP_OK &&
@@ -85,7 +85,7 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
         connection.connect();
 
         statusCode = connection.getResponseCode();
-        lengthOfFile = connection.getContentLengthLong();
+        lengthOfFile = getContentLength(connection);
       }
       if(statusCode >= 200 && statusCode < 300) {
         Map<String, List<String>> headers = connection.getHeaderFields();
@@ -139,6 +139,13 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
       if (input != null) input.close();
       if (connection != null) connection.disconnect();
     }
+  }
+
+  private long getContentLength(HttpURLConnection connection){
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+      return connection.getContentLengthLong();
+    }
+    return connection.getContentLength();
   }
 
   protected void stop() {
