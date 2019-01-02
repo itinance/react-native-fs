@@ -140,6 +140,11 @@ export function readDir(dirpath: string): Promise<ReadDirItem[]>
 /**
  * Android-only
  */
+export function scanFile(path: string): Promise<string[]>
+
+/**
+ * Android-only
+ */
 export function readDirAssets(dirpath: string): Promise<ReadDirItem[]>
 
 /**
