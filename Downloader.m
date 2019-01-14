@@ -124,7 +124,7 @@
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
-  if (error && error.code != -999) {
+  if (error && error.code != NSURLErrorCancelled) {
       _resumeData = error.userInfo[NSURLSessionDownloadTaskResumeData];
       if (_resumeData != nil) {
           _params.resumableCallback();
