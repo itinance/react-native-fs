@@ -227,7 +227,7 @@ Follow the instructions in the ['Linking Libraries'](https://github.com/Microsof
 
 `../node_modules/react-native-fs/windows/RNFS/RNFS.csproj` (UWP)
 
- `../node_modules/react-native-fs/wpf/RNFS/RNFS.csproj` (WPF)
+ `../node_modules/react-native-fs/wpf/RNFS.Net46/RNFS.Net46.csproj` (WPF)
 
 ## Examples
 
