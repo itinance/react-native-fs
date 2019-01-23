@@ -690,7 +690,7 @@ Percentage can be computed easily by dividing `totalBytesSent` by `totalBytesExp
 
 Abort the current upload job with this ID.
 
-### `getFSInfo(): Promise<FSInfoResult>`
+### (iOS, Android and Window-UWP) `getFSInfo(): Promise<FSInfoResult>`
 
 Returns an object with the following properties:
 
