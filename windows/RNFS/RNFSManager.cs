@@ -33,6 +33,7 @@ namespace RNFS
 
         private readonly TaskCancellationManager<int> _tasks = new TaskCancellationManager<int>();
         private readonly HttpClient _httpClient = new HttpClient();
+        private readonly EncryptionManager encryptionManager = new EncryptionManager();
 
         private RCTNativeAppEventEmitter _emitter;
         
@@ -112,7 +113,18 @@ namespace RNFS
                 using (var file = File.OpenWrite(filepath))
                 {
                     var data = Convert.FromBase64String(base64Content);
-                    await file.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
+                    if (options.Value<bool>("encrypted"))
+                    {
+                        var base64Key = options.Value<string>("passphrase");
+                        using (var csStream = encryptionManager.getCryptoWriteStream(file, base64Key))
+                        {
+                            await csStream.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
+                        }
+                    } else
+                    {
+                        await file.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
+                    }
+                                      
                 }
 
                 promise.Resolve(null);
@@ -182,7 +194,7 @@ namespace RNFS
         }
 
         [ReactMethod]
-        public async void readFile(string filepath, IPromise promise)
+        public async void readFile(string filepath, JObject options, IPromise promise)
         {
             try
             {
@@ -196,16 +208,38 @@ namespace RNFS
                 string base64Content;
                 using (var file = File.OpenRead(filepath))
                 {
-                    var length = (int)file.Length;
-                    var buffer = new byte[length];
-                    await file.ReadAsync(buffer, 0, length).ConfigureAwait(false);
-                    base64Content = Convert.ToBase64String(buffer);
+
+                    if (options.Value<bool>("encrypted"))
+                    {
+                        var base64Key = options.Value<string>("passphrase");
+                        using (var csStream = encryptionManager.getCryptoReadStream(file, base64Key))
+                        using (var output = new MemoryStream())
+                        {
+                            var buffer = new byte[1024];
+                            var read = csStream.Read(buffer, 0, buffer.Length);
+                            while (read > 0)
+                            {
+                                output.Write(buffer, 0, read);
+                                read = csStream.Read(buffer, 0, buffer.Length);
+                            }
+                            csStream.Flush();
+                            base64Content = Convert.ToBase64String(output.ToArray());
+                        }
+                    }
+                    else
+                    {
+                        var length = (int)file.Length;
+                        var buffer = new byte[length];
+                        await file.ReadAsync(buffer, 0, length).ConfigureAwait(false);
+                        base64Content = Convert.ToBase64String(buffer);
+                    }
                 }
 
                 promise.Resolve(base64Content);
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine(ex);
                 Reject(promise, filepath, ex); 
             }
         }
@@ -439,7 +473,7 @@ namespace RNFS
         }
 
         [ReactMethod]
-        public async void downloadFile(JObject options, IPromise promise)
+        public async void downloadFile(JObject options, JObject fileOptions, IPromise promise)
         {
             var filepath = options.Value<string>("toFile");
 
@@ -456,8 +490,24 @@ namespace RNFS
                     request.Headers.Add(header.Key, header.Value.Value<string>());
                 }
 
-                await _tasks.AddAndInvokeAsync(jobId, token => 
-                    ProcessRequestAsync(promise, request, filepath, jobId, progressDivider, token));
+                Stream outputStream;
+                using (var fileStream = new FileStream(filepath, FileMode.Create, FileAccess.Write))
+                {
+                    if (fileOptions.Value<bool>("encrypted"))
+                    {
+                        var base64Key = fileOptions.Value<string>("passphrase");
+                        outputStream = encryptionManager.getCryptoWriteStream(fileStream, base64Key);
+                    } else
+                    {
+                        outputStream = fileStream;
+                    }
+
+                    await _tasks.AddAndInvokeAsync(jobId, token => ProcessRequestAsync(promise, request, filepath, jobId, progressDivider, outputStream, token));
+
+                    outputStream.Flush();
+                    outputStream.Dispose();
+                   
+                }
             }
             catch (Exception ex)
             {
@@ -528,7 +578,7 @@ namespace RNFS
             _httpClient.Dispose();
         }
 
-        private async Task ProcessRequestAsync(IPromise promise, HttpRequestMessage request, string filepath, int jobId, int progressIncrement, CancellationToken token)
+        private async Task ProcessRequestAsync(IPromise promise, HttpRequestMessage request, string filepath, int jobId, int progressIncrement, Stream outputStream, CancellationToken token)
         {
             try
             {
@@ -551,7 +601,6 @@ namespace RNFS
 
                     // TODO: open file on background thread?
                     long totalRead = 0;
-                    using (var fileStream = File.OpenWrite(filepath))
                     using (var stream = await response.Content.ReadAsStreamAsync())
                     {
                         var contentLengthForProgress = contentLength ?? -1;
@@ -561,8 +610,7 @@ namespace RNFS
                         while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                         {
                             token.ThrowIfCancellationRequested();
-
-                            await fileStream.WriteAsync(buffer, 0, read);
+                            await outputStream.WriteAsync(buffer, 0, read);
                             if (contentLengthForProgress >= 0)
                             {
                                 totalRead += read;
@@ -589,6 +637,9 @@ namespace RNFS
                         { "bytesWritten", totalRead },
                     });
                 }
+            }catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
             }
             finally
             {
