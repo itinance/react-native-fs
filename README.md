@@ -550,6 +550,7 @@ type DownloadFileOptions = {
   background?: boolean;     // Continue the download in the background after the app terminates (iOS only)
   discretionary?: boolean;  // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
   cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only, defaults to true)
+  allowsCellularAccess?: boolean; // Whether the file may be downloaded on a cellular connection (iOS only, defaults to true)
   progressDivider?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
@@ -599,6 +600,8 @@ If `progressDivider` = 0, you will receive all `progressCallback` calls, default
                            This option is currently only available for iOS, see the [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios) section.
 
 (IOS only): If `options.resumable` is provided, it will be invoked when the download has stopped and and can be resumed using `resumeDownload()`.
+
+(IOS only): If `options.allowsCellularAccess` is false, files will only be downloaded when a Wi-Fi connection is available. (default: `true`).
 
 ### `stopDownload(jobId: number): void`
 

@@ -55,6 +55,10 @@
     config = [NSURLSessionConfiguration defaultSessionConfiguration];
   }
 
+  if(!_params.allowsCellularAccess) {
+    config.allowsCellularAccess = _params.allowsCellularAccess;
+  }
+
   if (!_params.cacheable) {
     config.URLCache = nil;
   }
