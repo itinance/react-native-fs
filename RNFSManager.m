@@ -58,13 +58,16 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
   contents = [contents rnfs_mapObjectsUsingBlock:^id(NSString *obj, NSUInteger idx) {
     NSString *path = [dirPath stringByAppendingPathComponent:obj];
     NSDictionary *attributes = [fileManager attributesOfItemAtPath:path error:nil];
-
+    NSNumber *size = [attributes objectForKey:NSFileSize];
+    if (!size) {
+        size = @0;
+    }
     return @{
              @"ctime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileCreationDate]],
              @"mtime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileModificationDate]],
              @"name": obj,
              @"path": path,
-             @"size": [attributes objectForKey:NSFileSize],
+             @"size": size,
              @"type": [attributes objectForKey:NSFileType]
              };
   }];
