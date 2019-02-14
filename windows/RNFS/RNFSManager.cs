@@ -516,6 +516,13 @@ namespace RNFS
         }
 
         [ReactMethod]
+        public void generateEncryptionKey(IPromise promise)
+        {
+            var key = encryptionManager.generateKey();
+            promise.Resolve(key);
+        }
+
+        [ReactMethod]
         public void stopDownload(int jobId)
         {
             _tasks.Cancel(jobId);

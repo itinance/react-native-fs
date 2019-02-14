@@ -585,6 +585,13 @@ var RNFS = {
     return RNFSManager.scanFile(path);
   },
 
+  generateEncryptionKey(): Promise<string> {
+    if (!RNFSManager.generateEncryptionKey) {
+      return Promise.reject(new Error('encryption is unsupported on this platform'))
+    }
+    return RNFSManager.generateEncryptionKey();
+  },
+
   MainBundlePath: RNFSManager.RNFSMainBundlePath,
   CachesDirectoryPath: RNFSManager.RNFSCachesDirectoryPath,
   ExternalCachesDirectoryPath: RNFSManager.RNFSExternalCachesDirectoryPath,
