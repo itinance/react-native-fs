@@ -212,6 +212,10 @@ var RNFS = {
     return RNFSManager.copyFile(normalizeFilePath(filepath), normalizeFilePath(destPath), options).then(() => void 0);
   },
 
+  decryptFile(filepath: string, destPath: string, options: FileOptions = {}): Promise<void> {
+    return RNFSManager.decryptFile(normalizeFilePath(filepath), normalizeFilePath(destPath), options).then(() => void 0);
+  },
+
   pathForBundle(bundleNamed: string): Promise<string> {
     return RNFSManager.pathForBundle(bundleNamed);
   },

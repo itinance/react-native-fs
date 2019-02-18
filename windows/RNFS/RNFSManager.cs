@@ -348,6 +348,42 @@ namespace RNFS
             }
         }
 
+        private async Task copy(Stream inputStream, Stream outputStream)
+        {
+            var buffer = new byte[8 * 1024];
+            var read = 0;
+            while ((read = await inputStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                await outputStream.WriteAsync(buffer, 0, read);
+            }
+        }
+
+        [ReactMethod]
+        public async void decryptFile(string filepath, string destPath, JObject options, IPromise promise)
+        {
+            try
+            {
+                if (options.Value<bool>("encrypted"))
+                {
+                    var base64Key = options.Value<string>("passphrase");
+                    using (var fileStream = File.OpenRead(filepath))
+                    using (var destStream = File.OpenWrite(destPath))
+                    using (var csStream = encryptionManager.getCryptoReadStream(fileStream, base64Key))
+                    {
+                        await copy(csStream, destStream);
+                        promise.Resolve(null);
+                    }
+                }
+                else
+                {
+                    promise.Reject("missing_encryption");
+                }
+            } catch (Exception ex)
+            {
+                Reject(promise, filepath, ex);
+            }
+        }
+
         [ReactMethod]
         public async void readDir(string directory, IPromise promise)
         {
