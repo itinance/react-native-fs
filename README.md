@@ -456,7 +456,7 @@ Note: Android only.
 
 ### `readFileRes(filename:string, encoding?: string): Promise<string>`
 
-Reads the file at `path` in the Android app's res folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+Reads the file named `filename` in the Android app's res folder and return contents. `res/drawable` is used as the parent folder for image files, `res/raw` for everything else. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
 Note: Android only.
 
@@ -490,7 +490,7 @@ Note: Android only. Will overwrite destPath if it already exists.
 
 ### `copyFileRes(filename: string, destPath: string): Promise<void>`
 
-Copies the file at `filepath` in the Android app's res folder and copies it to the given `destPath ` path.
+Copies the file named `filename` in the Android app's res folder and copies it to the given `destPath ` path. `res/drawable` is used as the source parent folder for image files, `res/raw` for everything else.
 
 Note: Android only. Will overwrite destPath if it already exists.
 
@@ -536,7 +536,7 @@ Note: Android only.
 
 ### `existsRes(filename: string): Promise<boolean>`
 
-Check in the Android res folder if the item exists. `filepath` is the relative path from the root of the assets folder. If the item does not exist, return false.
+Check in the Android res folder if the item named `filename` exists. `res/drawable` is used as the parent folder for image files, `res/raw` for everything else. If the item does not exist, return false.
 
 Note: Android only.
 
