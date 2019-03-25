@@ -29,6 +29,11 @@ var normalizeFilePath = (path: string) => (path.startsWith('file://') ? path.sli
 
 type MkdirOptions = {
   NSURLIsExcludedFromBackupKey?: boolean; // iOS only
+  NSFileProtectionKey?: string; // IOS only
+};
+
+type FileOptions = {
+    NSFileProtectionKey?: string; // IOS only
 };
 
 type ReadDirItem = {
@@ -42,12 +47,13 @@ type ReadDirItem = {
 };
 
 type StatResult = {
-  name: string;     // The name of the item
+  name: ?string;     // The name of the item TODO: why is this not documented?
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
   mode: number;     // UNIX file mode
   ctime: number;    // Created date
   mtime: number;    // Last modified date
+  originalFilepath: string;    // In case of content uri this is the pointed file path, otherwise is the same as path
   isFile: () => boolean;        // Is the file just a file?
   isDirectory: () => boolean;   // Is the file a directory?
 };
@@ -61,6 +67,7 @@ type DownloadFileOptions = {
   headers?: Headers;        // An object of headers to be passed to the server
   background?: boolean;     // Continue the download in the background after the app terminates (iOS only)
   discretionary?: boolean;  // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
+  cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only)
   progressDivider?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
@@ -94,6 +101,8 @@ type UploadFileOptions = {
   headers?: Headers;        // An object of headers to be passed to the server
   fields?: Fields;          // An object of fields to be passed to the server
   method?: string;          // Default is 'POST', supports 'POST' and 'PUT'
+  beginCallback?: (res: UploadBeginCallbackResult) => void; // deprecated
+  progressCallback?: (res: UploadProgressCallbackResult) => void; // deprecated
   begin?: (res: UploadBeginCallbackResult) => void;
   progress?: (res: UploadProgressCallbackResult) => void;
 };
@@ -183,12 +192,12 @@ var RNFS = {
     return RNFSManager.mkdir(normalizeFilePath(filepath), options).then(() => void 0);
   },
 
-  moveFile(filepath: string, destPath: string): Promise<void> {
-    return RNFSManager.moveFile(normalizeFilePath(filepath), normalizeFilePath(destPath)).then(() => void 0);
+  moveFile(filepath: string, destPath: string, options: FileOptions = {}): Promise<void> {
+    return RNFSManager.moveFile(normalizeFilePath(filepath), normalizeFilePath(destPath), options).then(() => void 0);
   },
 
-  copyFile(filepath: string, destPath: string): Promise<void> {
-    return RNFSManager.copyFile(normalizeFilePath(filepath), normalizeFilePath(destPath)).then(() => void 0);
+  copyFile(filepath: string, destPath: string, options: FileOptions = {}): Promise<void> {
+    return RNFSManager.copyFile(normalizeFilePath(filepath), normalizeFilePath(destPath), options).then(() => void 0);
   },
 
   pathForBundle(bundleNamed: string): Promise<string> {
@@ -276,10 +285,12 @@ var RNFS = {
   stat(filepath: string): Promise<StatResult> {
     return RNFSManager.stat(normalizeFilePath(filepath)).then((result) => {
       return {
+        'path': filepath,
         'ctime': new Date(result.ctime * 1000),
         'mtime': new Date(result.mtime * 1000),
         'size': result.size,
         'mode': result.mode,
+        'originalFilepath': result.originalFilepath,
         isFile: () => result.type === RNFSFileTypeRegular,
         isDirectory: () => result.type === RNFSFileTypeDirectory,
       };
@@ -368,7 +379,10 @@ var RNFS = {
       if (typeof encodingOrOptions === 'string') {
         options.encoding = encodingOrOptions;
       } else if (typeof encodingOrOptions === 'object') {
-        options = encodingOrOptions;
+        options = {
+            ...options,
+            ...encodingOrOptions
+        };
       }
     }
 
@@ -382,7 +396,7 @@ var RNFS = {
       throw new Error('Invalid encoding type "' + options.encoding + '"');
     }
 
-    return RNFSManager.writeFile(normalizeFilePath(filepath), b64).then(() => void 0);
+    return RNFSManager.writeFile(normalizeFilePath(filepath), b64, options).then(() => void 0);
   },
 
   appendFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
@@ -559,15 +573,20 @@ var RNFS = {
     );
   },
 
+  scanFile(path: string): Promise<ReadDirItem[]> {
+    return RNFSManager.scanFile(path);
+  },
+
   MainBundlePath: RNFSManager.RNFSMainBundlePath,
   CachesDirectoryPath: RNFSManager.RNFSCachesDirectoryPath,
+  ExternalCachesDirectoryPath: RNFSManager.RNFSExternalCachesDirectoryPath,
   DocumentDirectoryPath: RNFSManager.RNFSDocumentDirectoryPath,
   ExternalDirectoryPath: RNFSManager.RNFSExternalDirectoryPath,
   ExternalStorageDirectoryPath: RNFSManager.RNFSExternalStorageDirectoryPath,
   TemporaryDirectoryPath: RNFSManager.RNFSTemporaryDirectoryPath,
   LibraryDirectoryPath: RNFSManager.RNFSLibraryDirectoryPath,
-  PicturesDirectoryPath: RNFSManager.RNFSPicturesDirectoryPath
-
+  PicturesDirectoryPath: RNFSManager.RNFSPicturesDirectoryPath,
+  FileProtectionKeys: RNFSManager.RNFSFileProtectionKeys
 };
 
 module.exports = RNFS;
