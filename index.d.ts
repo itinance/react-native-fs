@@ -153,6 +153,11 @@ export function readDirAssets(dirpath: string): Promise<ReadDirItem[]>
 export function existsAssets(filepath: string): Promise<boolean>
 
 /**
+ * Android-only
+ */
+export function existsRes(filepath: string): Promise<boolean>
+
+/**
  * Node style version (lowercase d). Returns just the names
  */
 export function readdir(dirpath: string): Promise<string[]>
@@ -187,12 +192,28 @@ export function readFileAssets(
 	encodingOrOptions?: any
 ): Promise<string>
 
+/**
+ * Android only
+ */
+export function readFileRes(
+	filepath: string,
+	encodingOrOptions?: any
+): Promise<string>
+
 export function hash(filepath: string, algorithm: string): Promise<string>
 
 /**
  * Android only
  */
 export function copyFileAssets(
+	filepath: string,
+	destPath: string
+): Promise<void>
+
+/**
+ * Android only
+ */
+export function copyFileRes(
 	filepath: string,
 	destPath: string
 ): Promise<void>
