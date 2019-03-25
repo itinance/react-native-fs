@@ -454,6 +454,12 @@ Reads the file at `path` in the Android app's assets folder and return contents.
 
 Note: Android only.
 
+### `readFileRes(filename:string, encoding?: string): Promise<string>`
+
+Reads the file at `path` in the Android app's res folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+
+Note: Android only.
+
 ### `writeFile(filepath: string, contents: string, encoding?: string): Promise<void>`
 
 Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
@@ -480,7 +486,13 @@ Note: On Android copyFile will overwrite `destPath` if it already exists. On iOS
 
 Copies the file at `filepath` in the Android app's assets folder and copies it to the given `destPath ` path.
 
-Note: Android only. Will overwrite destPath if it already exists
+Note: Android only. Will overwrite destPath if it already exists.
+
+### `copyFileRes(filename: string, destPath: string): Promise<void>`
+
+Copies the file at `filepath` in the Android app's res folder and copies it to the given `destPath ` path.
+
+Note: Android only. Will overwrite destPath if it already exists.
 
 ### `copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number, scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string>`
 
@@ -519,6 +531,14 @@ Check if the item exists at `filepath`. If the item does not exist, return false
 ### `existsAssets(filepath: string): Promise<boolean>`
 
 Check in the Android assets folder if the item exists. `filepath` is the relative path from the root of the assets folder. If the item does not exist, return false.
+
+Note: Android only.
+
+### `existsRes(filename: string): Promise<boolean>`
+
+Check in the Android res folder if the item exists. `filepath` is the relative path from the root of the assets folder. If the item does not exist, return false.
+
+Note: Android only.
 
 ### `hash(filepath: string, algorithm: string): Promise<string>`
 
