@@ -295,7 +295,7 @@ return RNFS.unlink(path)
   });
 ```
 
-### File upload (iOS only)
+### File upload
 
 ```javascript
 // require the module
@@ -626,7 +626,7 @@ For use when using background downloads, tell iOS you are done handling a comple
 
 Read more about background downloads in the [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios) section.
 
-### (iOS only) `uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> }`
+### `uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> }`
 
 `options` (`Object`) - An object containing named parameters
 
