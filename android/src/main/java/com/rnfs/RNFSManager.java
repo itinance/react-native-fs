@@ -103,7 +103,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     try {
       stream = reactContext.getContentResolver().openInputStream(uri);
     } catch (FileNotFoundException ex) {
-      throw new IORejectionException("ENOENT", "ENOENT: no such file or directory, open '" + filepath + "'");
+      throw new IORejectionException("ENOENT", "ENOENT: " + ex.getMessage() + ", open '" + filepath + "'");
     }
     if (stream == null) {
       throw new IORejectionException("ENOENT", "ENOENT: could not open an input stream for '" + filepath + "'");
@@ -117,7 +117,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     try {
       stream = reactContext.getContentResolver().openOutputStream(uri, append ? "wa" : "w");
     } catch (FileNotFoundException ex) {
-      throw new IORejectionException("ENOENT", "ENOENT: no such file or directory, open '" + filepath + "'");
+      throw new IORejectionException("ENOENT", "ENOENT: " + ex.getMessage() + ", open '" + filepath + "'");
     }
     if (stream == null) {
       throw new IORejectionException("ENOENT", "ENOENT: could not open an output stream for '" + filepath + "'");
