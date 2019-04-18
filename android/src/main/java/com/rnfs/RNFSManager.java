@@ -874,4 +874,25 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
     return constants;
   }
+
+
+    @ReactMethod
+  public void existsRes(String filename, Promise promise) {
+    try {
+      int res = getResIdentifier(filename);
+      if (res > 0) {
+        promise.resolve(true);
+      } else {
+        promise.resolve(false);
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filename, ex);
+    }
+  }
+
+  private int getResIdentifier(String filename) {
+     return getReactApplicationContext().getResources().getIdentifier(filename, "raw", getReactApplicationContext().getPackageName());
+  }
+
 }
