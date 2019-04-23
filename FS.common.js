@@ -147,15 +147,8 @@ type FSInfoResult = {
 /**
  * Generic function used by readFile and readFileAssets
  */
-<<<<<<< HEAD
 function readFileGeneric(filepath: string, encodingOrOptions:?string, command: Function) {
   let options = defaultFileOptions;
-=======
-function readFileGeneric(filepath: string, encodingOrOptions: ?string, command: Function) {
-  var options = {
-    encoding: 'utf8'
-  };
->>>>>>> add-uwp-cancellation-exception
 
   if (encodingOrOptions) {
     if (typeof encodingOrOptions === 'string') {
@@ -423,13 +416,8 @@ var RNFS = {
         }
       } else if (typeof encodingOrOptions === 'object') {
         options = {
-<<<<<<< HEAD
             ...defaultFileOptions,
             ...encodingOrOptions
-=======
-          ...options,
-          ...encodingOrOptions
->>>>>>> add-uwp-cancellation-exception
         };
       }
     }
