@@ -680,9 +680,10 @@ namespace RNFS
                         { "bytesWritten", totalRead },
                     });
                 }
-            }catch (Exception ex)
+            }
+            catch (OperationCanceledException ex)
             {
-                System.Diagnostics.Debug.WriteLine(ex);
+                promise.Reject(new RequestCancellationException(jobId, filepath, ex));
             }
             finally
             {
