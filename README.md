@@ -295,7 +295,7 @@ return RNFS.unlink(path)
   });
 ```
 
-### File upload
+### File upload (Android and IOS only)
 
 ```javascript
 // require the module
