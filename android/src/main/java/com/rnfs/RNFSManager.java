@@ -864,8 +864,19 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void getFSInfo(Promise promise) {
-    File path = Environment.getDataDirectory();
-    StatFs stat = new StatFs(path.getPath());
+    File file = Environment.getDataDirectory();
+    getFSInfoForFile(file, promise);
+  }
+
+  @ReactMethod
+  public void getFSInfoPath(String path, Promise promise) {
+    File file = new File(path);
+    getFSInfoForFile(file, promise);
+  }
+
+  private void getFSInfoForFile(File file, Promise promise) {
+    String path = file.getPath();
+    StatFs stat = new StatFs(path);
     long totalSpace;
     long freeSpace;
     if (android.os.Build.VERSION.SDK_INT >= 18) {
