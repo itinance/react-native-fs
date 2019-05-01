@@ -436,7 +436,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         fileMap.putDouble("mtime", (double) childFile.lastModified() / 1000);
         fileMap.putString("name", childFile.getName());
         fileMap.putString("path", childFile.getAbsolutePath());
-        fileMap.putInt("size", (int) childFile.length());
+        fileMap.putDouble("size", (double) childFile.length());
         fileMap.putInt("type", childFile.isDirectory() ? 1 : 0);
 
         fileMaps.pushMap(fileMap);
@@ -627,7 +627,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       WritableMap statMap = Arguments.createMap();
       statMap.putInt("ctime", (int) (file.lastModified() / 1000));
       statMap.putInt("mtime", (int) (file.lastModified() / 1000));
-      statMap.putInt("size", (int) file.length());
+      statMap.putDouble("size", (double) file.length());
       statMap.putInt("type", file.isDirectory() ? 1 : 0);
       statMap.putString("originalFilepath", originalFilepath);
 
