@@ -866,11 +866,16 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   public void getFSInfo(Promise promise) {
     File path = Environment.getDataDirectory();
     StatFs stat = new StatFs(path.getPath());
+    StatFs statEx = new StatFs(Environment.getExternalStorageDirectory().getPath());
     long totalSpace;
     long freeSpace;
+    long totalSpaceEx = 0;
+    long freeSpaceEx = 0;
     if (android.os.Build.VERSION.SDK_INT >= 18) {
       totalSpace = stat.getTotalBytes();
       freeSpace = stat.getFreeBytes();
+      totalSpaceEx = statEx.getTotalBytes();
+      freeSpaceEx = statEx.getFreeBytes();
     } else {
       long blockSize = stat.getBlockSize();
       totalSpace = blockSize * stat.getBlockCount();
@@ -879,6 +884,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     WritableMap info = Arguments.createMap();
     info.putDouble("totalSpace", (double) totalSpace);   // Int32 too small, must use Double
     info.putDouble("freeSpace", (double) freeSpace);
+    info.putDouble("totalSpaceEx", (double) totalSpaceEx);
+    info.putDouble("freeSpaceEx", (double) freeSpaceEx);
     promise.resolve(info);
   }
 
