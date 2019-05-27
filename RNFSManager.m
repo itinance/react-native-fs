@@ -514,7 +514,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
                                                         @"contentLength": contentLength,
                                                         @"bytesWritten": bytesWritten}];
   };
-    
+
     params.resumableCallback = ^() {
         [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadResumable-%@", jobId] body:nil];
     };
@@ -544,7 +544,7 @@ RCT_EXPORT_METHOD(stopDownload:(nonnull NSNumber *)jobId)
 RCT_EXPORT_METHOD(resumeDownload:(nonnull NSNumber *)jobId)
 {
     RNFSDownloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
-    
+
     if (downloader != nil) {
         [downloader resumeDownload];
     }
@@ -556,7 +556,7 @@ RCT_EXPORT_METHOD(isResumable:(nonnull NSNumber *)jobId
 )
 {
     RNFSDownloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
-    
+
     if (downloader != nil) {
         resolve([NSNumber numberWithBool:[downloader isResumable]]);
     } else {
@@ -809,12 +809,15 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
   NSURL* url = [NSURL URLWithString:imageUri];
   __block NSURL* videoURL = [NSURL URLWithString:destination];
   __block NSError *error = nil;
+
   PHFetchResult *phAssetFetchResult = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
   PHAsset *phAsset = [phAssetFetchResult firstObject];
-  
+
   PHVideoRequestOptions *options = [[PHVideoRequestOptions alloc] init];
   options.networkAccessAllowed = YES;
-  
+  options.version = PHVideoRequestOptionsVersionOriginal;
+  options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
+
   dispatch_group_t group = dispatch_group_create();
   dispatch_group_enter(group);
 
