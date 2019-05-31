@@ -689,7 +689,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void downloadFile(final ReadableMap options, final Promise promise) {
+  public void downloadFile(final ReadableMap options, ReadableMap fileOptions, final Promise promise) {
     try {
       File file = new File(options.getString("toFile"));
       URL url = new URL(options.getString("fromUrl"));
