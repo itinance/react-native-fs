@@ -212,7 +212,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void readFile(String filepath, Promise promise) {
+  public void readFile(String filepath, ReadableMap options, Promise promise) {
     try {
       InputStream inputStream = getInputStream(filepath);
       byte[] inputData = getInputStreamBytes(inputStream);
