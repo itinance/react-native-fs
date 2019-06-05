@@ -1,217 +1,44 @@
-## react-native-fs
+# react-native-fs
 
-Native filesystem access for react-native
-
-## IMPORTANT
-
-For RN < 0.57 and/or Gradle < 3 you MUST install react-native-fs at version @2.11.17!
-
-For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version @2.13.2!
-
-## Changes for v2.13
-- #544 [Android] Add scanFile method
-- #597 [Android] Perform copyFile in background thread to prevent UI blocking
-- #587 [Windows] Fixed implementation for Windows
-- #585 [Android] Fix EISDIR on stat directory
-- #583 [Android] fix Android downloadFile overflow contentLength and bytesWritten
-
-## Changes for v2.12
-- #601 [iOS] Another fix for copyAssetsVideoIOS
-- #599 [iOS] Fix for copyAssetsVideoIOS regarding iCloud-Files
-- #564 [Android] Upgrade to Gradle 3 (BREAKING compatiblity for < RN 0.57)
-- #571 [Android] Fix issue #566 android progress callback not sync and handle uppercase file extension mimetype
-
-## Changes for v2.11
-- Prepared for RN 0.56 thanx to [#535](https://github.com/itinance/react-native-fs/pull/535) by [rmevans9](https://github.com/rmevans9)
-- #503 make sure to return the original file uri if content:// scheme is not used
-- #510 Fixes an IndexOutOfBounds while uploading files in Android
-- #515 Add cacheable option to downloadFile on iOScompletion callback
-- #516 [iOS] Ensure _bytesWritten is correct in download
-- #519 updated compilesdkversion and buildtoolsversion
-- #535 Make this work with RN56
-- #558 [Android] fixed missing parameter in movefile and writefile
-- #557 [Android] copyFile: fix missing parameter on Android
-- #564 [Android] Replace deprecated 'compile' gradle configuration with 'implementation
-
-## Changes for v2.10
-- UploadFiles is now also available for Android [#486](https://github.com/itinance/react-native-fs/pull/486) by [hank121314](https://github.com/hank121314)
-- Fixed a memory leak that caused after running many simultaneous upload jobs on iOS [#502](https://github.com/itinance/react-native-fs/pull/502) by [Ignigena](https://github.com/Ignigena)
-- Android: Resolve filepath for content URI [480](https://github.com/itinance/react-native-fs/pull/480) by [andtos90](https://github.com/andtos90)
-- (Android only) Add ExternalCachesDirectoryPath [490](https://github.com/itinance/react-native-fs/pull/490) by [superandrew213](https://github.com/superandrew213)
-
-## Changes for v2.9
-- (iOS only) Resumable downloads and better background downloads handling [#335](https://github.com/itinance/react-native-fs/pull/335) by [ptelad](https://github.com/ptelad)
-- (Android only) getAllExternalFilesDirs() added by [ngrj](https://github.com/ngrj)
-- Content URI support [#395](https://github.com/itinance/react-native-fs/pull/395) by [krzysztof-miemiec](https://github.com/krzysztof-miemiec)
-- Fixed Cocoapods-Installation
-
-## Changes for v2.8
-- Fix for [#346](https://github.com/itinance/react-native-fs/pull/347): compressed file assets are detected as directories thx to [jacargentina](https://github.com/jacargentina)
-- added support for Video-Assets on iOS (copyAssetsVideoIOS) and setReadable() on Android by [itinance](https://github.com/itinance)
-- Added react-native-windows support for UWP [#337](https://github.com/itinance/react-native-fs/pull/337) thx to [rozele](https://github.com/rozele)
-- Expose the iOS `discretionary` flag on `downloadFile` [#360](https://github.com/itinance/react-native-fs/pull/360) thx to [jamesreggio](https://github.com/jamesreggio)
-
-## Changes for v2.5
-- breaking change for RN 0.47 at android (https://github.com/facebook/react-native/releases/tag/v0.47.0)
-
-## Changes for v2.4
-- Made new thread for other native processes [ANDROID] (https://github.com/itinance/react-native-fs/commit/ad36b078db9728489155a55c1b7daa42ed191945) thx to [codesinghanoop](https://github.com/codesinghanoop)
-- Upgrade gradle build tools to 25 (https://github.com/itinance/react-native-fs/commit/239bccb9d56fe9308daafb86920ed29eb9e5cfe4) thx to [markusguenther](https://github.com/markusguenther)
-- Fixed Podfile Path-Error (https://github.com/itinance/react-native-fs/commit/9fd51e7e977400f3194c100af88b4c25e7510530) thx to [colorfulberry](https://github.com/colorfulberry)
-- Add read-method with length and position params (https://github.com/itinance/react-native-fs/commit/a39c22be81f0c1f2263dbe60f3cd6cfcc902d2ac) thx to [simitti](https://github.com/simitii)
-
-## Changes for v2.3
-
-- React-Native 0.40 is minimum required for compiling on iOS (otherwise install an older release, see below)
-- Access to iOS-based "assets-library" is now supported with `copyAssetsFileIOS`
-- `readDir` will return now creation- and modification-time of files as with `stat()` (thanks @Ignigena)
-- optional connectionTimeout and readTimeout-Settings on `downloadFile` for Android (thanks @drunksaint)
-
-## Breaking change in v2.0
-
-- Removed attributes from `writeFile` and `appendFile` for iOS / Android consistency
-- `downloadFile` takes `options` object rather than parameters
-- `stopDownload` will cause the rejection of promise returned by `downloadFile`
-- `uploadFiles` promise result `response` property is now `body`
-- A boolean is no longer returned from any method except `exists`
-- `downloadFile` and `uploadFiles` return an object of the form `{ jobId: number, promise: Promise }`
-- `mkdir` takes optional 2nd parameter `options` for iOS users to set the `NSURLIsExcludedFromBackupKey` attribute
+Native filesystem access for react-native, fork from [react-native-fs](https://www.npmjs.com/package/react-native-fs)
 
 ## Usage (iOS)
 
 First you need to install react-native-fs:
 
+```sh
+npm install @taoqf/react-native-fs --save
 ```
-npm install react-native-fs --save
-```
-
-**Note:** If your react-native version is < 0.40 install with this tag instead:
-
-```
-npm install react-native-fs@2.0.1-rc.2 --save
-```
-
-As @a-koka pointed out, you should then update your package.json to
-`"react-native-fs": "2.0.1-rc.2"` (without the tilde)
 
 ### Adding automatically with react-native link
 
 At the command line, in your project folder, type:
 
-`react-native link react-native-fs`
+`react-native link @taoqf/react-native-fs`
 
 Done! No need to worry about manually adding the library to your project.
 
-###  Adding with CocoaPods
+### Adding with CocoaPods
 
  Add the RNFS pod to your list of application pods in your Podfile, using the path from the Podfile to the installed module:~~
 
-```
-pod 'RNFS', :path => '../node_modules/react-native-fs'
+```pod
+pod 'RNFS', :path => '../node_modules/@taoqf/react-native-fs'
 ```
 
 Install pods as usual:
-```
+
+```pod
 pod install
 ```
 
 ### Adding Manually in XCode
 
-In XCode, in the project navigator, right click Libraries ➜ Add Files to [your project's name] Go to node_modules ➜ react-native-fs and add the .xcodeproj file
+In XCode, in the project navigator, right click Libraries ➜ Add Files to [your project's name] Go to node_modules ➜ @taoqf ➜ react-native-fs and add the .xcodeproj file
 
 In XCode, in the project navigator, select your project. Add the `lib*.a` from the RNFS project to your project's Build Phases ➜ Link Binary With Libraries. Click the .xcodeproj file you added before in the project navigator and go the Build Settings tab. Make sure 'All' is toggled on (instead of 'Basic'). Look for Header Search Paths and make sure it contains both `$(SRCROOT)/../react-native/React` and `$(SRCROOT)/../../React` - mark both as recursive.
 
 Run your project (Cmd+R)
-
-## Usage (Android)
-
-Android support is currently limited to only the `DocumentDirectory`. This maps to the app's `files` directory.
-
-Make alterations to the following files:
-
-* `android/settings.gradle`
-
-```gradle
-...
-include ':react-native-fs'
-project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/react-native-fs/android')
-```
-
-* `android/app/build.gradle`
-
-```gradle
-...
-dependencies {
-    ...
-    compile project(':react-native-fs')
-}
-```
-
-* register module (in MainActivity.java)
-
-  * For react-native below 0.19.0 (use `cat ./node_modules/react-native/package.json | grep version`)
-
-```java
-import com.rnfs.RNFSPackage;  // <--- import
-
-public class MainActivity extends Activity implements DefaultHardwareBackBtnHandler {
-
-  ......
-
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    mReactRootView = new ReactRootView(this);
-
-    mReactInstanceManager = ReactInstanceManager.builder()
-      .setApplication(getApplication())
-      .setBundleAssetName("index.android.bundle")
-      .setJSMainModuleName("index.android")
-      .addPackage(new MainReactPackage())
-      .addPackage(new RNFSPackage())      // <------- add package
-      .setUseDeveloperSupport(BuildConfig.DEBUG)
-      .setInitialLifecycleState(LifecycleState.RESUMED)
-      .build();
-
-    mReactRootView.startReactApplication(mReactInstanceManager, "ExampleRN", null);
-
-    setContentView(mReactRootView);
-  }
-
-  ......
-
-}
-```
-
-  * For react-native 0.19.0 and higher
-```java
-import com.rnfs.RNFSPackage; // <------- add package
-
-public class MainActivity extends ReactActivity {
-   // ...
-    @Override
-    protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(
-        new MainReactPackage(), // <---- add comma
-        new RNFSPackage() // <---------- add package
-      );
-    }
-```
-
-  * For react-native 0.29.0 and higher ( in MainApplication.java )
-```java
-import com.rnfs.RNFSPackage; // <------- add package
-
-public class MainApplication extends Application implements ReactApplication {
-   // ...
-    @Override
-    protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(
-        new MainReactPackage(), // <---- add comma
-        new RNFSPackage() // <---------- add package
-      );
-    }
-```
 
 ## Usage (Windows)
 
@@ -219,11 +46,11 @@ public class MainApplication extends Application implements ReactApplication {
 
 The `link` command also works for adding the native dependency on Windows:
 
-`react-native link react-native-fs`
+`react-native link @taoqf/react-native-fs`
 
 ### Adding Manually in Visual Studio
 
-Follow the instructions in the ['Linking Libraries'](https://github.com/Microsoft/react-native-windows/blob/master/docs/LinkingLibrariesWindows.md) documentation on the react-native-windows GitHub repo. For the first step of adding the project to the Visual Studio solution file, the path to the project should be `../node_modules/react-native-fs/windows/RNFS/RNFS.csproj`.
+Follow the instructions in the ['Linking Libraries'](https://github.com/Microsoft/react-native-windows/blob/master/docs/LinkingLibrariesWindows.md) documentation on the react-native-windows GitHub repo. For the first step of adding the project to the Visual Studio solution file, the path to the project should be `../node_modules/@taoqf/react-native-fs/windows/RNFS/RNFS.csproj`.
 
 ## Examples
 
@@ -231,7 +58,7 @@ Follow the instructions in the ['Linking Libraries'](https://github.com/Microsof
 
 ```javascript
 // require the module
-var RNFS = require('react-native-fs');
+var RNFS = require('@taoqf/react-native-fs');
 
 // get a list of files and directories in the main bundle
 RNFS.readDir(RNFS.MainBundlePath) // On Android, use "RNFS.DocumentDirectoryPath" (MainBundlePath is not defined)
@@ -262,7 +89,7 @@ RNFS.readDir(RNFS.MainBundlePath) // On Android, use "RNFS.DocumentDirectoryPath
 
 ```javascript
 // require the module
-var RNFS = require('react-native-fs');
+var RNFS = require('@taoqf/react-native-fs');
 
 // create a path you want to write to
 // :warning: on iOS, you cannot write into `RNFS.MainBundlePath`,
@@ -281,6 +108,7 @@ RNFS.writeFile(path, 'Lorem ipsum dolor sit amet', 'utf8')
 ```
 
 ### File deletion
+
 ```javascript
 // create a path you want to delete
 var path = RNFS.DocumentDirectoryPath + '/test.txt';
@@ -299,7 +127,7 @@ return RNFS.unlink(path)
 
 ```javascript
 // require the module
-var RNFS = require('react-native-fs');
+var RNFS = require('@taoqf/react-native-fs');
 
 var uploadUrl = 'http://requestb.in/XXXXXXX';  // For testing purposes, go to http://requestb.in/ and create your own link
 // create an array of objects of the files you want to upload
@@ -393,12 +221,12 @@ type ReadDirItem = {
 
 ### `readDirAssets(dirpath: string): Promise<ReadDirItem[]>`
 
-Reads the contents of `dirpath ` in the Android app's assets folder.
-`dirpath ` is the relative path to the file from the root of the `assets` folder.
+Reads the contents of `dirpath` in the Android app's assets folder.
+`dirpath` is the relative path to the file from the root of the `assets` folder.
 
 The returned promise resolves with an array of objects with the following properties:
 
-```
+```ts
 type ReadDirItem = {
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
@@ -421,7 +249,7 @@ Node.js style version of `readDir` that returns only the names. Note the lowerca
 Stats an item at `filepath`. If the `filepath` is linked to a virtual file, for example Android Content URI, the `originalPath` can be used to find the pointed file path.
 The promise resolves with an object with the following properties:
 
-```
+```ts
 type StatResult = {
   path:            // The same as filepath argument
   ctime: date;     // The creation date of the file
@@ -650,7 +478,7 @@ Read more about background downloads in the [Background Downloads Tutorial (iOS)
 
 `options` (`Object`) - An object containing named parameters
 
-```
+```ts
 type UploadFileOptions = {
   toUrl: string;            // URL to upload file to
   files: UploadFileItem[];  // An array of objects with the file information to be uploaded.
@@ -662,7 +490,8 @@ type UploadFileOptions = {
 };
 
 ```
-```
+
+```ts
 type UploadResult = {
   jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
   statusCode: number;   // The HTTP status code
@@ -673,7 +502,7 @@ type UploadResult = {
 
 Each file should have the following structure:
 
-```
+```ts
 type UploadFileItem = {
   name: string;       // Name of the file, if not defined then filename is used
   filename: string;   // Name of file
@@ -684,7 +513,7 @@ type UploadFileItem = {
 
 If `options.begin` is provided, it will be invoked once upon upload has begun:
 
-```
+```ts
 type UploadBeginCallbackResult = {
   jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
 };
@@ -692,7 +521,7 @@ type UploadBeginCallbackResult = {
 
 If `options.progress` is provided, it will be invoked continuously and passed a single object with the following properties:
 
-```
+```ts
 type UploadProgressCallbackResult = {
   jobId: number;                      // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
   totalBytesExpectedToSend: number;   // The total number of bytes that will be sent to the server
@@ -710,7 +539,7 @@ Abort the current upload job with this ID.
 
 Returns an object with the following properties:
 
-```
+```ts
 type FSInfoResult = {
   totalSpace: number;   // The total amount of storage space on the device (in bytes).
   freeSpace: number;    // The amount of available storage space on the device (in bytes).
@@ -742,7 +571,7 @@ Background downloads in iOS require a bit of a setup.
 
 First, in your `AppDelegate.m` file add the following:
 
-```
+```c
 #import <RNFSManager.h>
 
 ...
@@ -763,7 +592,6 @@ The JavaScript will continue to work as usual when the download is done but now 
 **BE AWARE!** iOS will give about 30 sec. to run your code after `handleEventsForBackgroundURLSession` is called and until `completionHandler`
 is triggered so don't do anything that might take a long time (like unzipping), you will be able to do it after the user re-launces the app,
 otherwide iOS will terminate your app.
-
 
 ## Test / Demo app
 
