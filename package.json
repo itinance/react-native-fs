@@ -30,16 +30,16 @@
     "utf8": "^2.1.1"
   },
   "devDependencies": {
-    "flow-bin": "0.28.0",
-    "react": "^16.2.0",
-    "react-native": "^0.57.0",
-    "prop-types": "15.6.0",
-    "create-react-class": "^15.6.2",
-    "react-native-windows": "^0.57.0"
+    "create-react-class": "15.6.3",
+    "flow-bin": "0.78.0",
+    "prop-types": "15.7.2",
+    "react": "16.6.3",
+    "react-native": "0.57.8",
+    "react-native-windows": "0.57.2"
   },
   "peerDependencies": {
+    "prop-types": "^15.6.0",
     "react": "^16.2.0",
-    "react-native": ">=0.51.0 <1.0.0",
-    "prop-types": "^15.6.0"
+    "react-native": ">=0.51.0 <1.0.0"
   }
 }
