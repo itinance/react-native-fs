@@ -1,5 +1,5 @@
 {
-	"name": "@taoqf/react-native-fs",
+	"name": "react-native-fs",
 	"version": "1.0.3",
 	"description": "Native filesystem access for react-native",
 	"main": "FS.common.js",
@@ -10,7 +10,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/taoqf/react-native-fs.git"
+		"url": "git+https://github.com/itinance/react-native-fs.git"
 	},
 	"keywords": [
 		"react-component",
