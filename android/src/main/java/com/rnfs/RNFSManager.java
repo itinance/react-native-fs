@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.StatFs;
 import android.provider.MediaStore;
-import androidx.annotation.Nullable;
 import android.util.Base64;
 import android.util.SparseArray;
 import android.media.MediaScannerConnection;
@@ -682,7 +681,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     }
   }
 
-  private void sendEvent(ReactContext reactContext, String eventName, @Nullable WritableMap params) {
+  private void sendEvent(ReactContext reactContext, String eventName, WritableMap params) {
     reactContext
             .getJSModule(RCTNativeAppEventEmitter.class)
             .emit(eventName, params);
