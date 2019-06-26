@@ -56,9 +56,10 @@
     [reqBody appendData:[val dataUsingEncoding:NSUTF8StringEncoding]];
     [reqBody appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
   }
-
+  NSArray *files = _params.files;
+  Boolean hasMultipleFiles = [files count] > 1;
   // add files
-  for (NSDictionary *file in _params.files) {
+  for (NSDictionary *file in files) {
     NSString *name = file[@"name"];
     NSString *filename = file[@"filename"];
     NSString *filepath = file[@"filepath"];
@@ -74,24 +75,29 @@
     }
 
     NSData *fileData = [NSData dataWithContentsOfFile:filepath];
+    if (hasMultipleFiles) {
+      [reqBody appendData:formBoundaryData];
+      [reqBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", name.length ? name : filename, filename] dataUsingEncoding:NSUTF8StringEncoding]];
 
-    [reqBody appendData:formBoundaryData];
-    [reqBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", name.length ? name : filename, filename] dataUsingEncoding:NSUTF8StringEncoding]];
-
-    if (filetype) {
-      [reqBody appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n", filetype] dataUsingEncoding:NSUTF8StringEncoding]];
-    } else {
-      [reqBody appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n", [self mimeTypeForPath:filename]] dataUsingEncoding:NSUTF8StringEncoding]];
+      if (filetype) {
+        [reqBody appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n", filetype] dataUsingEncoding:NSUTF8StringEncoding]];
+      } else {
+        [reqBody appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n", [self mimeTypeForPath:filename]] dataUsingEncoding:NSUTF8StringEncoding]];
+      }
+      [reqBody appendData:[[NSString stringWithFormat:@"Content-Length: %ld\r\n\r\n", (long)[fileData length]] dataUsingEncoding:NSUTF8StringEncoding]];
     }
-
-    [reqBody appendData:[[NSString stringWithFormat:@"Content-Length: %ld\r\n\r\n", (long)[fileData length]] dataUsingEncoding:NSUTF8StringEncoding]];
+  
     [reqBody appendData:fileData];
-    [reqBody appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    if (hasMultipleFiles) {
+      [reqBody appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    }
   }
 
-  // add end boundary
-  NSData* end = [[NSString stringWithFormat:@"--%@--\r\n", formBoundaryString] dataUsingEncoding:NSUTF8StringEncoding];
-  [reqBody appendData:end];
+  if (hasMultipleFiles) {
+    // add end boundary
+    NSData* end = [[NSString stringWithFormat:@"--%@--\r\n", formBoundaryString] dataUsingEncoding:NSUTF8StringEncoding];
+    [reqBody appendData:end];
+  }
 
   // send request
   [req setHTTPBody:reqBody];

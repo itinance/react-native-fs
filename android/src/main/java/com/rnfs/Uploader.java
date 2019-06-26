@@ -60,11 +60,16 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
         BufferedReader responseStreamReader = null;
         String name, filename, filetype;
         try {
+            Object[] files = params.files.toArray();
+            boolean hasMultipleFiles = params.files.size() > 1;
+
             connection = (HttpURLConnection) params.src.openConnection();
             connection.setDoOutput(true);
             ReadableMapKeySetIterator headerIterator = params.headers.keySetIterator();
             connection.setRequestMethod(params.method);
-            connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+            if (hasMultipleFiles) {
+                connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+            }
             while (headerIterator.hasNextKey()) {
                 String key = headerIterator.nextKey();
                 String value = params.headers.getString(key);
@@ -79,7 +84,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 metaData += twoHyphens + boundary + crlf + "Content-Disposition: form-data; name=\"" + key + "\"" + crlf + crlf + value +crlf;
             }
             stringData += metaData;
-            fileHeader = new String[params.files.toArray().length];
+            fileHeader = new String[files.length];
             for (ReadableMap map : params.files) {
                 try {
                     name = map.getString("name");
@@ -91,34 +96,45 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                     filetype = getMimeType(map.getString("filepath"));
                 }
                 File file = new File(map.getString("filepath"));
-                String fileHeaderType = twoHyphens + boundary + crlf +
-                        "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + filename + "\"" + crlf +
-                        "Content-Type: " + filetype + crlf;
                 long fileLength = file.length();
-                totalFileLength += fileLength ;
-                if(params.files.toArray().length - 1 == fileCount){
-                    totalFileLength += tail.length();
+                totalFileLength += fileLength;
+                if (hasMultipleFiles) {
+                    String fileHeaderType = twoHyphens + boundary + crlf +
+                            "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + filename + "\"" + crlf +
+                            "Content-Type: " + filetype + crlf;
+                    ;
+                    if (files.length - 1 == fileCount){
+                        totalFileLength += tail.length();
+                    }
+
+                    String fileLengthHeader = "Content-length: " + fileLength + crlf;
+                    fileHeader[fileCount] = fileHeaderType + fileLengthHeader + crlf;
+                    stringData += fileHeaderType + fileLengthHeader + crlf;
                 }
-                String fileLengthHeader = "Content-length: " + fileLength + crlf;
-                fileHeader[fileCount] = fileHeaderType + fileLengthHeader + crlf;
-                stringData += fileHeaderType + fileLengthHeader + crlf;
                 fileCount++;
             }
             fileCount = 0;
             mParams.onUploadBegin.onUploadBegin();
-            long requestLength = totalFileLength + stringData.length() + params.files.toArray().length * crlf.length();
-            connection.setRequestProperty("Content-length", "" +(int) requestLength);
-            connection.setFixedLengthStreamingMode((int)requestLength);
+            if (hasMultipleFiles) {
+                long requestLength = totalFileLength;
+                requestLength += stringData.length() + files.length * crlf.length();
+                connection.setRequestProperty("Content-length", "" +(int) requestLength);
+                connection.setFixedLengthStreamingMode((int)requestLength);
+            }
             connection.connect();
 
             request = new DataOutputStream(connection.getOutputStream());
-            request.writeBytes(metaData);
+            if (hasMultipleFiles) {
+                request.writeBytes(metaData);
+            }
 
             byteSentTotal = 0;
             Runtime run = Runtime.getRuntime();
             
             for (ReadableMap map : params.files) {
-                request.writeBytes(fileHeader[fileCount]);
+                if (hasMultipleFiles) {
+                    request.writeBytes(fileHeader[fileCount]);
+                }
                 File file = new File(map.getString("filepath"));
                 int fileLength = (int) file.length();
                 int bytes_read = 0;
@@ -131,9 +147,11 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 while ((bytes_read = bufInput.read(buffer)) != -1) {
                     request.write(buffer, 0, bytes_read);
                     byteSentTotal += bytes_read;
-                    mParams.onUploadProgress.onUploadProgress((int) totalFileLength - tail.length(), byteSentTotal);
+                    mParams.onUploadProgress.onUploadProgress((int) totalFileLength, byteSentTotal);
                 }
-                request.writeBytes(crlf);
+                if (hasMultipleFiles) {
+                    request.writeBytes(crlf);
+                }
                 fileCount++;
                 bufInput.close();
             }
@@ -188,5 +206,4 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
     protected void stop() {
         mAbort.set(true);
     }
-
 }
