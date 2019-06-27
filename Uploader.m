@@ -22,6 +22,7 @@
   NSURL *url = [NSURL URLWithString:_params.toUrl];
   NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url];
   [req setHTTPMethod:method];
+  BOOL binaryStreamOnly = _params.binaryStreamOnly;
 
   // set headers
   NSString *formBoundaryString = [self generateBoundaryString];
@@ -57,7 +58,6 @@
     [reqBody appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
   }
   NSArray *files = _params.files;
-  Boolean hasMultipleFiles = [files count] > 1;
   // add files
   for (NSDictionary *file in files) {
     NSString *name = file[@"name"];
@@ -75,7 +75,7 @@
     }
 
     NSData *fileData = [NSData dataWithContentsOfFile:filepath];
-    if (hasMultipleFiles) {
+    if (!binaryStreamOnly) {
       [reqBody appendData:formBoundaryData];
       [reqBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", name.length ? name : filename, filename] dataUsingEncoding:NSUTF8StringEncoding]];
 
@@ -88,12 +88,12 @@
     }
   
     [reqBody appendData:fileData];
-    if (hasMultipleFiles) {
+    if (!binaryStreamOnly) {
       [reqBody appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
     }
   }
 
-  if (hasMultipleFiles) {
+  if (!binaryStreamOnly) {
     // add end boundary
     NSData* end = [[NSString stringWithFormat:@"--%@--\r\n", formBoundaryString] dataUsingEncoding:NSUTF8StringEncoding];
     [reqBody appendData:end];
