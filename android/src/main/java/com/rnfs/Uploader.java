@@ -50,7 +50,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
         String crlf = "\r\n";
         String twoHyphens = "--";
         String boundary = "*****";
-        String tail = crlf + twoHyphens + boundary + twoHyphens + crlf;
+        String tail = twoHyphens + boundary + twoHyphens + crlf;
         String metaData = "", stringData = "";
         String[] fileHeader;
         int statusCode, byteSentTotal;
@@ -100,8 +100,8 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                     totalFileLength += tail.length();
                 }
                 String fileLengthHeader = "Content-length: " + fileLength + crlf;
-                fileHeader[fileCount] = fileHeaderType + fileLengthHeader + crlf;
-                stringData += fileHeaderType + fileLengthHeader + crlf;
+                fileHeader[fileCount] = fileHeaderType + fileLengthHeader;
+                stringData += fileHeaderType + fileLengthHeader;
                 fileCount++;
             }
             fileCount = 0;
