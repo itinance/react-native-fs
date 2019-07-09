@@ -109,12 +109,19 @@ RCT_EXPORT_METHOD(stat:(NSString *)filepath
 
 RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
                   contents:(NSString *)base64Content
+                  options:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
 
-  BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:nil];
+  NSMutableDictionary *attributes = [[NSMutableDictionary alloc] init];
+
+  if ([options objectForKey:@"NSFileProtectionKey"]) {
+    [attributes setValue:[options objectForKey:@"NSFileProtectionKey"] forKey:@"NSFileProtectionKey"];
+  }
+
+  BOOL success = [[NSFileManager defaultManager] createFileAtPath:filepath contents:data attributes:attributes];
 
   if (!success) {
     return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
@@ -220,8 +227,14 @@ RCT_EXPORT_METHOD(mkdir:(NSString *)filepath
 {
   NSFileManager *manager = [NSFileManager defaultManager];
 
+  NSMutableDictionary *attributes = [[NSMutableDictionary alloc] init];
+
+  if ([options objectForKey:@"NSFileProtectionKey"]) {
+      [attributes setValue:[options objectForKey:@"NSFileProtectionKey"] forKey:@"NSFileProtectionKey"];
+  }
+
   NSError *error = nil;
-  BOOL success = [manager createDirectoryAtPath:filepath withIntermediateDirectories:YES attributes:nil error:&error];
+    BOOL success = [manager createDirectoryAtPath:filepath withIntermediateDirectories:YES attributes:attributes error:&error];
 
   if (!success) {
     return [self reject:reject withError:error];
@@ -385,6 +398,7 @@ RCT_EXPORT_METHOD(hash:(NSString *)filepath
 
 RCT_EXPORT_METHOD(moveFile:(NSString *)filepath
                   destPath:(NSString *)destPath
+                  options:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -397,11 +411,22 @@ RCT_EXPORT_METHOD(moveFile:(NSString *)filepath
     return [self reject:reject withError:error];
   }
 
+  if ([options objectForKey:@"NSFileProtectionKey"]) {
+    NSMutableDictionary *attributes = [[NSMutableDictionary alloc] init];
+    [attributes setValue:[options objectForKey:@"NSFileProtectionKey"] forKey:@"NSFileProtectionKey"];
+    BOOL updateSuccess = [manager setAttributes:attributes ofItemAtPath:destPath error:&error];
+
+    if (!updateSuccess) {
+      return [self reject:reject withError:error];
+    }
+  }
+
   resolve(nil);
 }
 
 RCT_EXPORT_METHOD(copyFile:(NSString *)filepath
                   destPath:(NSString *)destPath
+                  options:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -412,6 +437,16 @@ RCT_EXPORT_METHOD(copyFile:(NSString *)filepath
 
   if (!success) {
     return [self reject:reject withError:error];
+  }
+
+  if ([options objectForKey:@"NSFileProtectionKey"]) {
+    NSMutableDictionary *attributes = [[NSMutableDictionary alloc] init];
+    [attributes setValue:[options objectForKey:@"NSFileProtectionKey"] forKey:@"NSFileProtectionKey"];
+    BOOL updateSuccess = [manager setAttributes:attributes ofItemAtPath:destPath error:&error];
+
+    if (!updateSuccess) {
+      return [self reject:reject withError:error];
+    }
   }
 
   resolve(nil);
@@ -432,6 +467,8 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   params.background = [background boolValue];
   NSNumber* discretionary = options[@"discretionary"];
   params.discretionary = [discretionary boolValue];
+  NSNumber* cacheable = options[@"cacheable"];
+  params.cacheable = cacheable ? [cacheable boolValue] : YES;
   NSNumber* progressDivider = options[@"progressDivider"];
   params.progressDivider = progressDivider;
   NSNumber* readTimeout = options[@"readTimeout"];
@@ -772,12 +809,19 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
   NSURL* url = [NSURL URLWithString:imageUri];
   __block NSURL* videoURL = [NSURL URLWithString:destination];
   __block NSError *error = nil;
+  
   PHFetchResult *phAssetFetchResult = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
   PHAsset *phAsset = [phAssetFetchResult firstObject];
+    
+  PHVideoRequestOptions *options = [[PHVideoRequestOptions alloc] init];
+  options.networkAccessAllowed = YES;
+  options.version = PHVideoRequestOptionsVersionOriginal;
+  options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
+  
   dispatch_group_t group = dispatch_group_create();
   dispatch_group_enter(group);
 
-  [[PHImageManager defaultManager] requestAVAssetForVideo:phAsset options:nil resultHandler:^(AVAsset *asset, AVAudioMix *audioMix, NSDictionary *info) {
+  [[PHImageManager defaultManager] requestAVAssetForVideo:phAsset options:options resultHandler:^(AVAsset *asset, AVAudioMix *audioMix, NSDictionary *info) {
 
     if ([asset isKindOfClass:[AVURLAsset class]]) {
       NSURL *url = [(AVURLAsset *)asset URL];
@@ -866,8 +910,12 @@ RCT_EXPORT_METHOD(touch:(NSString*)filepath
            @"RNFSTemporaryDirectoryPath": NSTemporaryDirectory(),
            @"RNFSLibraryDirectoryPath": [self getPathForDirectory:NSLibraryDirectory],
            @"RNFSFileTypeRegular": NSFileTypeRegular,
-           @"RNFSFileTypeDirectory": NSFileTypeDirectory
-           };
+           @"RNFSFileTypeDirectory": NSFileTypeDirectory,
+           @"RNFSFileProtectionComplete": NSFileProtectionComplete,
+           @"RNFSFileProtectionCompleteUnlessOpen": NSFileProtectionCompleteUnlessOpen,
+           @"RNFSFileProtectionCompleteUntilFirstUserAuthentication": NSFileProtectionCompleteUntilFirstUserAuthentication,
+           @"RNFSFileProtectionNone": NSFileProtectionNone
+          };
 }
 
 +(void)setCompletionHandlerForIdentifier: (NSString *)identifier completionHandler: (CompletionHandler)completionHandler
