@@ -126,6 +126,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RequestCancellationException.cs" />
     <Compile Include="RNFSManager.cs" />
     <Compile Include="RNFSPackage.cs" />
     <EmbeddedResource Include="Properties\RNFS.rd.xml" />
