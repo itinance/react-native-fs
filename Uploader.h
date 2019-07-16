@@ -13,7 +13,8 @@ typedef void (^UploadProgressCallback)(NSNumber*, NSNumber*);
 @property (copy) NSDictionary* headers;
 @property (copy) NSDictionary* fields;
 @property (copy) NSString* method;
-@property (copy) UploadCompleteCallback completeCallback;   // Upload has finished (data written)
+@property (assign) BOOL binaryStreamOnly;
+@property (copy) UploadCompleteCallback completeCallback;    // Upload has finished (data written)
 @property (copy) UploadErrorCallback errorCallback;         // Something gone wrong
 @property (copy) UploadBeginCallback beginCallback;         // Upload has started
 @property (copy) UploadProgressCallback progressCallback;   // Upload is progressing

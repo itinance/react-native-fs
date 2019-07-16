@@ -27,3 +27,5 @@ android/.gradle/*
 android/gradle/*
 android/*.iml
 android/local.properties
+android/.settings
+android/.project

@@ -588,6 +588,7 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
   NSNumber* jobId = options[@"jobId"];
   params.toUrl = options[@"toUrl"];
   params.files = options[@"files"];
+  params.binaryStreamOnly = options[@"binaryStreamOnly"];
   NSDictionary* headers = options[@"headers"];
   NSDictionary* fields = options[@"fields"];
   NSString* method = options[@"method"];

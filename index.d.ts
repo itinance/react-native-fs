@@ -68,6 +68,7 @@ type DownloadResult = {
 
 type UploadFileOptions = {
 	toUrl: string // URL to upload file to
+	binaryStreamOnly?: boolean // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
 	files: UploadFileItem[] // An array of objects with the file information to be uploaded.
 	headers?: Headers // An object of headers to be passed to the server
 	fields?: Fields // An object of fields to be passed to the server

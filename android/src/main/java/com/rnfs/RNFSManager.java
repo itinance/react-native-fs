@@ -788,6 +788,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       ReadableMap headers = options.getMap("headers");
       ReadableMap fields = options.getMap("fields");
       String method = options.getString("method");
+      boolean binaryStreamOnly = options.getBoolean("binaryStreamOnly");
       ArrayList<ReadableMap> fileList = new ArrayList<>();
       UploadParams params = new UploadParams();
       for(int i =0;i<files.size();i++){
@@ -796,8 +797,9 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       params.src = url;
       params.files =fileList;
       params.headers = headers;
-      params.method=method;
-      params.fields=fields;
+      params.method = method;
+      params.fields = fields;
+      params.binaryStreamOnly = binaryStreamOnly;
       params.onUploadComplete = new UploadParams.onUploadComplete() {
         public void onUploadComplete(UploadResult res) {
           if (res.exception == null) {
