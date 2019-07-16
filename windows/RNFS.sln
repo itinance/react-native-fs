@@ -12,6 +12,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChakraBridge", "..\node_mod
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RNFS.Tests", "RNFS.Tests\RNFS.Tests.csproj", "{8D2229AC-F6EC-4FBD-9AAC-FE4792DA98C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RNFS.Net46", "RNFS.Net46\RNFS.Net46.csproj", "{8F7EE18F-8E79-4648-B442-9554443BE262}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\node_modules\react-native-windows\ReactWindows\ReactNative.Shared\ReactNative.Shared.projitems*{c7673ad5-e3aa-468c-a5fd-fa38154e205c}*SharedItemsImports = 4
@@ -111,6 +113,24 @@ Global
 		{8D2229AC-F6EC-4FBD-9AAC-FE4792DA98C6}.Release|x86.ActiveCfg = Release|x86
 		{8D2229AC-F6EC-4FBD-9AAC-FE4792DA98C6}.Release|x86.Build.0 = Release|x86
 		{8D2229AC-F6EC-4FBD-9AAC-FE4792DA98C6}.Release|x86.Deploy.0 = Release|x86
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Debug|ARM.ActiveCfg = Debug|ARM
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Debug|ARM.Build.0 = Debug|ARM
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Debug|x64.ActiveCfg = Debug|x64
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Debug|x64.Build.0 = Debug|x64
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Debug|x86.ActiveCfg = Debug|x86
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Debug|x86.Build.0 = Debug|x86
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Development|ARM.ActiveCfg = Development|ARM
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Development|ARM.Build.0 = Development|ARM
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Development|x64.ActiveCfg = Development|x64
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Development|x64.Build.0 = Development|x64
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Development|x86.ActiveCfg = Development|x86
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Development|x86.Build.0 = Development|x86
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Release|ARM.ActiveCfg = Release|ARM
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Release|ARM.Build.0 = Release|ARM
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Release|x64.ActiveCfg = Release|x64
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Release|x64.Build.0 = Release|x64
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Release|x86.ActiveCfg = Release|x86
+		{8F7EE18F-8E79-4648-B442-9554443BE262}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
