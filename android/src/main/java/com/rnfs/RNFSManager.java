@@ -436,7 +436,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         fileMap.putDouble("mtime", (double) childFile.lastModified() / 1000);
         fileMap.putString("name", childFile.getName());
         fileMap.putString("path", childFile.getAbsolutePath());
-        fileMap.putInt("size", (int) childFile.length());
+        fileMap.putDouble("size", (double) childFile.length());
         fileMap.putInt("type", childFile.isDirectory() ? 1 : 0);
 
         fileMaps.pushMap(fileMap);
@@ -627,7 +627,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       WritableMap statMap = Arguments.createMap();
       statMap.putInt("ctime", (int) (file.lastModified() / 1000));
       statMap.putInt("mtime", (int) (file.lastModified() / 1000));
-      statMap.putInt("size", (int) file.length());
+      statMap.putDouble("size", (double) file.length());
       statMap.putInt("type", file.isDirectory() ? 1 : 0);
       statMap.putString("originalFilepath", originalFilepath);
 
@@ -866,11 +866,16 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   public void getFSInfo(Promise promise) {
     File path = Environment.getDataDirectory();
     StatFs stat = new StatFs(path.getPath());
+    StatFs statEx = new StatFs(Environment.getExternalStorageDirectory().getPath());
     long totalSpace;
     long freeSpace;
+    long totalSpaceEx = 0;
+    long freeSpaceEx = 0;
     if (android.os.Build.VERSION.SDK_INT >= 18) {
       totalSpace = stat.getTotalBytes();
       freeSpace = stat.getFreeBytes();
+      totalSpaceEx = statEx.getTotalBytes();
+      freeSpaceEx = statEx.getFreeBytes();
     } else {
       long blockSize = stat.getBlockSize();
       totalSpace = blockSize * stat.getBlockCount();
@@ -879,6 +884,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     WritableMap info = Arguments.createMap();
     info.putDouble("totalSpace", (double) totalSpace);   // Int32 too small, must use Double
     info.putDouble("freeSpace", (double) freeSpace);
+    info.putDouble("totalSpaceEx", (double) totalSpaceEx);
+    info.putDouble("freeSpaceEx", (double) freeSpaceEx);
     promise.resolve(info);
   }
 
