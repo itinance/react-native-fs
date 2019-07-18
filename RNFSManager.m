@@ -469,6 +469,8 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   params.discretionary = [discretionary boolValue];
   NSNumber* cacheable = options[@"cacheable"];
   params.cacheable = cacheable ? [cacheable boolValue] : YES;
+  NSNumber* progressInterval= options[@"progressInterval"];
+  params.progressInterval = progressInterval;
   NSNumber* progressDivider = options[@"progressDivider"];
   params.progressDivider = progressDivider;
   NSNumber* readTimeout = options[@"readTimeout"];
