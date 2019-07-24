@@ -1,5 +1,13 @@
 # Changelog
 
+## Changes for v2.14
+- #710 Added existsRes function to Android
+- #702 Fix: S3 pre signed uploads or similar binary stream uploads writing corrupt files
+- #695 Added .Net46 side of windows support
+- #691 Add `androidx` suppport
+- #669 Changed "size" from Int to Double
+- #660 add a custom error for cancelled downloadFile Requests
+
 ## Changes for v2.13
 - #544 [Android] Add scanFile method
 - #597 [Android] Perform copyFile in background thread to prevent UI blocking
