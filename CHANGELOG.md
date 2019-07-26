@@ -1,6 +1,7 @@
 # Changelog
 
 ## Changes for v2.14
+- #718 Add tvOS deployment target to podspec
 - #710 Added existsRes function to Android
 - #702 Fix: S3 pre signed uploads or similar binary stream uploads writing corrupt files
 - #695 Added .Net46 side of windows support

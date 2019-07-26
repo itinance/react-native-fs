@@ -1,6 +1,6 @@
 {
   "name": "react-native-fs",
-  "version": "2.14.0",
+  "version": "2.14.1",
   "description": "Native filesystem access for react-native",
   "main": "FS.common.js",
   "typings": "index.d.ts",
