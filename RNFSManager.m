@@ -473,6 +473,8 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   params.progressDivider = progressDivider;
   NSNumber* readTimeout = options[@"readTimeout"];
   params.readTimeout = readTimeout;
+  NSNumber* backgroundTimeout = options[@"backgroundTimeout"];
+  params.backgroundTimeout = backgroundTimeout;
 
   __block BOOL callbackFired = NO;
 

@@ -45,6 +45,7 @@ type DownloadFileOptions = {
 	resumable?: () => void // only supported on iOS yet
 	connectionTimeout?: number // only supported on Android yet
 	readTimeout?: number // supported on Android and iOS
+	backgroundTimeout?: number // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
 }
 
 type DownloadBeginCallbackResult = {
