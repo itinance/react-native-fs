@@ -134,7 +134,7 @@
   }
 }
 
-#pragma 解决自定义 https证书，  导致无法下载问题
+#pragma 解决iOS端自定义 https证书  导致无法下载问题
 - (void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler
 {
     completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust]);
