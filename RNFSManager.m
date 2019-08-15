@@ -739,7 +739,7 @@ RCT_EXPORT_METHOD(copyAssetsFileIOS: (NSString *) imageUri
     NSURL* url = [NSURL URLWithString:imageUri];
     PHFetchResult *results = nil;
     if ([url.scheme isEqualToString:@"ph"]) {
-        results = [PHAsset fetchAssetsWithLocalIdentifiers:@[url] options:nil];
+        results = [PHAsset fetchAssetsWithLocalIdentifiers:@[[imageUri substringFromIndex: 5]] options:nil];
     } else {
         results = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
     }
