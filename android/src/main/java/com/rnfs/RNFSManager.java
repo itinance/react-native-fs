@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -225,6 +226,29 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
+  public void readMultipleFiles(ReadableArray filepathArr, Promise promise) {
+    String currentFilepath = new String();
+    try {
+      ArrayList <String> base64Arr = new ArrayList();
+      for (int i = 0; i < filepathArr.size(); i++) {
+        String filepath = filepathArr.getString(i);
+        // 记录当前路径
+        currentFilepath = filepath;
+        InputStream inputStream = getInputStream(filepath);
+        byte[] inputData = getInputStreamBytes(inputStream);
+        String base64Content = Base64.encodeToString(inputData, Base64.NO_WRAP);
+        // 保存
+        base64Arr.add(base64Content);
+      }
+      // 返回
+      promise.resolve(base64Arr);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, currentFilepath, ex);
     }
   }
 
