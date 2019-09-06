@@ -41,5 +41,14 @@
     "prop-types": "^15.6.0",
     "react": "^16.2.0",
     "react-native": ">=0.51.0 <1.0.0"
-  }
+  },
+  "files": [
+    "android",
+    "*.xcodeproj",
+    "*.h",
+    "*.m",
+    "*.json",
+    "*.ts",
+    "*.js"
+  ]
 }
