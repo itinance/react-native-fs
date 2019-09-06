@@ -9,30 +9,14 @@
 #import "RNFSManager.h"
 
 #import "NSArray+Map.h"
-#import "Downloader.h"
-#import "Uploader.h"
 
-#import <React/RCTEventDispatcher.h>
 #import <React/RCTUtils.h>
 #import <React/RCTImageLoader.h>
 
 #import <CommonCrypto/CommonDigest.h>
 #import <Photos/Photos.h>
 
-
-@interface RNFSManager()
-
-@property (retain) NSMutableDictionary* downloaders;
-@property (retain) NSMutableDictionary* uuids;
-@property (retain) NSMutableDictionary* uploaders;
-
-@end
-
 @implementation RNFSManager
-
-static NSMutableDictionary *completionHandlers;
-
-@synthesize bridge = _bridge;
 
 RCT_EXPORT_MODULE();
 
@@ -452,197 +436,6 @@ RCT_EXPORT_METHOD(copyFile:(NSString *)filepath
   resolve(nil);
 }
 
-RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-  RNFSDownloadParams* params = [RNFSDownloadParams alloc];
-
-  NSNumber* jobId = options[@"jobId"];
-  params.fromUrl = options[@"fromUrl"];
-  params.toFile = options[@"toFile"];
-  NSDictionary* headers = options[@"headers"];
-  params.headers = headers;
-  NSNumber* background = options[@"background"];
-  params.background = [background boolValue];
-  NSNumber* discretionary = options[@"discretionary"];
-  params.discretionary = [discretionary boolValue];
-  NSNumber* cacheable = options[@"cacheable"];
-  params.cacheable = cacheable ? [cacheable boolValue] : YES;
-  NSNumber* progressDivider = options[@"progressDivider"];
-  params.progressDivider = progressDivider;
-  NSNumber* readTimeout = options[@"readTimeout"];
-  params.readTimeout = readTimeout;
-
-  __block BOOL callbackFired = NO;
-
-  params.completeCallback = ^(NSNumber* statusCode, NSNumber* bytesWritten) {
-    if (callbackFired) {
-      return;
-    }
-    callbackFired = YES;
-
-    NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId}];
-    if (statusCode) {
-      [result setObject:statusCode forKey: @"statusCode"];
-    }
-    if (bytesWritten) {
-      [result setObject:bytesWritten forKey: @"bytesWritten"];
-    }
-    return resolve(result);
-  };
-
-  params.errorCallback = ^(NSError* error) {
-    if (callbackFired) {
-      return;
-    }
-    callbackFired = YES;
-    return [self reject:reject withError:error];
-  };
-
-  params.beginCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSDictionary* headers) {
-    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadBegin-%@", jobId]
-                                                 body:@{@"jobId": jobId,
-                                                        @"statusCode": statusCode,
-                                                        @"contentLength": contentLength,
-                                                        @"headers": headers ?: [NSNull null]}];
-  };
-
-  params.progressCallback = ^(NSNumber* contentLength, NSNumber* bytesWritten) {
-    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadProgress-%@", jobId]
-                                                 body:@{@"jobId": jobId,
-                                                        @"contentLength": contentLength,
-                                                        @"bytesWritten": bytesWritten}];
-  };
-    
-    params.resumableCallback = ^() {
-        [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadResumable-%@", jobId] body:nil];
-    };
-
-  if (!self.downloaders) self.downloaders = [[NSMutableDictionary alloc] init];
-
-  RNFSDownloader* downloader = [RNFSDownloader alloc];
-
-  NSString *uuid = [downloader downloadFile:params];
-
-  [self.downloaders setValue:downloader forKey:[jobId stringValue]];
-    if (uuid) {
-        if (!self.uuids) self.uuids = [[NSMutableDictionary alloc] init];
-        [self.uuids setValue:uuid forKey:[jobId stringValue]];
-    }
-}
-
-RCT_EXPORT_METHOD(stopDownload:(nonnull NSNumber *)jobId)
-{
-  RNFSDownloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
-
-  if (downloader != nil) {
-    [downloader stopDownload];
-  }
-}
-
-RCT_EXPORT_METHOD(resumeDownload:(nonnull NSNumber *)jobId)
-{
-    RNFSDownloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
-    
-    if (downloader != nil) {
-        [downloader resumeDownload];
-    }
-}
-
-RCT_EXPORT_METHOD(isResumable:(nonnull NSNumber *)jobId
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject
-)
-{
-    RNFSDownloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
-    
-    if (downloader != nil) {
-        resolve([NSNumber numberWithBool:[downloader isResumable]]);
-    } else {
-        resolve([NSNumber numberWithBool:NO]);
-    }
-}
-
-RCT_EXPORT_METHOD(completeHandlerIOS:(nonnull NSNumber *)jobId
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-    if (self.uuids) {
-        NSString *uuid = [self.uuids objectForKey:[jobId stringValue]];
-        CompletionHandler completionHandler = [completionHandlers objectForKey:uuid];
-        if (completionHandler) {
-            completionHandler();
-            [completionHandlers removeObjectForKey:uuid];
-        }
-    }
-    resolve(nil);
-}
-
-RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-  RNFSUploadParams* params = [RNFSUploadParams alloc];
-
-  NSNumber* jobId = options[@"jobId"];
-  params.toUrl = options[@"toUrl"];
-  params.files = options[@"files"];
-  params.binaryStreamOnly = options[@"binaryStreamOnly"];
-  NSDictionary* headers = options[@"headers"];
-  NSDictionary* fields = options[@"fields"];
-  NSString* method = options[@"method"];
-  params.headers = headers;
-  params.fields = fields;
-  params.method = method;
-
-  params.completeCallback = ^(NSString* body, NSURLResponse *resp) {
-    [self.uploaders removeObjectForKey:[jobId stringValue]];
-
-    NSMutableDictionary* result = [[NSMutableDictionary alloc] initWithDictionary: @{@"jobId": jobId,
-                                                                                     @"body": body}];
-    if ([resp isKindOfClass:[NSHTTPURLResponse class]]) {
-      [result setValue:((NSHTTPURLResponse *)resp).allHeaderFields forKey:@"headers"];
-      [result setValue:[NSNumber numberWithUnsignedInteger:((NSHTTPURLResponse *)resp).statusCode] forKey:@"statusCode"];
-    }
-    return resolve(result);
-  };
-
-  params.errorCallback = ^(NSError* error) {
-    [self.uploaders removeObjectForKey:[jobId stringValue]];
-    return [self reject:reject withError:error];
-  };
-
-  params.beginCallback = ^() {
-    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"UploadBegin-%@", jobId]
-                                                 body:@{@"jobId": jobId}];
-  };
-
-  params.progressCallback = ^(NSNumber* totalBytesExpectedToSend, NSNumber* totalBytesSent) {
-    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"UploadProgress-%@", jobId]
-                                                 body:@{@"jobId": jobId,
-                                                        @"totalBytesExpectedToSend": totalBytesExpectedToSend,
-                                                        @"totalBytesSent": totalBytesSent}];
-  };
-
-  if (!self.uploaders) self.uploaders = [[NSMutableDictionary alloc] init];
-
-  RNFSUploader* uploader = [RNFSUploader alloc];
-
-  [uploader uploadFiles:params];
-
-  [self.uploaders setValue:uploader forKey:[jobId stringValue]];
-}
-
-RCT_EXPORT_METHOD(stopUpload:(nonnull NSNumber *)jobId)
-{
-  RNFSUploader* uploader = [self.uploaders objectForKey:[jobId stringValue]];
-
-  if (uploader != nil) {
-    [uploader stopUpload];
-  }
-}
-
 RCT_EXPORT_METHOD(pathForBundle:(NSString *)bundleNamed
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -917,12 +710,6 @@ RCT_EXPORT_METHOD(touch:(NSString*)filepath
            @"RNFSFileProtectionCompleteUntilFirstUserAuthentication": NSFileProtectionCompleteUntilFirstUserAuthentication,
            @"RNFSFileProtectionNone": NSFileProtectionNone
           };
-}
-
-+(void)setCompletionHandlerForIdentifier: (NSString *)identifier completionHandler: (CompletionHandler)completionHandler
-{
-    if (!completionHandlers) completionHandlers = [[NSMutableDictionary alloc] init];
-    [completionHandlers setValue:completionHandler forKey:identifier];
 }
 
 @end

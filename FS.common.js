@@ -9,21 +9,12 @@
 
 var RNFSManager = require('react-native').NativeModules.RNFSManager;
 
-var NativeAppEventEmitter = require('react-native').NativeAppEventEmitter;  // iOS
-var DeviceEventEmitter = require('react-native').DeviceEventEmitter;        // Android
 var base64 = require('base-64');
 var utf8 = require('utf8');
 var isIOS = require('react-native').Platform.OS === 'ios';
 
 var RNFSFileTypeRegular = RNFSManager.RNFSFileTypeRegular;
 var RNFSFileTypeDirectory = RNFSManager.RNFSFileTypeDirectory;
-
-var jobId = 0;
-
-var getJobId = () => {
-  jobId += 1;
-  return jobId;
-};
 
 var normalizeFilePath = (path: string) => (path.startsWith('file://') ? path.slice(7) : path);
 
@@ -56,80 +47,6 @@ type StatResult = {
   originalFilepath: string;    // In case of content uri this is the pointed file path, otherwise is the same as path
   isFile: () => boolean;        // Is the file just a file?
   isDirectory: () => boolean;   // Is the file a directory?
-};
-
-type Headers = { [name: string]: string };
-type Fields = { [name: string]: string };
-
-type DownloadFileOptions = {
-  fromUrl: string;          // URL to download file from
-  toFile: string;           // Local filesystem path to save the file to
-  headers?: Headers;        // An object of headers to be passed to the server
-  background?: boolean;     // Continue the download in the background after the app terminates (iOS only)
-  discretionary?: boolean;  // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
-  cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only)
-  progressDivider?: number;
-  begin?: (res: DownloadBeginCallbackResult) => void;
-  progress?: (res: DownloadProgressCallbackResult) => void;
-  resumable?: () => void;    // only supported on iOS yet
-  connectionTimeout?: number; // only supported on Android yet
-  readTimeout?: number;       // supported on Android and iOS
-};
-
-type DownloadBeginCallbackResult = {
-  jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
-  statusCode: number;     // The HTTP status code
-  contentLength: number;  // The total size in bytes of the download resource
-  headers: Headers;       // The HTTP response headers from the server
-};
-
-type DownloadProgressCallbackResult = {
-  jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
-  contentLength: number;  // The total size in bytes of the download resource
-  bytesWritten: number;   // The number of bytes written to the file so far
-};
-
-type DownloadResult = {
-  jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
-  statusCode: number;     // The HTTP status code
-  bytesWritten: number;   // The number of bytes written to the file
-};
-
-type UploadFileOptions = {
-  toUrl: string;            // URL to upload file to
-  binaryStreamOnly?: boolean; // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
-  files: UploadFileItem[];  // An array of objects with the file information to be uploaded.
-  headers?: Headers;        // An object of headers to be passed to the server
-  fields?: Fields;          // An object of fields to be passed to the server
-  method?: string;          // Default is 'POST', supports 'POST' and 'PUT'
-  beginCallback?: (res: UploadBeginCallbackResult) => void; // deprecated
-  progressCallback?: (res: UploadProgressCallbackResult) => void; // deprecated
-  begin?: (res: UploadBeginCallbackResult) => void;
-  progress?: (res: UploadProgressCallbackResult) => void;
-};
-
-type UploadFileItem = {
-  name: string;       // Name of the file, if not defined then filename is used
-  filename: string;   // Name of file
-  filepath: string;   // Path to file
-  filetype: string;   // The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
-};
-
-type UploadBeginCallbackResult = {
-  jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
-};
-
-type UploadProgressCallbackResult = {
-  jobId: number;                      // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
-  totalBytesExpectedToSend: number;   // The total number of bytes that will be sent to the server
-  totalBytesSent: number;             // The number of bytes sent to the server
-};
-
-type UploadResult = {
-  jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
-  statusCode: number;   // The HTTP status code
-  headers: Headers;     // The HTTP response headers from the server
-  body: string;         // The HTTP response body
 };
 
 type FSInfoResult = {
@@ -223,26 +140,6 @@ var RNFS = {
 
   exists(filepath: string): Promise<boolean> {
     return RNFSManager.exists(normalizeFilePath(filepath));
-  },
-
-  stopDownload(jobId: number): void {
-    RNFSManager.stopDownload(jobId);
-  },
-
-  resumeDownload(jobId: number): void {
-    RNFSManager.resumeDownload(jobId);
-  },
-
-  isResumable(jobId: number): Promise<bool> {
-    return RNFSManager.isResumable(jobId);
-  },
-
-  stopUpload(jobId: number): void {
-    RNFSManager.stopUpload(jobId);
-  },
-
-  completeHandlerIOS(jobId: number): void {
-    return RNFSManager.completeHandlerIOS(jobId);
   },
 
   readDir(dirpath: string): Promise<ReadDirItem[]> {
@@ -478,107 +375,6 @@ var RNFS = {
     }
 
     return RNFSManager.write(normalizeFilePath(filepath), b64, position).then(() => void 0);
-  },
-
-  downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> } {
-    if (typeof options !== 'object') throw new Error('downloadFile: Invalid value for argument `options`');
-    if (typeof options.fromUrl !== 'string') throw new Error('downloadFile: Invalid value for property `fromUrl`');
-    if (typeof options.toFile !== 'string') throw new Error('downloadFile: Invalid value for property `toFile`');
-    if (options.headers && typeof options.headers !== 'object') throw new Error('downloadFile: Invalid value for property `headers`');
-    if (options.background && typeof options.background !== 'boolean') throw new Error('downloadFile: Invalid value for property `background`');
-    if (options.progressDivider && typeof options.progressDivider !== 'number') throw new Error('downloadFile: Invalid value for property `progressDivider`');
-    if (options.readTimeout && typeof options.readTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `readTimeout`');
-    if (options.connectionTimeout && typeof options.connectionTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `connectionTimeout`');
-
-    var jobId = getJobId();
-    var subscriptions = [];
-
-    if (options.begin) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, options.begin));
-    }
-
-    if (options.progress) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, options.progress));
-    }
-
-    if (options.resumable) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadResumable-' + jobId, options.resumable));
-    }
-
-    var bridgeOptions = {
-      jobId: jobId,
-      fromUrl: options.fromUrl,
-      toFile: normalizeFilePath(options.toFile),
-      headers: options.headers || {},
-      background: !!options.background,
-      progressDivider: options.progressDivider || 0,
-      readTimeout: options.readTimeout || 15000,
-      connectionTimeout: options.connectionTimeout || 5000
-    };
-
-    return {
-      jobId,
-      promise: RNFSManager.downloadFile(bridgeOptions).then(res => {
-        subscriptions.forEach(sub => sub.remove());
-        return res;
-      })
-        .catch(e => {
-          return Promise.reject(e);
-        })
-    };
-  },
-
-  uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> } {
-    if (!RNFSManager.uploadFiles) {
-      return {
-        jobId: -1,
-        promise: Promise.reject(new Error('`uploadFiles` is unsupported on this platform'))
-      };
-    }
-
-    var jobId = getJobId();
-    var subscriptions = [];
-
-    if (typeof options !== 'object') throw new Error('uploadFiles: Invalid value for argument `options`');
-    if (typeof options.toUrl !== 'string') throw new Error('uploadFiles: Invalid value for property `toUrl`');
-    if (!Array.isArray(options.files)) throw new Error('uploadFiles: Invalid value for property `files`');
-    if (options.headers && typeof options.headers !== 'object') throw new Error('uploadFiles: Invalid value for property `headers`');
-    if (options.fields && typeof options.fields !== 'object') throw new Error('uploadFiles: Invalid value for property `fields`');
-    if (options.method && typeof options.method !== 'string') throw new Error('uploadFiles: Invalid value for property `method`');
-
-    if (options.begin) {
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadBegin-' + jobId, options.begin));
-    }
-    if (options.beginCallback && options.beginCallback instanceof Function) {
-      // Deprecated
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadBegin-' + jobId, options.beginCallback));
-    }
-
-    if (options.progress) {
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadProgress-' + jobId, options.progress));
-    }
-    if (options.progressCallback && options.progressCallback instanceof Function) {
-      // Deprecated
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadProgress-' + jobId, options.progressCallback));
-    }
-
-    var bridgeOptions = {
-      jobId: jobId,
-      toUrl: options.toUrl,
-      files: options.files,
-      binaryStreamOnly: options.binaryStreamOnly || false,
-      headers: options.headers || {},
-      fields: options.fields || {},
-      method: options.method || 'POST'
-    };
-
-    return {
-      jobId,
-      promise: RNFSManager.uploadFiles(bridgeOptions).then(res => {
-        subscriptions.forEach(sub => sub.remove());
-        return res;
-      })
-    };
   },
 
   touch(filepath: string, mtime?: Date, ctime?: Date): Promise<void> {

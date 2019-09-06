@@ -24,7 +24,6 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
-import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -34,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.net.URL;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,9 +54,6 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private static final String RNFSFileTypeRegular = "RNFSFileTypeRegular";
   private static final String RNFSFileTypeDirectory = "RNFSFileTypeDirectory";
-
-  private SparseArray<Downloader> downloaders = new SparseArray<Downloader>();
-  private SparseArray<Uploader> uploaders = new SparseArray<Uploader>();
 
   private ReactApplicationContext reactContext;
 
@@ -682,178 +677,6 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
-    }
-  }
-
-  private void sendEvent(ReactContext reactContext, String eventName, WritableMap params) {
-    reactContext
-            .getJSModule(RCTNativeAppEventEmitter.class)
-            .emit(eventName, params);
-  }
-
-  @ReactMethod
-  public void downloadFile(final ReadableMap options, final Promise promise) {
-    try {
-      File file = new File(options.getString("toFile"));
-      URL url = new URL(options.getString("fromUrl"));
-      final int jobId = options.getInt("jobId");
-      ReadableMap headers = options.getMap("headers");
-      int progressDivider = options.getInt("progressDivider");
-      int readTimeout = options.getInt("readTimeout");
-      int connectionTimeout = options.getInt("connectionTimeout");
-
-      DownloadParams params = new DownloadParams();
-
-      params.src = url;
-      params.dest = file;
-      params.headers = headers;
-      params.progressDivider = progressDivider;
-      params.readTimeout = readTimeout;
-      params.connectionTimeout = connectionTimeout;
-
-      params.onTaskCompleted = new DownloadParams.OnTaskCompleted() {
-        public void onTaskCompleted(DownloadResult res) {
-          if (res.exception == null) {
-            WritableMap infoMap = Arguments.createMap();
-
-            infoMap.putInt("jobId", jobId);
-            infoMap.putInt("statusCode", res.statusCode);
-            infoMap.putDouble("bytesWritten", (double)res.bytesWritten);
-
-            promise.resolve(infoMap);
-          } else {
-            reject(promise, options.getString("toFile"), res.exception);
-          }
-        }
-      };
-
-      params.onDownloadBegin = new DownloadParams.OnDownloadBegin() {
-        public void onDownloadBegin(int statusCode, long contentLength, Map<String, String> headers) {
-          WritableMap headersMap = Arguments.createMap();
-
-          for (Map.Entry<String, String> entry : headers.entrySet()) {
-            headersMap.putString(entry.getKey(), entry.getValue());
-          }
-
-          WritableMap data = Arguments.createMap();
-
-          data.putInt("jobId", jobId);
-          data.putInt("statusCode", statusCode);
-          data.putDouble("contentLength", (double)contentLength);
-          data.putMap("headers", headersMap);
-
-          sendEvent(getReactApplicationContext(), "DownloadBegin-" + jobId, data);
-        }
-      };
-
-      params.onDownloadProgress = new DownloadParams.OnDownloadProgress() {
-        public void onDownloadProgress(long contentLength, long bytesWritten) {
-          WritableMap data = Arguments.createMap();
-
-          data.putInt("jobId", jobId);
-          data.putDouble("contentLength", (double)contentLength);
-          data.putDouble("bytesWritten", (double)bytesWritten);
-
-          sendEvent(getReactApplicationContext(), "DownloadProgress-" + jobId, data);
-        }
-      };
-
-      Downloader downloader = new Downloader();
-
-      downloader.execute(params);
-
-      this.downloaders.put(jobId, downloader);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      reject(promise, options.getString("toFile"), ex);
-    }
-  }
-
-  @ReactMethod
-  public void stopDownload(int jobId) {
-    Downloader downloader = this.downloaders.get(jobId);
-
-    if (downloader != null) {
-      downloader.stop();
-    }
-  }
-
-  @ReactMethod
-  public void uploadFiles(final ReadableMap options, final Promise promise) {
-    try {
-      ReadableArray files = options.getArray("files");
-      URL url = new URL(options.getString("toUrl"));
-      final int jobId = options.getInt("jobId");
-      ReadableMap headers = options.getMap("headers");
-      ReadableMap fields = options.getMap("fields");
-      String method = options.getString("method");
-      boolean binaryStreamOnly = options.getBoolean("binaryStreamOnly");
-      ArrayList<ReadableMap> fileList = new ArrayList<>();
-      UploadParams params = new UploadParams();
-      for(int i =0;i<files.size();i++){
-        fileList.add(files.getMap(i));
-      }
-      params.src = url;
-      params.files =fileList;
-      params.headers = headers;
-      params.method = method;
-      params.fields = fields;
-      params.binaryStreamOnly = binaryStreamOnly;
-      params.onUploadComplete = new UploadParams.onUploadComplete() {
-        public void onUploadComplete(UploadResult res) {
-          if (res.exception == null) {
-            WritableMap infoMap = Arguments.createMap();
-
-            infoMap.putInt("jobId", jobId);
-            infoMap.putInt("statusCode", res.statusCode);
-            infoMap.putMap("headers",res.headers);
-            infoMap.putString("body",res.body);
-            promise.resolve(infoMap);
-          } else {
-            reject(promise, options.getString("toUrl"), res.exception);
-          }
-        }
-      };
-
-      params.onUploadBegin = new UploadParams.onUploadBegin() {
-        public void onUploadBegin() {
-          WritableMap data = Arguments.createMap();
-
-          data.putInt("jobId", jobId);
-
-          sendEvent(getReactApplicationContext(), "UploadBegin-" + jobId, data);
-        }
-      };
-
-      params.onUploadProgress = new UploadParams.onUploadProgress() {
-        public void onUploadProgress(int totalBytesExpectedToSend,int totalBytesSent) {
-          WritableMap data = Arguments.createMap();
-
-          data.putInt("jobId", jobId);
-          data.putInt("totalBytesExpectedToSend", totalBytesExpectedToSend);
-          data.putInt("totalBytesSent", totalBytesSent);
-
-          sendEvent(getReactApplicationContext(), "UploadProgress-" + jobId, data);
-        }
-      };
-
-      Uploader uploader = new Uploader();
-
-      uploader.execute(params);
-
-      this.uploaders.put(jobId, uploader);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      reject(promise, options.getString("toUrl"), ex);
-    }
-  }
-
-  @ReactMethod
-  public void stopUpload(int jobId) {
-    Uploader uploader = this.uploaders.get(jobId);
-
-    if (uploader != null) {
-      uploader.stop();
     }
   }
 
