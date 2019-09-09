@@ -9,8 +9,10 @@
 
 var RNFSManager = require('react-native').NativeModules.RNFSManager;
 
-var NativeAppEventEmitter = require('react-native').NativeAppEventEmitter;  // iOS
-var DeviceEventEmitter = require('react-native').DeviceEventEmitter;        // Android
+var NativeEventEmitter = require('react-native').NativeEventEmitter;
+
+var RNFS_NativeEventEmitter = new NativeEventEmitter(RNFSManager);
+
 var base64 = require('base-64');
 var utf8 = require('utf8');
 var isIOS = require('react-native').Platform.OS === 'ios';
@@ -494,15 +496,15 @@ var RNFS = {
     var subscriptions = [];
 
     if (options.begin) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, options.begin));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadBegin', options.begin));
     }
 
     if (options.progress) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, options.progress));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadProgress', options.progress));
     }
 
     if (options.resumable) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadResumable-' + jobId, options.resumable));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', options.resumable));
     }
 
     var bridgeOptions = {
@@ -547,19 +549,19 @@ var RNFS = {
     if (options.method && typeof options.method !== 'string') throw new Error('uploadFiles: Invalid value for property `method`');
 
     if (options.begin) {
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadBegin-' + jobId, options.begin));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.begin));
     }
     if (options.beginCallback && options.beginCallback instanceof Function) {
       // Deprecated
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadBegin-' + jobId, options.beginCallback));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.beginCallback));
     }
 
     if (options.progress) {
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadProgress-' + jobId, options.progress));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progress));
     }
     if (options.progressCallback && options.progressCallback instanceof Function) {
       // Deprecated
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadProgress-' + jobId, options.progressCallback));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progressCallback));
     }
 
     var bridgeOptions = {

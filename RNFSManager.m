@@ -508,22 +508,21 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   };
 
   params.beginCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSDictionary* headers) {
-    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadBegin-%@", jobId]
-                                                 body:@{@"jobId": jobId,
-                                                        @"statusCode": statusCode,
-                                                        @"contentLength": contentLength,
-                                                        @"headers": headers ?: [NSNull null]}];
+      [self sendEventWithName:[NSString stringWithFormat:@"DownloadBegin-%@", jobId] body:@{@"jobId": jobId,
+                                                                                           @"statusCode": statusCode,
+                                                                                           @"contentLength": contentLength,
+                                                                                           @"headers": headers ?: [NSNull null]}];
   };
 
   params.progressCallback = ^(NSNumber* contentLength, NSNumber* bytesWritten) {
-    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadProgress-%@", jobId]
+    [self sendEventWithName:[NSString stringWithFormat:@"DownloadProgress-%@", jobId]
                                                  body:@{@"jobId": jobId,
                                                         @"contentLength": contentLength,
                                                         @"bytesWritten": bytesWritten}];
   };
     
     params.resumableCallback = ^() {
-        [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"DownloadResumable-%@", jobId] body:nil];
+        [self sendEventWithName:[NSString stringWithFormat:@"DownloadResumable-%@", jobId] body:nil];
     };
 
   if (!self.downloaders) self.downloaders = [[NSMutableDictionary alloc] init];
@@ -621,12 +620,12 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
   };
 
   params.beginCallback = ^() {
-    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"UploadBegin-%@", jobId]
+    [self sendEventWithName:[NSString stringWithFormat:@"UploadBegin-%@", jobId]
                                                  body:@{@"jobId": jobId}];
   };
 
   params.progressCallback = ^(NSNumber* totalBytesExpectedToSend, NSNumber* totalBytesSent) {
-    [self.bridge.eventDispatcher sendAppEventWithName:[NSString stringWithFormat:@"UploadProgress-%@", jobId]
+    [self sendEventWithName:[NSString stringWithFormat:@"UploadProgress-%@", jobId]
                                                  body:@{@"jobId": jobId,
                                                         @"totalBytesExpectedToSend": totalBytesExpectedToSend,
                                                         @"totalBytesSent": totalBytesSent}];
