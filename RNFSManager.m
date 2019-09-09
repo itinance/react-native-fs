@@ -157,8 +157,15 @@ RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
     [fH writeData:data];
 
     return resolve(nil);
-  } @catch (NSException *e) {
-    return [self reject:reject withError:e];
+  } @catch (NSException *exception) {
+    NSMutableDictionary * info = [NSMutableDictionary dictionary];
+    [info setValue:exception.name forKey:@"ExceptionName"];
+    [info setValue:exception.reason forKey:@"ExceptionReason"];
+    [info setValue:exception.callStackReturnAddresses forKey:@"ExceptionCallStackReturnAddresses"];
+    [info setValue:exception.callStackSymbols forKey:@"ExceptionCallStackSymbols"];
+    [info setValue:exception.userInfo forKey:@"ExceptionUserInfo"];
+    NSError *err = [NSError errorWithDomain:@"RNFS" code:0 userInfo:info];
+    return [self reject:reject withError:err];
   }
 }
 
@@ -808,7 +815,8 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
                   rejecter: (RCTPromiseRejectBlock) reject)
 {
   NSURL* url = [NSURL URLWithString:imageUri];
-  __block NSURL* videoURL = [NSURL URLWithString:destination];
+  //unused?
+  //__block NSURL* videoURL = [NSURL URLWithString:destination];
   __block NSError *error = nil;
   
   PHFetchResult *phAssetFetchResult = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];

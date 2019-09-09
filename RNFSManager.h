@@ -9,7 +9,7 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTLog.h>
 
-typedef void (^CompletionHandler)();
+typedef void (^CompletionHandler)(void);
 
 @interface RNFSManager : NSObject <RCTBridgeModule>
 

@@ -4,7 +4,7 @@ typedef void (^DownloadCompleteCallback)(NSNumber*, NSNumber*);
 typedef void (^ErrorCallback)(NSError*);
 typedef void (^BeginCallback)(NSNumber*, NSNumber*, NSDictionary*);
 typedef void (^ProgressCallback)(NSNumber*, NSNumber*);
-typedef void (^ResumableCallback)();
+typedef void (^ResumableCallback)(void);
 
 @interface RNFSDownloadParams : NSObject
 

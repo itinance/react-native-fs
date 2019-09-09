@@ -90,7 +90,7 @@
       NSNumber* progress = [NSNumber numberWithUnsignedInt: floor(doublePercents)];
       if ([progress unsignedIntValue] % [_params.progressDivider integerValue] == 0) {
         if (([progress unsignedIntValue] != [_lastProgressValue unsignedIntValue]) || ([_bytesWritten unsignedIntegerValue] == [_contentLength longValue])) {
-          NSLog(@"---Progress callback EMIT--- %zu", [progress unsignedIntValue]);
+            NSLog(@"---Progress callback EMIT--- %u", [progress unsignedIntValue]);
           _lastProgressValue = [NSNumber numberWithUnsignedInt:[progress unsignedIntValue]];
           return _params.progressCallback(_contentLength, _bytesWritten);
         }
@@ -140,15 +140,15 @@
     [_task cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
         if (resumeData != nil) {
             self.resumeData = resumeData;
-            _params.resumableCallback();
+            self->_params.resumableCallback();
         } else {
             NSError *error = [NSError errorWithDomain:@"RNFS"
-                                                 code:@"Aborted"
+                                                 code:0 //used to pass an NSString @"Aborted" here, but it needs an NSInteger
                                              userInfo:@{
                                                         NSLocalizedDescriptionKey: @"Download has been aborted"
                                                         }];
             
-            _params.errorCallback(error);
+            self->_params.errorCallback(error);
         }
     }];
 
