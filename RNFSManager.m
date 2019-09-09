@@ -459,6 +459,11 @@ RCT_EXPORT_METHOD(copyFile:(NSString *)filepath
   resolve(nil);
 }
 
+- (NSArray<NSString *> *)supportedEvents
+{
+    return @[@"UploadBegin",@"UploadProgress",@"DownloadBegin",@"DownloadProgress",@"DownloadResumable"];
+}
+
 RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -508,21 +513,21 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   };
 
   params.beginCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSDictionary* headers) {
-      [self sendEventWithName:[NSString stringWithFormat:@"DownloadBegin-%@", jobId] body:@{@"jobId": jobId,
+      [self sendEventWithName:@"DownloadBegin" body:@{@"jobId": jobId,
                                                                                            @"statusCode": statusCode,
                                                                                            @"contentLength": contentLength,
                                                                                            @"headers": headers ?: [NSNull null]}];
   };
 
   params.progressCallback = ^(NSNumber* contentLength, NSNumber* bytesWritten) {
-    [self sendEventWithName:[NSString stringWithFormat:@"DownloadProgress-%@", jobId]
+    [self sendEventWithName:@"DownloadProgress"
                                                  body:@{@"jobId": jobId,
                                                         @"contentLength": contentLength,
                                                         @"bytesWritten": bytesWritten}];
   };
     
     params.resumableCallback = ^() {
-        [self sendEventWithName:[NSString stringWithFormat:@"DownloadResumable-%@", jobId] body:nil];
+        [self sendEventWithName:@"DownloadResumable" body:nil];
     };
 
   if (!self.downloaders) self.downloaders = [[NSMutableDictionary alloc] init];
@@ -620,12 +625,12 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
   };
 
   params.beginCallback = ^() {
-    [self sendEventWithName:[NSString stringWithFormat:@"UploadBegin-%@", jobId]
+    [self sendEventWithName:@"UploadBegin"
                                                  body:@{@"jobId": jobId}];
   };
 
   params.progressCallback = ^(NSNumber* totalBytesExpectedToSend, NSNumber* totalBytesSent) {
-    [self sendEventWithName:[NSString stringWithFormat:@"UploadProgress-%@", jobId]
+    [self sendEventWithName:@"UploadProgress"
                                                  body:@{@"jobId": jobId,
                                                         @"totalBytesExpectedToSend": totalBytesExpectedToSend,
                                                         @"totalBytesSent": totalBytesSent}];
