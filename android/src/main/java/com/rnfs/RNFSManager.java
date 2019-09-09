@@ -742,7 +742,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
           data.putDouble("contentLength", (double)contentLength);
           data.putMap("headers", headersMap);
 
-          sendEvent(getReactApplicationContext(), "DownloadBegin-" + jobId, data);
+          sendEvent(getReactApplicationContext(), "DownloadBegin", data);
         }
       };
 
@@ -754,7 +754,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
           data.putDouble("contentLength", (double)contentLength);
           data.putDouble("bytesWritten", (double)bytesWritten);
 
-          sendEvent(getReactApplicationContext(), "DownloadProgress-" + jobId, data);
+          sendEvent(getReactApplicationContext(), "DownloadProgress", data);
         }
       };
 
@@ -821,7 +821,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
           data.putInt("jobId", jobId);
 
-          sendEvent(getReactApplicationContext(), "UploadBegin-" + jobId, data);
+          sendEvent(getReactApplicationContext(), "UploadBegin", data);
         }
       };
 
@@ -833,7 +833,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
           data.putInt("totalBytesExpectedToSend", totalBytesExpectedToSend);
           data.putInt("totalBytesSent", totalBytesSent);
 
-          sendEvent(getReactApplicationContext(), "UploadProgress-" + jobId, data);
+          sendEvent(getReactApplicationContext(), "UploadProgress", data);
         }
       };
 
