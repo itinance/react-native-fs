@@ -511,21 +511,24 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   };
 
   params.beginCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSDictionary* headers) {
-      [self sendEventWithName:@"DownloadBegin" body:@{@"jobId": jobId,
+      if (self.bridge != nil)
+          [self sendEventWithName:@"DownloadBegin" body:@{@"jobId": jobId,
                                                                                            @"statusCode": statusCode,
                                                                                            @"contentLength": contentLength,
                                                                                            @"headers": headers ?: [NSNull null]}];
   };
 
   params.progressCallback = ^(NSNumber* contentLength, NSNumber* bytesWritten) {
-    [self sendEventWithName:@"DownloadProgress"
+      if (self.bridge != nil)
+        [self sendEventWithName:@"DownloadProgress"
                                                  body:@{@"jobId": jobId,
                                                         @"contentLength": contentLength,
                                                         @"bytesWritten": bytesWritten}];
   };
     
     params.resumableCallback = ^() {
-        [self sendEventWithName:@"DownloadResumable" body:nil];
+        if (self.bridge != nil)
+            [self sendEventWithName:@"DownloadResumable" body:nil];
     };
 
   if (!self.downloaders) self.downloaders = [[NSMutableDictionary alloc] init];
@@ -623,12 +626,14 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
   };
 
   params.beginCallback = ^() {
-    [self sendEventWithName:@"UploadBegin"
+      if (self.bridge != nil)
+        [self sendEventWithName:@"UploadBegin"
                                                  body:@{@"jobId": jobId}];
   };
 
   params.progressCallback = ^(NSNumber* totalBytesExpectedToSend, NSNumber* totalBytesSent) {
-    [self sendEventWithName:@"UploadProgress"
+      if (self.bridge != nil)
+          [self sendEventWithName:@"UploadProgress"
                                                  body:@{@"jobId": jobId,
                                                         @"totalBytesExpectedToSend": totalBytesExpectedToSend,
                                                         @"totalBytesSent": totalBytesSent}];
