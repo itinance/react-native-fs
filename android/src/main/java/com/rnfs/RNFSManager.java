@@ -89,8 +89,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     Uri uri = getFileUri(filepath, isDirectoryAllowed);
     String originalFilepath = filepath;
     if (uri.getScheme().equals("content")) {
-      try {
-        Cursor cursor = reactContext.getContentResolver().query(uri, null, null, null, null);
+      try (Cursor cursor = reactContext.getContentResolver().query(uri, null, null, null, null)) {
         if (cursor.moveToFirst()) {
           originalFilepath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
         }
