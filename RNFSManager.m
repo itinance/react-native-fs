@@ -758,7 +758,12 @@ RCT_EXPORT_METHOD(copyAssetsFileIOS: (NSString *) imageUri
     CGSize size = CGSizeMake(width, height);
 
     NSURL* url = [NSURL URLWithString:imageUri];
-    PHFetchResult *results = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
+    PHFetchResult *results = nil;
+    if ([url.scheme isEqualToString:@"ph"]) {
+        results = [PHAsset fetchAssetsWithLocalIdentifiers:@[[imageUri substringFromIndex: 5]] options:nil];
+    } else {
+        results = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
+    }
 
     if (results.count == 0) {
         NSString *errorText = [NSString stringWithFormat:@"Failed to fetch PHAsset with local identifier %@ with no error message.", imageUri];
