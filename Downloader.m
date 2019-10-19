@@ -11,6 +11,7 @@
 @property (retain) NSURLSession* session;
 @property (retain) NSURLSessionDownloadTask* task;
 @property (retain) NSNumber* statusCode;
+@property (assign) NSTimeInterval lastProgressEmitTimestamp;
 @property (retain) NSNumber* lastProgressValue;
 @property (retain) NSNumber* contentLength;
 @property (retain) NSNumber* bytesWritten;
@@ -28,6 +29,7 @@
     
     _params = params;
 
+  _lastProgressEmitTimestamp = 0;
   _bytesWritten = 0;
 
   NSURL* url = [NSURL URLWithString:_params.fromUrl];
@@ -82,7 +84,13 @@
   if ([_statusCode isEqualToNumber:[NSNumber numberWithInt:200]]) {
     _bytesWritten = @(totalBytesWritten);
 
-    if (_params.progressDivider.integerValue <= 0) {
+    if(_params.progressInterval.integerValue > 0){
+      NSTimeInterval timestamp = [[NSDate date] timeIntervalSince1970];
+      if(timestamp - _lastProgressEmitTimestamp > _params.progressInterval.integerValue / 1000.0){
+        _lastProgressEmitTimestamp = timestamp;
+        return _params.progressCallback(_contentLength, _bytesWritten);
+      }
+    }else if (_params.progressDivider.integerValue <= 0) {
       return _params.progressCallback(_contentLength, _bytesWritten);
     } else {
       double doubleBytesWritten = (double)[_bytesWritten longValue];
