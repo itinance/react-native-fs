@@ -1,8 +1,10 @@
 # Changelog
 
+## Changes for v2.16 (not released yet, just master, for RN >= 0.61)
+- #783 Import RCTImageLoaderProtocol instead of RCTImageLoader to fix iOS build on RN>0.60
+
 ## Changes for v2.15
 - #717 bugfix #443: Add option progressInterval for downloadFile 
-- #783 Import RCTImageLoaderProtocol instead of RCTImageLoader to fix iOS build on RN>0.60
 - #759 Fix for issue #749: RNFS.uploadFiles upload raw not multipart 
 - #728 Correctly read binaryStreamOnly param
 - #752 Fix Xcode and Java deprecation warnings 
