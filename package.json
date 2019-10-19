@@ -32,14 +32,10 @@
   "devDependencies": {
     "create-react-class": "15.6.3",
     "flow-bin": "^0.109.0",
-    "prop-types": "15.7.2",
-    "react": "16.8.3",
-    "react-native": "0.59.5",
-    "react-native-windows": "0.57.2"
+    "prop-types": "^15.7.2"
   },
   "peerDependencies": {
-    "prop-types": "^15.6.0",
-    "react": "^16.2.0",
-    "react-native": ">=0.51.0 <1.0.0"
+    "react-native": "^0.59.5",
+    "react-native-windows": "^0.57.2"
   }
 }
