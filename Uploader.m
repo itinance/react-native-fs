@@ -106,7 +106,7 @@
   NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfiguration delegate:(id)self delegateQueue:[NSOperationQueue mainQueue]];
   _task = [session dataTaskWithRequest:req completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
       NSString * str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-      return _params.completeCallback(str, response);
+      return self->_params.completeCallback(str, response);
   }];
   [_task resume];
   _params.beginCallback();
