@@ -8,6 +8,17 @@ For RN < 0.57 and/or Gradle < 3 you MUST install react-native-fs at version @2.1
 
 For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version >= @2.13.2!
 
+## Table of Contents
+1. [Changelog](#Changelog)
+1. Usage
+    1. [iOS](#usage-ios)
+    1. [Android](#usage-android)
+    1. [Windows](#usage-windows)
+1. [Examples](#Examples)
+1. [API](#API)
+1. [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios)
+1. [Test / Demo App](#test--demo-app)
+
 ## Changelog
 
 View the changelog [here](https://github.com/itinance/react-native-fs/blob/master/CHANGELOG.md).
