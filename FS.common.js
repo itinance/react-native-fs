@@ -74,6 +74,7 @@ type DownloadFileOptions = {
   resumable?: () => void;    // only supported on iOS yet
   connectionTimeout?: number; // only supported on Android yet
   readTimeout?: number;       // supported on Android and iOS
+  backgroundTimeout?: number; // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
 };
 
 type DownloadBeginCallbackResult = {
@@ -489,6 +490,7 @@ var RNFS = {
     if (options.progressDivider && typeof options.progressDivider !== 'number') throw new Error('downloadFile: Invalid value for property `progressDivider`');
     if (options.readTimeout && typeof options.readTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `readTimeout`');
     if (options.connectionTimeout && typeof options.connectionTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `connectionTimeout`');
+    if (options.backgroundTimeout && typeof options.backgroundTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `backgroundTimeout`');
 
     var jobId = getJobId();
     var subscriptions = [];
@@ -513,7 +515,8 @@ var RNFS = {
       background: !!options.background,
       progressDivider: options.progressDivider || 0,
       readTimeout: options.readTimeout || 15000,
-      connectionTimeout: options.connectionTimeout || 5000
+      connectionTimeout: options.connectionTimeout || 5000,
+      backgroundTimeout: options.backgroundTimeout || 3600000 // 1 hour
     };
 
     return {
