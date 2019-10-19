@@ -1,14 +1,10 @@
 package com.rnfs;
 
-import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.HttpURLConnection;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -90,7 +86,7 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
       if(statusCode >= 200 && statusCode < 300) {
         Map<String, List<String>> headers = connection.getHeaderFields();
 
-        Map<String, String> headersFlat = new HashMap<String, String>();
+        Map<String, String> headersFlat = new HashMap<>();
 
         for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
           String headerKey = entry.getKey();
