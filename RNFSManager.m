@@ -14,7 +14,7 @@
 
 #import <React/RCTEventDispatcher.h>
 #import <React/RCTUtils.h>
-#import <React/RCTImageLoader.h>
+#import <React/RCTImageLoaderProtocol.h>
 
 #import <CommonCrypto/CommonDigest.h>
 #import <Photos/Photos.h>
@@ -469,10 +469,14 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   params.discretionary = [discretionary boolValue];
   NSNumber* cacheable = options[@"cacheable"];
   params.cacheable = cacheable ? [cacheable boolValue] : YES;
+  NSNumber* progressInterval= options[@"progressInterval"];
+  params.progressInterval = progressInterval;
   NSNumber* progressDivider = options[@"progressDivider"];
   params.progressDivider = progressDivider;
   NSNumber* readTimeout = options[@"readTimeout"];
   params.readTimeout = readTimeout;
+  NSNumber* backgroundTimeout = options[@"backgroundTimeout"];
+  params.backgroundTimeout = backgroundTimeout;
 
   __block BOOL callbackFired = NO;
 
@@ -589,6 +593,7 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
   params.toUrl = options[@"toUrl"];
   params.files = options[@"files"];
   params.binaryStreamOnly = [[options objectForKey:@"binaryStreamOnly"] boolValue];
+  
   NSDictionary* headers = options[@"headers"];
   NSDictionary* fields = options[@"fields"];
   NSString* method = options[@"method"];

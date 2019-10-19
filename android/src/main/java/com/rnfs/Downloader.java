@@ -110,12 +110,19 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
         long total = 0;
         int count;
         double lastProgressValue = 0;
+        long lastProgressEmitTimestamp = 0;
 
         while ((count = input.read(data)) != -1) {
           if (mAbort.get()) throw new Exception("Download has been aborted");
 
           total += count;
-          if (param.progressDivider <= 0) {
+          if (param.progressInterval > 0) {
+            long timestamp = System.currentTimeMillis();
+            if (timestamp - lastProgressEmitTimestamp > param.progressInterval) {
+              lastProgressEmitTimestamp = timestamp;
+              publishProgress(new long[]{lengthOfFile, total});
+            }
+          } else if (param.progressDivider <= 0) {
             publishProgress(new long[]{lengthOfFile, total});
           } else {
             double progress = Math.round(((double) total * 100) / lengthOfFile);
@@ -134,7 +141,7 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
         res.bytesWritten = total;
       }
       res.statusCode = statusCode;
-    } finally {
+ } finally {
       if (output != null) output.close();
       if (input != null) input.close();
       if (connection != null) connection.disconnect();

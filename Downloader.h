@@ -19,8 +19,10 @@ typedef void (^ResumableCallback)();
 @property        bool background;                             // Whether to continue download when app is in background
 @property        bool discretionary;                          // Whether the file may be downloaded at the OS's discretion (iOS only)
 @property        bool cacheable;                              // Whether the file may be stored in the shared NSURLCache (iOS only)
+@property (copy) NSNumber* progressInterval;
 @property (copy) NSNumber* progressDivider;
-@property (copy) NSNumber* readTimeout;
+@property (copy) NSNumber* readTimeout;                       // How long (in milliseconds) a task should wait for additional data to arrive before giving up
+@property (copy) NSNumber* backgroundTimeout;                 // How long (in milliseconds) to wait for an entire resource to transfer before giving up
 
 
 @end
