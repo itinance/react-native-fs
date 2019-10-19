@@ -1,5 +1,14 @@
 # Changelog
 
+## Changes for v2.15
+- #717 bugfix #443: Add option progressInterval for downloadFile 
+- #783 Import RCTImageLoaderProtocol instead of RCTImageLoader to fix iOS build on RN>0.60
+- #759 Fix for issue #749: RNFS.uploadFiles upload raw not multipart 
+- #728 Correctly read binaryStreamOnly param
+- #752 Fix Xcode and Java deprecation warnings 
+- #779 Add conditional comments around methods not supported in Mac Catalyst
+- #736 Added support for ph:// uris to copyAssetsFileIOS
+
 ## Changes for v2.14
 - #718 Add tvOS deployment target to podspec
 - #710 Added existsRes function to Android
