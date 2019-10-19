@@ -14,7 +14,7 @@
 
 #import <React/RCTEventDispatcher.h>
 #import <React/RCTUtils.h>
-#import <React/RCTImageLoaderProtocol.h>
+#import <React/RCTImageLoader.h>
 
 #import <CommonCrypto/CommonDigest.h>
 #import <Photos/Photos.h>
