@@ -548,17 +548,16 @@ var RNFS = {
     if (options.fields && typeof options.fields !== 'object') throw new Error('uploadFiles: Invalid value for property `fields`');
     if (options.method && typeof options.method !== 'string') throw new Error('uploadFiles: Invalid value for property `method`');
 
-    if (options.begin) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.begin));
-    }
+    
+    subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.begin || function() {}));
+    
     if (options.beginCallback && options.beginCallback instanceof Function) {
       // Deprecated
       subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.beginCallback));
     }
 
-    if (options.progress) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progress));
-    }
+    subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progress || function() {}));
+
     if (options.progressCallback && options.progressCallback instanceof Function) {
       // Deprecated
       subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progressCallback));
