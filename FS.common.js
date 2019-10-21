@@ -499,17 +499,11 @@ var RNFS = {
     var jobId = getJobId();
     var subscriptions = [];
 
-    if (options.begin) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadBegin', options.begin));
-    }
+    subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadBegin', options.begin || function() {}));
 
-    if (options.progress) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadProgress', options.progress));
-    }
+    subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadProgress', options.progress || function() {}));
 
-    if (options.resumable) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', options.resumable));
-    }
+    subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', options.resumable || function() {}));
 
     var bridgeOptions = {
       jobId: jobId,
