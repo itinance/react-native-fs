@@ -5,7 +5,9 @@ Native filesystem access for react-native
 ## IMPORTANT
 
 For RN < 0.57 and/or Gradle < 3 you MUST install react-native-fs at version @2.11.17!
+
 For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version >= @2.13.2!
+
 For RN >= 0.61 please install react-native-fs at version >= @2.16.0!
 
 ## Table of Contents
