@@ -114,7 +114,9 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 fileCount++;
             }
             fileCount = 0;
-            mParams.onUploadBegin.onUploadBegin();
+            if (mParams.onUploadBegin != null) {
+                mParams.onUploadBegin.onUploadBegin();
+            }
             if (!binaryStreamOnly) {
                 long requestLength = totalFileLength;
                 requestLength += stringData.length() + files.length * crlf.length();
@@ -130,7 +132,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
 
             byteSentTotal = 0;
             Runtime run = Runtime.getRuntime();
-            
+
             for (ReadableMap map : params.files) {
                 if (!binaryStreamOnly) {
                     request.writeBytes(fileHeader[fileCount]);
@@ -146,8 +148,10 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 byte[] buffer = new byte[buffer_size];
                 while ((bytes_read = bufInput.read(buffer)) != -1) {
                     request.write(buffer, 0, bytes_read);
-                    byteSentTotal += bytes_read;
-                    mParams.onUploadProgress.onUploadProgress((int) totalFileLength, byteSentTotal);
+                    if (mParams.onUploadProgress != null) {
+                        byteSentTotal += bytes_read;
+                        mParams.onUploadProgress.onUploadProgress((int) totalFileLength, byteSentTotal);
+                    }
                 }
                 if (!binaryStreamOnly) {
                     request.writeBytes(crlf);

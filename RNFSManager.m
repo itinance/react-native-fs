@@ -487,6 +487,9 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   params.readTimeout = readTimeout;
   NSNumber* backgroundTimeout = options[@"backgroundTimeout"];
   params.backgroundTimeout = backgroundTimeout;
+  bool hasBeginCallback = [options[@"hasBeginCallback"] boolValue];
+  bool hasProgressCallback = [options[@"hasProgressCallback"] boolValue];
+  bool hasResumableCallback = [options[@"hasResumableCallback"] boolValue];
 
   __block BOOL callbackFired = NO;
 
@@ -514,26 +517,32 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
     return [self reject:reject withError:error];
   };
 
-  params.beginCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSDictionary* headers) {
-      if (self.bridge != nil)
-          [self sendEventWithName:@"DownloadBegin" body:@{@"jobId": jobId,
-                                                                                           @"statusCode": statusCode,
-                                                                                           @"contentLength": contentLength,
-                                                                                           @"headers": headers ?: [NSNull null]}];
-  };
+  if (hasBeginCallback) {
+    params.beginCallback = ^(NSNumber* statusCode, NSNumber* contentLength, NSDictionary* headers) {
+        if (self.bridge != nil)
+            [self sendEventWithName:@"DownloadBegin" body:@{@"jobId": jobId,
+                                                                                            @"statusCode": statusCode,
+                                                                                            @"contentLength": contentLength,
+                                                                                            @"headers": headers ?: [NSNull null]}];
+    };
+  }
 
-  params.progressCallback = ^(NSNumber* contentLength, NSNumber* bytesWritten) {
-      if (self.bridge != nil)
-        [self sendEventWithName:@"DownloadProgress"
-                                                 body:@{@"jobId": jobId,
-                                                        @"contentLength": contentLength,
-                                                        @"bytesWritten": bytesWritten}];
-  };
-    
+  if (hasProgressCallback) {
+    params.progressCallback = ^(NSNumber* contentLength, NSNumber* bytesWritten) {
+        if (self.bridge != nil)
+          [self sendEventWithName:@"DownloadProgress"
+                                                  body:@{@"jobId": jobId,
+                                                          @"contentLength": contentLength,
+                                                          @"bytesWritten": bytesWritten}];
+    };
+  }
+
+  if (hasResumableCallback) {
     params.resumableCallback = ^() {
         if (self.bridge != nil)
             [self sendEventWithName:@"DownloadResumable" body:nil];
     };
+  }
 
   if (!self.downloaders) self.downloaders = [[NSMutableDictionary alloc] init];
 
@@ -560,7 +569,7 @@ RCT_EXPORT_METHOD(stopDownload:(nonnull NSNumber *)jobId)
 RCT_EXPORT_METHOD(resumeDownload:(nonnull NSNumber *)jobId)
 {
     RNFSDownloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
-    
+
     if (downloader != nil) {
         [downloader resumeDownload];
     }
@@ -572,7 +581,7 @@ RCT_EXPORT_METHOD(isResumable:(nonnull NSNumber *)jobId
 )
 {
     RNFSDownloader* downloader = [self.downloaders objectForKey:[jobId stringValue]];
-    
+
     if (downloader != nil) {
         resolve([NSNumber numberWithBool:[downloader isResumable]]);
     } else {
@@ -605,13 +614,14 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
   params.toUrl = options[@"toUrl"];
   params.files = options[@"files"];
   params.binaryStreamOnly = [[options objectForKey:@"binaryStreamOnly"] boolValue];
-  
   NSDictionary* headers = options[@"headers"];
   NSDictionary* fields = options[@"fields"];
   NSString* method = options[@"method"];
   params.headers = headers;
   params.fields = fields;
   params.method = method;
+  bool hasBeginCallback = [options[@"hasBeginCallback"] boolValue];
+  bool hasProgressCallback = [options[@"hasProgressCallback"] boolValue];
 
   params.completeCallback = ^(NSString* body, NSURLResponse *resp) {
     [self.uploaders removeObjectForKey:[jobId stringValue]];
@@ -630,19 +640,23 @@ RCT_EXPORT_METHOD(uploadFiles:(NSDictionary *)options
     return [self reject:reject withError:error];
   };
 
-  params.beginCallback = ^() {
-      if (self.bridge != nil)
-        [self sendEventWithName:@"UploadBegin"
-                                                 body:@{@"jobId": jobId}];
-  };
+  if (hasBeginCallback) {
+    params.beginCallback = ^() {
+        if (self.bridge != nil)
+          [self sendEventWithName:@"UploadBegin"
+                                                  body:@{@"jobId": jobId}];
+    };
+  }
 
-  params.progressCallback = ^(NSNumber* totalBytesExpectedToSend, NSNumber* totalBytesSent) {
-      if (self.bridge != nil)
-          [self sendEventWithName:@"UploadProgress"
-                                                 body:@{@"jobId": jobId,
-                                                        @"totalBytesExpectedToSend": totalBytesExpectedToSend,
-                                                        @"totalBytesSent": totalBytesSent}];
-  };
+  if (hasProgressCallback) {
+    params.progressCallback = ^(NSNumber* totalBytesExpectedToSend, NSNumber* totalBytesSent) {
+        if (self.bridge != nil)
+            [self sendEventWithName:@"UploadProgress"
+                                                  body:@{@"jobId": jobId,
+                                                          @"totalBytesExpectedToSend": totalBytesExpectedToSend,
+                                                          @"totalBytesSent": totalBytesSent}];
+    };
+  }
 
   if (!self.uploaders) self.uploaders = [[NSMutableDictionary alloc] init];
 
@@ -840,15 +854,15 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
   //unused?
   //__block NSURL* videoURL = [NSURL URLWithString:destination];
   __block NSError *error = nil;
-  
+
   PHFetchResult *phAssetFetchResult = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
   PHAsset *phAsset = [phAssetFetchResult firstObject];
-    
+
   PHVideoRequestOptions *options = [[PHVideoRequestOptions alloc] init];
   options.networkAccessAllowed = YES;
   options.version = PHVideoRequestOptionsVersionOriginal;
   options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
-  
+
   dispatch_group_t group = dispatch_group_create();
   dispatch_group_enter(group);
 
