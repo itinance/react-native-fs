@@ -97,7 +97,9 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
           }
         }
 
-        mParam.onDownloadBegin.onDownloadBegin(statusCode, lengthOfFile, headersFlat);
+        if (mParam.onDownloadBegin != null) {
+          mParam.onDownloadBegin.onDownloadBegin(statusCode, lengthOfFile, headersFlat);
+        }
 
         input = new BufferedInputStream(connection.getInputStream(), 8 * 1024);
         output = new FileOutputStream(param.dest);
@@ -107,29 +109,34 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
         int count;
         double lastProgressValue = 0;
         long lastProgressEmitTimestamp = 0;
+        boolean hasProgressCallback = mParam.onDownloadProgress != null;
 
         while ((count = input.read(data)) != -1) {
           if (mAbort.get()) throw new Exception("Download has been aborted");
 
           total += count;
-          if (param.progressInterval > 0) {
-            long timestamp = System.currentTimeMillis();
-            if (timestamp - lastProgressEmitTimestamp > param.progressInterval) {
-              lastProgressEmitTimestamp = timestamp;
-              publishProgress(new long[]{lengthOfFile, total});
-            }
-          } else if (param.progressDivider <= 0) {
-            publishProgress(new long[]{lengthOfFile, total});
-          } else {
-            double progress = Math.round(((double) total * 100) / lengthOfFile);
-            if (progress % param.progressDivider == 0) {
-              if ((progress != lastProgressValue) || (total == lengthOfFile)) {
-                Log.d("Downloader", "EMIT: " + String.valueOf(progress) + ", TOTAL:" + String.valueOf(total));
-                lastProgressValue = progress;
+
+          if (hasProgressCallback) {
+            if (param.progressInterval > 0) {
+              long timestamp = System.currentTimeMillis();
+              if (timestamp - lastProgressEmitTimestamp > param.progressInterval) {
+                lastProgressEmitTimestamp = timestamp;
                 publishProgress(new long[]{lengthOfFile, total});
+              }
+            } else if (param.progressDivider <= 0) {
+              publishProgress(new long[]{lengthOfFile, total});
+            } else {
+              double progress = Math.round(((double) total * 100) / lengthOfFile);
+              if (progress % param.progressDivider == 0) {
+                if ((progress != lastProgressValue) || (total == lengthOfFile)) {
+                  Log.d("Downloader", "EMIT: " + String.valueOf(progress) + ", TOTAL:" + String.valueOf(total));
+                  lastProgressValue = progress;
+                  publishProgress(new long[]{lengthOfFile, total});
+                }
               }
             }
           }
+
           output.write(data, 0, count);
         }
 
@@ -158,7 +165,9 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
   @Override
   protected void onProgressUpdate(long[]... values) {
     super.onProgressUpdate(values);
-    mParam.onDownloadProgress.onDownloadProgress(values[0][0], values[0][1]);
+    if (mParam.onDownloadProgress != null) {
+      mParam.onDownloadProgress.onDownloadProgress(values[0][0], values[0][1]);
+    }
   }
 
   protected void onPostExecute(Exception ex) {

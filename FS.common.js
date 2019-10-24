@@ -499,11 +499,17 @@ var RNFS = {
     var jobId = getJobId();
     var subscriptions = [];
 
-    subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadBegin', options.begin || function() {}));
+    if (options.begin) {
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadBegin', options.begin));
+    }
 
-    subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadProgress', options.progress || function() {}));
+    if (options.progress) {
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadProgress', options.progress));
+    }
 
-    subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', options.resumable || function() {}));
+    if (options.resumable) {
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', options.resumable));
+    }
 
     var bridgeOptions = {
       jobId: jobId,
@@ -515,7 +521,10 @@ var RNFS = {
       progressInterval: options.progressInterval || 0,
       readTimeout: options.readTimeout || 15000,
       connectionTimeout: options.connectionTimeout || 5000,
-      backgroundTimeout: options.backgroundTimeout || 3600000 // 1 hour
+      backgroundTimeout: options.backgroundTimeout || 3600000, // 1 hour
+      hasBeginCallback: options.begin instanceof Function,
+      hasProgressCallback: options.progress instanceof Function,
+      hasResumableCallback: options.resumable instanceof Function,
     };
 
     return {
@@ -548,17 +557,16 @@ var RNFS = {
     if (options.fields && typeof options.fields !== 'object') throw new Error('uploadFiles: Invalid value for property `fields`');
     if (options.method && typeof options.method !== 'string') throw new Error('uploadFiles: Invalid value for property `method`');
 
-    
-    subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.begin || function() {}));
-    
-    if (options.beginCallback && options.beginCallback instanceof Function) {
+    if (options.begin) {
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.begin));
+    } else if (options.beginCallback) {
       // Deprecated
       subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.beginCallback));
     }
 
-    subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progress || function() {}));
-
-    if (options.progressCallback && options.progressCallback instanceof Function) {
+    if (options.progress) {
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progress));
+    } else if (options.progressCallback) {
       // Deprecated
       subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progressCallback));
     }
@@ -570,7 +578,9 @@ var RNFS = {
       binaryStreamOnly: options.binaryStreamOnly || false,
       headers: options.headers || {},
       fields: options.fields || {},
-      method: options.method || 'POST'
+      method: options.method || 'POST',
+      hasBeginCallback: options.begin instanceof Function || options.beginCallback instanceof Function,
+      hasProgressCallback: options.progress instanceof Function || options.progressCallback instanceof Function,
     };
 
     return {

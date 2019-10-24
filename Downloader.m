@@ -26,7 +26,7 @@
 - (NSString *)downloadFile:(RNFSDownloadParams*)params
 {
     NSString *uuid = nil;
-    
+
     _params = params;
 
   _lastProgressEmitTimestamp = 0;
@@ -68,20 +68,20 @@
   _session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:nil];
   _task = [_session downloadTaskWithURL:url];
   [_task resume];
-    
+
     return uuid;
 }
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
 {
   NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)downloadTask.response;
-  if (!_statusCode) {
+  if (_params.beginCallback && !_statusCode) {
     _statusCode = [NSNumber numberWithLong:httpResponse.statusCode];
     _contentLength = [NSNumber numberWithLong:httpResponse.expectedContentLength];
     return _params.beginCallback(_statusCode, _contentLength, httpResponse.allHeaderFields);
   }
 
-  if ([_statusCode isEqualToNumber:[NSNumber numberWithInt:200]]) {
+  if (_params.progressCallback && [_statusCode isEqualToNumber:[NSNumber numberWithInt:200]]) {
     _bytesWritten = @(totalBytesWritten);
 
     if(_params.progressInterval.integerValue > 0){
@@ -136,7 +136,9 @@
   if (error && error.code != NSURLErrorCancelled) {
       _resumeData = error.userInfo[NSURLSessionDownloadTaskResumeData];
       if (_resumeData != nil) {
-          _params.resumableCallback();
+        if (_params.resumableCallback) {
+            _params.resumableCallback();
+        }
       } else {
           _params.errorCallback(error);
       }
@@ -149,14 +151,16 @@
     [_task cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
         if (resumeData != nil) {
             self.resumeData = resumeData;
-            self->_params.resumableCallback();
+            if (self->_params.resumableCallback) {
+                self->_params.resumableCallback();
+            }
         } else {
             NSError *error = [NSError errorWithDomain:@"RNFS"
                                                  code:0 //used to pass an NSString @"Aborted" here, but it needs an NSInteger
                                              userInfo:@{
                                                         NSLocalizedDescriptionKey: @"Download has been aborted"
                                                         }];
-            
+
             self->_params.errorCallback(error);
         }
     }];
