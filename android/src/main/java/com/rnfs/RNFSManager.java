@@ -732,39 +732,39 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       };
 
       if (hasBeginCallback) {
-        params.onDownloadBegin = new DownloadParams.OnDownloadBegin() {
-          public void onDownloadBegin(int statusCode, long contentLength, Map<String, String> headers) {
-            WritableMap headersMap = Arguments.createMap();
+      params.onDownloadBegin = new DownloadParams.OnDownloadBegin() {
+        public void onDownloadBegin(int statusCode, long contentLength, Map<String, String> headers) {
+          WritableMap headersMap = Arguments.createMap();
 
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-              headersMap.putString(entry.getKey(), entry.getValue());
-            }
-
-            WritableMap data = Arguments.createMap();
-
-            data.putInt("jobId", jobId);
-            data.putInt("statusCode", statusCode);
-            data.putDouble("contentLength", (double)contentLength);
-            data.putMap("headers", headersMap);
-
-            sendEvent(getReactApplicationContext(), "DownloadBegin", data);
+          for (Map.Entry<String, String> entry : headers.entrySet()) {
+            headersMap.putString(entry.getKey(), entry.getValue());
           }
-        };
-      }
 
-      if (hasProgressCallback) {
-        params.onDownloadProgress = new DownloadParams.OnDownloadProgress() {
-          public void onDownloadProgress(long contentLength, long bytesWritten) {
-            WritableMap data = Arguments.createMap();
+          WritableMap data = Arguments.createMap();
 
-            data.putInt("jobId", jobId);
-            data.putDouble("contentLength", (double)contentLength);
-            data.putDouble("bytesWritten", (double)bytesWritten);
+          data.putInt("jobId", jobId);
+          data.putInt("statusCode", statusCode);
+          data.putDouble("contentLength", (double)contentLength);
+          data.putMap("headers", headersMap);
 
-            sendEvent(getReactApplicationContext(), "DownloadProgress", data);
-          }
-        };
-      }
+          sendEvent(getReactApplicationContext(), "DownloadBegin", data);
+        }
+      };
+    }
+
+    if (hasProgressCallback) {
+      params.onDownloadProgress = new DownloadParams.OnDownloadProgress() {
+        public void onDownloadProgress(long contentLength, long bytesWritten) {
+          WritableMap data = Arguments.createMap();
+
+          data.putInt("jobId", jobId);
+          data.putDouble("contentLength", (double)contentLength);
+          data.putDouble("bytesWritten", (double)bytesWritten);
+
+          sendEvent(getReactApplicationContext(), "DownloadProgress", data);
+        }
+      };
+    }
 
       Downloader downloader = new Downloader();
 
@@ -783,6 +783,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
     if (downloader != null) {
       downloader.stop();
+      this.downloaders.delete(jobId);
     }
   }
 
@@ -827,30 +828,30 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       };
 
       if (hasBeginCallback) {
-        params.onUploadBegin = new UploadParams.onUploadBegin() {
-          public void onUploadBegin() {
-            WritableMap data = Arguments.createMap();
+      params.onUploadBegin = new UploadParams.onUploadBegin() {
+        public void onUploadBegin() {
+          WritableMap data = Arguments.createMap();
 
-            data.putInt("jobId", jobId);
+          data.putInt("jobId", jobId);
 
-            sendEvent(getReactApplicationContext(), "UploadBegin", data);
-          }
-        };
-      }
+          sendEvent(getReactApplicationContext(), "UploadBegin", data);
+        }
+      };
+    }
 
-      if (hasProgressCallback) {
-        params.onUploadProgress = new UploadParams.onUploadProgress() {
-          public void onUploadProgress(int totalBytesExpectedToSend,int totalBytesSent) {
-            WritableMap data = Arguments.createMap();
+    if (hasProgressCallback) {
+      params.onUploadProgress = new UploadParams.onUploadProgress() {
+        public void onUploadProgress(int totalBytesExpectedToSend,int totalBytesSent) {
+          WritableMap data = Arguments.createMap();
 
-            data.putInt("jobId", jobId);
-            data.putInt("totalBytesExpectedToSend", totalBytesExpectedToSend);
-            data.putInt("totalBytesSent", totalBytesSent);
+          data.putInt("jobId", jobId);
+          data.putInt("totalBytesExpectedToSend", totalBytesExpectedToSend);
+          data.putInt("totalBytesSent", totalBytesSent);
 
-            sendEvent(getReactApplicationContext(), "UploadProgress", data);
-          }
-        };
-      }
+          sendEvent(getReactApplicationContext(), "UploadProgress", data);
+        }
+      };
+    }
 
       Uploader uploader = new Uploader();
 
@@ -869,6 +870,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
     if (uploader != null) {
       uploader.stop();
+      this.uploaders.delete(jobId);
     }
   }
 
