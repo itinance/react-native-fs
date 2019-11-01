@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -399,6 +400,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   private class CopyFileTask extends AsyncTask<String, Void, Exception> {
+    protected long bytesCopied;
     protected Exception doInBackground(String... paths) {
       try {
         String filepath = paths[0];
@@ -411,6 +413,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         int length;
         while ((length = in.read(buffer)) > 0) {
           out.write(buffer, 0, length);
+          bytesCopied += length;
           Thread.yield();
         }
         in.close();
@@ -693,6 +696,27 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void downloadFile(final ReadableMap options, final Promise promise) {
+    if (options.getString("fromUrl").startsWith("content://")) {
+      new CopyFileTask() {
+        @Override
+        protected void onPostExecute (Exception ex) {
+          if (ex == null) {
+            WritableMap infoMap = Arguments.createMap();
+
+            infoMap.putInt("jobId", options.getInt("jobId"));
+            infoMap.putInt("statusCode", HttpURLConnection.HTTP_OK);
+            infoMap.putDouble("bytesWritten", (double)this.bytesCopied);
+
+            promise.resolve(infoMap);
+          } else {
+            ex.printStackTrace();
+            reject(promise, options.getString("toFile"), ex);
+          }
+        }
+      }.execute(options.getString("fromUrl"), options.getString("toFile"));
+      return;
+    }
+
     try {
       File file = new File(options.getString("toFile"));
       URL url = new URL(options.getString("fromUrl"));
