@@ -159,7 +159,9 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 fileCount++;
                 bufInput.close();
             }
-            request.writeBytes(tail);
+            if (!binaryStreamOnly) {
+                request.writeBytes(tail);
+            }
             request.flush();
             request.close();
 
