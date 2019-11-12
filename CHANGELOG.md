@@ -1,7 +1,8 @@
 # Changelog
 
-## Changes for v2.16 (not released yet, just master, for RN >= 0.61)
+## Changes for v2.16 (for RN >= 0.61)
 - #783 Import RCTImageLoaderProtocol instead of RCTImageLoader to fix iOS build on RN>0.60
+- #808 Should not send tail string for binaryStreamOnly option on Android
 
 ## Changes for v2.15
 - #717 bugfix #443: Add option progressInterval for downloadFile 
