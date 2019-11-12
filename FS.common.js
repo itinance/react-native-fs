@@ -21,6 +21,10 @@ var RNFSFileTypeRegular = RNFSManager.RNFSFileTypeRegular;
 var RNFSFileTypeDirectory = RNFSManager.RNFSFileTypeDirectory;
 
 var jobId = 0;
+var subscriptions = {
+  'download': {},
+  'upload': {}
+}
 
 var getJobId = () => {
   jobId += 1;
@@ -191,6 +195,16 @@ function readDirGeneric(dirpath: string, command: Function) {
   });
 }
 
+/**
+ * Un-subscription native events if downloadFile/uploadFiles finished or an error occurred
+ */
+function cleanSubscriptions (type: string, jobId: number) {
+  if (subscriptions[type][jobId]) {
+    subscriptions[type][jobId].forEach(sub => sub.remove());
+    delete subscriptions[type][jobId]
+  }
+}
+
 var RNFS = {
 
   mkdir(filepath: string, options: MkdirOptions = {}): Promise<void> {
@@ -231,6 +245,7 @@ var RNFS = {
 
   stopDownload(jobId: number): void {
     RNFSManager.stopDownload(jobId);
+    cleanSubscriptions('download', jobId)
   },
 
   resumeDownload(jobId: number): void {
@@ -243,6 +258,7 @@ var RNFS = {
 
   stopUpload(jobId: number): void {
     RNFSManager.stopUpload(jobId);
+    cleanSubscriptions('upload', jobId)
   },
 
   completeHandlerIOS(jobId: number): void {
@@ -497,18 +513,18 @@ var RNFS = {
     if (options.backgroundTimeout && typeof options.backgroundTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `backgroundTimeout`');
 
     var jobId = getJobId();
-    var subscriptions = [];
+    subscriptions['download'][jobId] = []
 
     if (options.begin) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadBegin', options.begin));
+      subscriptions['download'][jobId].push(RNFS_NativeEventEmitter.addListener('DownloadBegin', options.begin));
     }
 
     if (options.progress) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadProgress', options.progress));
+      subscriptions['download'][jobId].push(RNFS_NativeEventEmitter.addListener('DownloadProgress', options.progress));
     }
 
     if (options.resumable) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', options.resumable));
+      subscriptions['download'][jobId].push(RNFS_NativeEventEmitter.addListener('DownloadResumable', options.resumable));
     }
 
     var bridgeOptions = {
@@ -530,10 +546,11 @@ var RNFS = {
     return {
       jobId,
       promise: RNFSManager.downloadFile(bridgeOptions).then(res => {
-        subscriptions.forEach(sub => sub.remove());
+        cleanSubscriptions('download', jobId)
         return res;
       })
         .catch(e => {
+          cleanSubscriptions('download', jobId)
           return Promise.reject(e);
         })
     };
@@ -548,7 +565,7 @@ var RNFS = {
     }
 
     var jobId = getJobId();
-    var subscriptions = [];
+    subscriptions['upload'][jobId] = [];
 
     if (typeof options !== 'object') throw new Error('uploadFiles: Invalid value for argument `options`');
     if (typeof options.toUrl !== 'string') throw new Error('uploadFiles: Invalid value for property `toUrl`');
@@ -558,17 +575,17 @@ var RNFS = {
     if (options.method && typeof options.method !== 'string') throw new Error('uploadFiles: Invalid value for property `method`');
 
     if (options.begin) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.begin));
+      subscriptions['upload'].push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.begin));
     } else if (options.beginCallback) {
       // Deprecated
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.beginCallback));
+      subscriptions['upload'].push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.beginCallback));
     }
 
     if (options.progress) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progress));
+      subscriptions['upload'].push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progress));
     } else if (options.progressCallback) {
       // Deprecated
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progressCallback));
+      subscriptions['upload'].push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progressCallback));
     }
 
     var bridgeOptions = {
@@ -586,7 +603,7 @@ var RNFS = {
     return {
       jobId,
       promise: RNFSManager.uploadFiles(bridgeOptions).then(res => {
-        subscriptions.forEach(sub => sub.remove());
+        cleanSubscriptions('upload', jobId)
         return res;
       })
     };
