@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:itinance/react-native-fs.git"
+    "url": "git@github.com:michaelmeyers/react-native-fs.git"
   },
   "keywords": [
     "react-component",
