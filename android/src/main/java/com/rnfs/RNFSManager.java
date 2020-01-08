@@ -11,6 +11,7 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.SparseArray;
 import android.media.MediaScannerConnection;
+import android.net.Uri;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -638,6 +639,19 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
+  public void getType(String filepath, Promise promise) {
+    try {
+      String type = reactContext.getContentResolver().getType(Uri.parse(filepath));
+      WritableMap map = Arguments.createMap();
+      map.putString("type", type);
+      promise.resolve(map);
+    } catch (Exception exception) {
+      exception.printStackTrace();
+      reject(promise, filepath, exception);
     }
   }
 

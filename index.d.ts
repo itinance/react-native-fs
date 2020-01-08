@@ -29,6 +29,10 @@ type StatResult = {
 	isDirectory: () => boolean // Is the file a directory?
 }
 
+type TypeResult = {
+	type: string
+}
+
 type Headers = { [name: string]: string }
 type Fields = { [name: string]: string }
 
@@ -175,6 +179,11 @@ export function setReadable(
 ): Promise<boolean>
 
 export function stat(filepath: string): Promise<StatResult>
+
+/**
+ * Android-only
+ */
+export function getType(filepath: string): Promise<TypeResult>
 
 export function readFile(
 	filepath: string,

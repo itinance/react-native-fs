@@ -306,6 +306,16 @@ var RNFS = {
     });
   },
 
+  // Android-only
+  getType(filepath: string): Promise<TypeResult> {
+    return RNFSManager.getType(filepath).then((result) => {
+      console.log(result)
+      return {
+        'type': result && result.type || '',
+      }
+    });
+  },
+
   readFile(filepath: string, encodingOrOptions?: any): Promise<string> {
     return readFileGeneric(filepath, encodingOrOptions, RNFSManager.readFile);
   },
