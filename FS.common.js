@@ -33,7 +33,7 @@ type MkdirOptions = {
 };
 
 type FileOptions = {
-    NSFileProtectionKey?: string; // IOS only
+  NSFileProtectionKey?: string; // IOS only
 };
 
 type ReadDirItem = {
@@ -98,6 +98,7 @@ type DownloadResult = {
 
 type UploadFileOptions = {
   toUrl: string;            // URL to upload file to
+  binaryStreamOnly?: boolean; // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
   files: UploadFileItem[];  // An array of objects with the file information to be uploaded.
   headers?: Headers;        // An object of headers to be passed to the server
   fields?: Fields;          // An object of fields to be passed to the server
@@ -140,7 +141,7 @@ type FSInfoResult = {
 /**
  * Generic function used by readFile and readFileAssets
  */
-function readFileGeneric(filepath: string, encodingOrOptions:?string, command: Function) {
+function readFileGeneric(filepath: string, encodingOrOptions: ?string, command: Function) {
   var options = {
     encoding: 'utf8'
   };
@@ -230,11 +231,11 @@ var RNFS = {
   },
 
   resumeDownload(jobId: number): void {
-      RNFSManager.resumeDownload(jobId);
+    RNFSManager.resumeDownload(jobId);
   },
 
   isResumable(jobId: number): Promise<bool> {
-      return RNFSManager.isResumable(jobId);
+    return RNFSManager.isResumable(jobId);
   },
 
   stopUpload(jobId: number): void {
@@ -265,6 +266,14 @@ var RNFS = {
     return RNFSManager.existsAssets(filepath);
   },
 
+  // Android-only
+  existsRes(filename: string) {
+    if (!RNFSManager.existsRes) {
+      throw new Error('existsRes is not available on this platform');
+    }
+    return RNFSManager.existsRes(filename);
+  },
+
   // Node style version (lowercase d). Returns just the names
   readdir(dirpath: string): Promise<string[]> {
     return RNFS.readDir(normalizeFilePath(dirpath)).then(files => {
@@ -273,8 +282,8 @@ var RNFS = {
   },
 
   // setReadable for Android
-  setReadable(filepath : string, readable: boolean, ownerOnly: boolean) : Promise<boolean> {
-    return RNFSManager.setReadable(filepath, readable, ownerOnly).then( (result) => {
+  setReadable(filepath: string, readable: boolean, ownerOnly: boolean): Promise<boolean> {
+    return RNFSManager.setReadable(filepath, readable, ownerOnly).then((result) => {
       return result;
     })
   },
@@ -336,16 +345,32 @@ var RNFS = {
     return readFileGeneric(filepath, encodingOrOptions, RNFSManager.readFileAssets);
   },
 
+  // Android only
+  readFileRes(filename: string, encodingOrOptions?: any): Promise<string> {
+    if (!RNFSManager.readFileRes) {
+      throw new Error('readFileRes is not available on this platform');
+    }
+    return readFileGeneric(filename, encodingOrOptions, RNFSManager.readFileRes);
+  },
+
   hash(filepath: string, algorithm: string): Promise<string> {
     return RNFSManager.hash(normalizeFilePath(filepath), algorithm);
   },
 
   // Android only
-  copyFileAssets(filepath: string, destPath:string) {
+  copyFileAssets(filepath: string, destPath: string) {
     if (!RNFSManager.copyFileAssets) {
       throw new Error('copyFileAssets is not available on this platform');
     }
     return RNFSManager.copyFileAssets(normalizeFilePath(filepath), normalizeFilePath(destPath)).then(() => void 0);
+  },
+
+  // Android only
+  copyFileRes(filename: string, destPath: string) {
+    if (!RNFSManager.copyFileRes) {
+      throw new Error('copyFileRes is not available on this platform');
+    }
+    return RNFSManager.copyFileRes(filename, normalizeFilePath(destPath)).then(() => void 0);
   },
 
   // iOS only
@@ -353,8 +378,8 @@ var RNFS = {
   // with a given width or height
   // @see: https://developer.apple.com/reference/photos/phimagemanager/1616964-requestimageforasset
   copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number,
-    scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string> {
-    return RNFSManager.copyAssetsFileIOS(imageUri, destPath, width, height, scale, compression, resizeMode );
+    scale: number = 1.0, compression: number = 1.0, resizeMode: string = 'contain'): Promise<string> {
+    return RNFSManager.copyAssetsFileIOS(imageUri, destPath, width, height, scale, compression, resizeMode);
   },
 
   // iOS only
@@ -377,8 +402,8 @@ var RNFS = {
         options.encoding = encodingOrOptions;
       } else if (typeof encodingOrOptions === 'object') {
         options = {
-            ...options,
-            ...encodingOrOptions
+          ...options,
+          ...encodingOrOptions
         };
       }
     }
@@ -500,9 +525,9 @@ var RNFS = {
         subscriptions.forEach(sub => sub.remove());
         return res;
       })
-      .catch( e => {
-        return Promise.reject(e);
-      })
+        .catch(e => {
+          return Promise.reject(e);
+        })
     };
   },
 
@@ -544,6 +569,7 @@ var RNFS = {
       jobId: jobId,
       toUrl: options.toUrl,
       files: options.files,
+      binaryStreamOnly: options.binaryStreamOnly || false,
       headers: options.headers || {},
       fields: options.fields || {},
       method: options.method || 'POST'

@@ -68,6 +68,7 @@ type DownloadResult = {
 
 type UploadFileOptions = {
 	toUrl: string // URL to upload file to
+	binaryStreamOnly?: boolean // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
 	files: UploadFileItem[] // An array of objects with the file information to be uploaded.
 	headers?: Headers // An object of headers to be passed to the server
 	fields?: Fields // An object of fields to be passed to the server
@@ -153,6 +154,11 @@ export function readDirAssets(dirpath: string): Promise<ReadDirItem[]>
 export function existsAssets(filepath: string): Promise<boolean>
 
 /**
+ * Android-only
+ */
+export function existsRes(filepath: string): Promise<boolean>
+
+/**
  * Node style version (lowercase d). Returns just the names
  */
 export function readdir(dirpath: string): Promise<string[]>
@@ -187,12 +193,28 @@ export function readFileAssets(
 	encodingOrOptions?: any
 ): Promise<string>
 
+/**
+ * Android only
+ */
+export function readFileRes(
+	filepath: string,
+	encodingOrOptions?: any
+): Promise<string>
+
 export function hash(filepath: string, algorithm: string): Promise<string>
 
 /**
  * Android only
  */
 export function copyFileAssets(
+	filepath: string,
+	destPath: string
+): Promise<void>
+
+/**
+ * Android only
+ */
+export function copyFileRes(
 	filepath: string,
 	destPath: string
 ): Promise<void>
@@ -228,6 +250,12 @@ export function writeFile(
 	filepath: string,
 	contents: string,
 	encodingOrOptions?: any
+): Promise<void>
+
+export function appendFile(
+	filepath: string,
+	contents: string,
+	encodingOrOptions?: string
 ): Promise<void>
 
 export function write(

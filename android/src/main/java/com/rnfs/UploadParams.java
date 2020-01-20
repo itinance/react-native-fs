@@ -17,6 +17,7 @@ public class UploadParams {
     }
     public URL src;
     public ArrayList<ReadableMap> files;
+    public boolean binaryStreamOnly;
     public String name;
     public ReadableMap headers;
     public ReadableMap fields;
