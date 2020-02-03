@@ -500,15 +500,21 @@ var RNFS = {
     var subscriptions = [];
 
     if (options.begin) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadBegin', options.begin));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadBegin', (res) => {
+        if (res.jobId === jobId) options.begin(res);
+      }));
     }
 
     if (options.progress) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadProgress', options.progress));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadProgress', (res) => {
+        if (res.jobId === jobId) options.progress(res);
+      }));
     }
 
     if (options.resumable) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', options.resumable));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', (res) => {
+        if (res.jobId === joibId) options.resumable(res);
+      }));
     }
 
     var bridgeOptions = {
