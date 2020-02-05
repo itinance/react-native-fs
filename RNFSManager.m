@@ -14,7 +14,12 @@
 
 #import <React/RCTEventDispatcher.h>
 #import <React/RCTUtils.h>
+
+#if __has_include(<React/RCTImageLoader.h>)
+#import <React/RCTImageLoader.h>
+#else
 #import <React/RCTImageLoaderProtocol.h>
+#endif
 
 #import <CommonCrypto/CommonDigest.h>
 #import <Photos/Photos.h>
