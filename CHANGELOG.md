@@ -1,6 +1,7 @@
 # Changelog
 
-## Changes for v2.16 (not released yet, just master, for RN >= 0.61)
+## Changes for v2.16
+- #842 Fixes #811 Concurrent downloads send progress updates to all progress callbacks
 - #783 Import RCTImageLoaderProtocol instead of RCTImageLoader to fix iOS build on RN>0.60
 
 ## Changes for v2.15
