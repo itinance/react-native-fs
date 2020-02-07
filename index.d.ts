@@ -42,12 +42,14 @@ type DownloadFileOptions = {
 	background?: boolean // Continue the download in the background after the app terminates (iOS only)
 	discretionary?: boolean // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
 	cacheable?: boolean // Whether the download can be stored in the shared NSURLCache (iOS only)
+	progressInterval?: number
 	progressDivider?: number
 	begin?: (res: DownloadBeginCallbackResult) => void
 	progress?: (res: DownloadProgressCallbackResult) => void
 	resumable?: () => void // only supported on iOS yet
 	connectionTimeout?: number // only supported on Android yet
 	readTimeout?: number // supported on Android and iOS
+	backgroundTimeout?: number // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
 }
 
 type DownloadBeginCallbackResult = {
@@ -71,6 +73,7 @@ type DownloadResult = {
 
 type UploadFileOptions = {
 	toUrl: string // URL to upload file to
+	binaryStreamOnly?: boolean // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
 	files: UploadFileItem[] // An array of objects with the file information to be uploaded.
 	headers?: Headers // An object of headers to be passed to the server
 	fields?: Fields // An object of fields to be passed to the server
@@ -124,7 +127,7 @@ export function copyFile(
 export function pathForBundle(bundleNamed: string): Promise<string>
 export function pathForGroup(groupName: string): Promise<string>
 export function getFSInfo(): Promise<FSInfoResult>
-export function getAllExternalFilesDirs(): Promise<string>
+export function getAllExternalFilesDirs(): Promise<string[]>
 export function unlink(filepath: string): Promise<void>
 export function exists(filepath: string): Promise<boolean>
 
@@ -252,6 +255,12 @@ export function writeFile(
 	filepath: string,
 	contents: string,
 	encodingOrOptions?: any
+): Promise<void>
+
+export function appendFile(
+	filepath: string,
+	contents: string,
+	encodingOrOptions?: string
 ): Promise<void>
 
 export function write(

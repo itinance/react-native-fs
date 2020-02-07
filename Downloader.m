@@ -11,6 +11,7 @@
 @property (retain) NSURLSession* session;
 @property (retain) NSURLSessionDownloadTask* task;
 @property (retain) NSNumber* statusCode;
+@property (assign) NSTimeInterval lastProgressEmitTimestamp;
 @property (retain) NSNumber* lastProgressValue;
 @property (retain) NSNumber* contentLength;
 @property (retain) NSNumber* bytesWritten;
@@ -25,9 +26,10 @@
 - (NSString *)downloadFile:(RNFSDownloadParams*)params
 {
     NSString *uuid = nil;
-    
+
     _params = params;
 
+  _lastProgressEmitTimestamp = 0;
   _bytesWritten = 0;
 
   NSURL* url = [NSURL URLWithString:_params.fromUrl];
@@ -61,27 +63,34 @@
 
   config.HTTPAdditionalHeaders = _params.headers;
   config.timeoutIntervalForRequest = [_params.readTimeout intValue] / 1000.0;
+  config.timeoutIntervalForResource = [_params.backgroundTimeout intValue] / 1000.0;
 
   _session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:nil];
   _task = [_session downloadTaskWithURL:url];
   [_task resume];
-    
+
     return uuid;
 }
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
 {
   NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)downloadTask.response;
-  if (!_statusCode) {
+  if (_params.beginCallback && !_statusCode) {
     _statusCode = [NSNumber numberWithLong:httpResponse.statusCode];
     _contentLength = [NSNumber numberWithLong:httpResponse.expectedContentLength];
     return _params.beginCallback(_statusCode, _contentLength, httpResponse.allHeaderFields);
   }
 
-  if ([_statusCode isEqualToNumber:[NSNumber numberWithInt:200]]) {
+  if (_params.progressCallback && [_statusCode isEqualToNumber:[NSNumber numberWithInt:200]]) {
     _bytesWritten = @(totalBytesWritten);
 
-    if (_params.progressDivider.integerValue <= 0) {
+    if(_params.progressInterval.integerValue > 0){
+      NSTimeInterval timestamp = [[NSDate date] timeIntervalSince1970];
+      if(timestamp - _lastProgressEmitTimestamp > _params.progressInterval.integerValue / 1000.0){
+        _lastProgressEmitTimestamp = timestamp;
+        return _params.progressCallback(_contentLength, _bytesWritten);
+      }
+    }else if (_params.progressDivider.integerValue <= 0) {
       return _params.progressCallback(_contentLength, _bytesWritten);
     } else {
       double doubleBytesWritten = (double)[_bytesWritten longValue];
@@ -90,7 +99,7 @@
       NSNumber* progress = [NSNumber numberWithUnsignedInt: floor(doublePercents)];
       if ([progress unsignedIntValue] % [_params.progressDivider integerValue] == 0) {
         if (([progress unsignedIntValue] != [_lastProgressValue unsignedIntValue]) || ([_bytesWritten unsignedIntegerValue] == [_contentLength longValue])) {
-          NSLog(@"---Progress callback EMIT--- %zu", [progress unsignedIntValue]);
+            NSLog(@"---Progress callback EMIT--- %u", [progress unsignedIntValue]);
           _lastProgressValue = [NSNumber numberWithUnsignedInt:[progress unsignedIntValue]];
           return _params.progressCallback(_contentLength, _bytesWritten);
         }
@@ -127,7 +136,9 @@
   if (error && error.code != NSURLErrorCancelled) {
       _resumeData = error.userInfo[NSURLSessionDownloadTaskResumeData];
       if (_resumeData != nil) {
-          _params.resumableCallback();
+        if (_params.resumableCallback) {
+            _params.resumableCallback();
+        }
       } else {
           _params.errorCallback(error);
       }
@@ -140,15 +151,17 @@
     [_task cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
         if (resumeData != nil) {
             self.resumeData = resumeData;
-            _params.resumableCallback();
+            if (self->_params.resumableCallback) {
+                self->_params.resumableCallback();
+            }
         } else {
             NSError *error = [NSError errorWithDomain:@"RNFS"
-                                                 code:@"Aborted"
+                                                 code:0 //used to pass an NSString @"Aborted" here, but it needs an NSInteger
                                              userInfo:@{
                                                         NSLocalizedDescriptionKey: @"Download has been aborted"
                                                         }];
-            
-            _params.errorCallback(error);
+
+            self->_params.errorCallback(error);
         }
     }];
 

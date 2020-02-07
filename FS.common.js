@@ -9,8 +9,10 @@
 
 var RNFSManager = require('react-native').NativeModules.RNFSManager;
 
-var NativeAppEventEmitter = require('react-native').NativeAppEventEmitter;  // iOS
-var DeviceEventEmitter = require('react-native').DeviceEventEmitter;        // Android
+var NativeEventEmitter = require('react-native').NativeEventEmitter;
+
+var RNFS_NativeEventEmitter = new NativeEventEmitter(RNFSManager);
+
 var base64 = require('base-64');
 var utf8 = require('utf8');
 var isIOS = require('react-native').Platform.OS === 'ios';
@@ -76,12 +78,14 @@ type DownloadFileOptions = {
   background?: boolean;     // Continue the download in the background after the app terminates (iOS only)
   discretionary?: boolean;  // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
   cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only)
+  progressInterval?: number;
   progressDivider?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
   resumable?: () => void;    // only supported on iOS yet
   connectionTimeout?: number; // only supported on Android yet
   readTimeout?: number;       // supported on Android and iOS
+  backgroundTimeout?: number; // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
 };
 
 type DownloadBeginCallbackResult = {
@@ -105,6 +109,7 @@ type DownloadResult = {
 
 type UploadFileOptions = {
   toUrl: string;            // URL to upload file to
+  binaryStreamOnly?: boolean; // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
   files: UploadFileItem[];  // An array of objects with the file information to be uploaded.
   headers?: Headers;        // An object of headers to be passed to the server
   fields?: Fields;          // An object of fields to be passed to the server
@@ -502,22 +507,30 @@ var RNFS = {
     if (options.headers && typeof options.headers !== 'object') throw new Error('downloadFile: Invalid value for property `headers`');
     if (options.background && typeof options.background !== 'boolean') throw new Error('downloadFile: Invalid value for property `background`');
     if (options.progressDivider && typeof options.progressDivider !== 'number') throw new Error('downloadFile: Invalid value for property `progressDivider`');
+    if (options.progressInterval && typeof options.progressInterval !== 'number') throw new Error('downloadFile: Invalid value for property `progressInterval`');
     if (options.readTimeout && typeof options.readTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `readTimeout`');
     if (options.connectionTimeout && typeof options.connectionTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `connectionTimeout`');
+    if (options.backgroundTimeout && typeof options.backgroundTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `backgroundTimeout`');
 
     var jobId = getJobId();
     var subscriptions = [];
 
     if (options.begin) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, options.begin));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadBegin', (res) => {
+        if (res.jobId === jobId) options.begin(res);
+      }));
     }
 
     if (options.progress) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, options.progress));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadProgress', (res) => {
+        if (res.jobId === jobId) options.progress(res);
+      }));
     }
 
     if (options.resumable) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadResumable-' + jobId, options.resumable));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', (res) => {
+        if (res.jobId === joibId) options.resumable(res);
+      }));
     }
 
     var bridgeOptions = {
@@ -527,8 +540,13 @@ var RNFS = {
       headers: options.headers || {},
       background: !!options.background,
       progressDivider: options.progressDivider || 0,
+      progressInterval: options.progressInterval || 0,
       readTimeout: options.readTimeout || 15000,
-      connectionTimeout: options.connectionTimeout || 5000
+      connectionTimeout: options.connectionTimeout || 5000,
+      backgroundTimeout: options.backgroundTimeout || 3600000, // 1 hour
+      hasBeginCallback: options.begin instanceof Function,
+      hasProgressCallback: options.progress instanceof Function,
+      hasResumableCallback: options.resumable instanceof Function,
     };
 
     return {
@@ -562,28 +580,29 @@ var RNFS = {
     if (options.method && typeof options.method !== 'string') throw new Error('uploadFiles: Invalid value for property `method`');
 
     if (options.begin) {
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadBegin-' + jobId, options.begin));
-    }
-    if (options.beginCallback && options.beginCallback instanceof Function) {
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.begin));
+    } else if (options.beginCallback) {
       // Deprecated
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadBegin-' + jobId, options.beginCallback));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.beginCallback));
     }
 
     if (options.progress) {
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadProgress-' + jobId, options.progress));
-    }
-    if (options.progressCallback && options.progressCallback instanceof Function) {
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progress));
+    } else if (options.progressCallback) {
       // Deprecated
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadProgress-' + jobId, options.progressCallback));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progressCallback));
     }
 
     var bridgeOptions = {
       jobId: jobId,
       toUrl: options.toUrl,
       files: options.files,
+      binaryStreamOnly: options.binaryStreamOnly || false,
       headers: options.headers || {},
       fields: options.fields || {},
-      method: options.method || 'POST'
+      method: options.method || 'POST',
+      hasBeginCallback: options.begin instanceof Function || options.beginCallback instanceof Function,
+      hasProgressCallback: options.progress instanceof Function || options.progressCallback instanceof Function,
     };
 
     return {
