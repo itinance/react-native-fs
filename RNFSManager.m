@@ -860,7 +860,13 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
   //__block NSURL* videoURL = [NSURL URLWithString:destination];
   __block NSError *error = nil;
 
-  PHFetchResult *phAssetFetchResult = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
+  PHFetchResult *phAssetFetchResult = nil;
+  if ([url.scheme isEqualToString:@"ph"]) {
+      phAssetFetchResult = [PHAsset fetchAssetsWithLocalIdentifiers:@[[imageUri substringFromIndex: 5]] options:nil];
+  } else {
+      phAssetFetchResult = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
+  }
+
   PHAsset *phAsset = [phAssetFetchResult firstObject];
 
   PHVideoRequestOptions *options = [[PHVideoRequestOptions alloc] init];
