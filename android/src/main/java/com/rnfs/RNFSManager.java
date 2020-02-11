@@ -768,7 +768,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
       Downloader downloader = new Downloader();
 
-      downloader.execute(params);
+      downloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
 
       this.downloaders.put(jobId, downloader);
     } catch (Exception ex) {
