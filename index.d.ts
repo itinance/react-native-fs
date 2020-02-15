@@ -176,6 +176,8 @@ export function setReadable(
 
 export function stat(filepath: string): Promise<StatResult>
 
+export function symlink(target: string, path: string): Promise<string>
+
 export function readFile(
 	filepath: string,
 	encodingOrOptions?: any

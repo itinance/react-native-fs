@@ -306,6 +306,13 @@ var RNFS = {
     });
   },
 
+
+  symlink(target: string, path: string): Promise<string> {
+    return RNFSManager.symlink(normalizeFilePath(target), normalizeFilePath(path)).then((result) => {
+      return result;
+    });
+  },
+
   readFile(filepath: string, encodingOrOptions?: any): Promise<string> {
     return readFileGeneric(filepath, encodingOrOptions, RNFSManager.readFile);
   },

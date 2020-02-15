@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.StatFs;
+import android.system.Os;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.SparseArray;
@@ -638,6 +639,17 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
+  public void symlink(String target, String path, Promise promise) {
+    try {
+      Os.symlink(target, path);
+      promise.resolve(path);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, path, ex);
     }
   }
 

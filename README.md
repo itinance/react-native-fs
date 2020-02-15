@@ -675,6 +675,10 @@ type FSInfoResult = {
 
 Scan the file using [Media Scanner](https://developer.android.com/reference/android/media/MediaScannerConnection).
 
+### (Android only) `symlink(taget: string, path: string): Promise<string>`
+
+Creates a symbolic link to a target
+
 ### (Android only) `getAllExternalFilesDirs(): Promise<string[]>`
 
 Returns an array with the absolute paths to application-specific directories on all shared/external storage devices where the application can place persistent files it owns.
