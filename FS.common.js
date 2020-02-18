@@ -495,6 +495,9 @@ var RNFS = {
     if (options.readTimeout && typeof options.readTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `readTimeout`');
     if (options.connectionTimeout && typeof options.connectionTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `connectionTimeout`');
     if (options.backgroundTimeout && typeof options.backgroundTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `backgroundTimeout`');
+    if (options.begin && !(options.begin instanceof Function)) throw new Error('downloadFile: Invalid value for property `begin`');
+    if (options.progress && !(options.progress instanceof Function)) throw new Error('downloadFile: Invalid value for property `progress`');
+    if (options.resumable && !(options.resumable instanceof Function)) throw new Error('downloadFile: Invalid value for property `resumable`');
 
     var jobId = getJobId();
     var subscriptions = [];
@@ -513,7 +516,7 @@ var RNFS = {
 
     if (options.resumable) {
       subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', (res) => {
-        if (res.jobId === joibId) options.resumable(res);
+        if (res.jobId === jobId) options.resumable();
       }));
     }
 
@@ -535,13 +538,9 @@ var RNFS = {
 
     return {
       jobId,
-      promise: RNFSManager.downloadFile(bridgeOptions).then(res => {
+      promise: RNFSManager.downloadFile(bridgeOptions).finally(() => {
         subscriptions.forEach(sub => sub.remove());
-        return res;
       })
-        .catch(e => {
-          return Promise.reject(e);
-        })
     };
   },
 
