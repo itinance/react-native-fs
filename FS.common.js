@@ -501,19 +501,19 @@ var RNFS = {
 
     if (options.begin) {
       subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadBegin', (res) => {
-        if (res.jobId === jobId) options.begin(res);
+        if (res.jobId === jobId && options.begin) options.begin(res);
       }));
     }
 
     if (options.progress) {
       subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadProgress', (res) => {
-        if (res.jobId === jobId) options.progress(res);
+        if (res.jobId === jobId && options.progress) options.progress(res);
       }));
     }
 
     if (options.resumable) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', (res) => {
-        if (res.jobId === joibId) options.resumable(res);
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', () => {
+        if (options.resumable) options.resumable();
       }));
     }
 
