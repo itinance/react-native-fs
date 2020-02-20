@@ -513,7 +513,7 @@ var RNFS = {
 
     if (options.resumable) {
       subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', (res) => {
-        if (res.jobId === joibId) options.resumable(res);
+        if (res.jobId === jobId) options.resumable(res);
       }));
     }
 
