@@ -545,7 +545,7 @@ RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
   if (hasResumableCallback) {
     params.resumableCallback = ^() {
         if (self.bridge != nil)
-            [self sendEventWithName:@"DownloadResumable" body:nil];
+            [self sendEventWithName:@"DownloadResumable" body:@{@"jobId": jobId}];
     };
   }
 
