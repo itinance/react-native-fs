@@ -1,6 +1,7 @@
 # Changelog
 
 ## Changes for v2.16
+- #797 Added path to the Android download folder
 - #842 Fixes #811 Concurrent downloads send progress updates to all progress callbacks
 - #783 Import RCTImageLoaderProtocol instead of RCTImageLoader to fix iOS build on RN>0.60
 
