@@ -314,6 +314,7 @@ The following constants are available on the `RNFS` export:
 - `CachesDirectoryPath` (`String`) The absolute path to the caches directory
 - `ExternalCachesDirectoryPath` (`String`) The absolute path to the external caches directory (android only)
 - `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
+- `DownloadDirectoryPath` (`String`) The absolute path to the download directory (on android only)
 - `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (falls back to Caching-Directory on Android)
 - `LibraryDirectoryPath` (`String`) The absolute path to the NSLibraryDirectory (iOS only)
 - `ExternalDirectoryPath` (`String`) The absolute path to the external files, shared directory (android only)

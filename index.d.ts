@@ -284,6 +284,7 @@ export function touch(
 export const MainBundlePath: string
 export const CachesDirectoryPath: string
 export const ExternalCachesDirectoryPath: string
+export const DownloadDirectoryPath: string
 export const DocumentDirectoryPath: string
 export const ExternalDirectoryPath: string
 export const ExternalStorageDirectoryPath: string
