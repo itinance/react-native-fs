@@ -564,14 +564,18 @@ var RNFS = {
     if (options.method && typeof options.method !== 'string') throw new Error('uploadFiles: Invalid value for property `method`');
 
     if (options.begin) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.begin));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', (res) => {
+        if (res.jobId === jobId) options.begin(res);
+      }));
     } else if (options.beginCallback) {
       // Deprecated
       subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.beginCallback));
     }
 
     if (options.progress) {
-      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progress));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', (res) => {
+        if (res.jobId === jobId) options.progress(res);
+      }));
     } else if (options.progressCallback) {
       // Deprecated
       subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progressCallback));
