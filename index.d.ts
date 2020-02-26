@@ -284,11 +284,14 @@ export function touch(
 export const MainBundlePath: string
 export const CachesDirectoryPath: string
 export const ExternalCachesDirectoryPath: string
-export const DownloadDirectoryPath: string
 export const DocumentDirectoryPath: string
+export const DownloadDirectoryPath: string
 export const ExternalDirectoryPath: string
 export const ExternalStorageDirectoryPath: string
 export const TemporaryDirectoryPath: string
 export const LibraryDirectoryPath: string
 export const PicturesDirectoryPath: string
-export const FileProtectionKeys: string
+export const FileProtectionComplete: string
+export const FileProtectionCompleteUnlessOpen: string
+export const FileProtectionCompleteUntilFirstUserAuthentication: string
+export const FileProtectionNone: string
