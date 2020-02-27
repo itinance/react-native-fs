@@ -35,7 +35,7 @@ namespace RNFS
         private readonly HttpClient _httpClient = new HttpClient();
 
         private RCTNativeAppEventEmitter _emitter;
-        
+
         public RNFSManager(ReactContext reactContext)
             : base(reactContext)
         {
@@ -103,15 +103,39 @@ namespace RNFS
             }
         }
 
+        private byte[] convertData(string content, string encoding) {
+            if (String.Equals(encoding, "base64")) {
+                return Convert.FromBase64String(base64Content);
+            } else if (String.Equals(encoding, "utf8")) {
+                return System.Text.Encoding.UTF8.GetBytes(value);
+            } else if (String.Equals(encoding, "ascii")) {
+                return System.Text.Encoding.ASCIIEncoding.GetBytes(value);
+            } else {
+                return null;
+            }
+        }
+
+        private void resolveContentWithEncoding(byte[] buffer, string encoding, IPromise promise) {
+            if (String.Equals(encoding, "base64")) {
+                promise.Resolve(Convert.ToBase64String(buffer));
+            } else if (String.Equals(encoding, "utf8")) {
+                return promise.Resolve(System.Text.Encoding.UTF8.GetString(buffer));
+            } else if (String.Equals(encoding, "ascii")) {
+                return promise.Resolve(System.Text.Encoding.ASCIIEncoding.GetString(buffer));
+            } else {
+                return promise.Reject(null, "Invalid encoding, use base64, utf8 or ascii.");
+            }
+        }
+
         [ReactMethod]
-        public async void writeFile(string filepath, string base64Content, JObject options, IPromise promise)
+        public async void writeFile(string filepath, string content, string encoding, JObject options, IPromise promise)
         {
             try
             {
                 // TODO: open file on background thread?
                 using (var file = File.OpenWrite(filepath))
                 {
-                    var data = Convert.FromBase64String(base64Content);
+                    var data = convertData(content, encoding);
                     await file.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
                 }
 
@@ -124,14 +148,14 @@ namespace RNFS
         }
 
         [ReactMethod]
-        public async void appendFile(string filepath, string base64Content, IPromise promise)
+        public async void appendFile(string filepath, string content, string encoding, IPromise promise)
         {
             try
             {
                 // TODO: open file on background thread?
                 using (var file = File.Open(filepath, FileMode.Append))
                 {
-                    var data = Convert.FromBase64String(base64Content);
+                    var data = convertData(content, encoding);
                     await file.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
                 }
 
@@ -144,7 +168,7 @@ namespace RNFS
         }
 
         [ReactMethod]
-        public async void write(string filepath, string base64Content, int position, IPromise promise)
+        public async void write(string filepath, string content, string encoding, int position, IPromise promise)
         {
             try
             {
@@ -156,7 +180,7 @@ namespace RNFS
                         file.Position = position;
                     }
 
-                    var data = Convert.FromBase64String(base64Content);
+                    var data = convertData(content, encoding);
                     await file.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
                 }
 
@@ -182,7 +206,7 @@ namespace RNFS
         }
 
         [ReactMethod]
-        public async void readFile(string filepath, IPromise promise)
+        public async void readFile(string filepath, string encoding, IPromise promise)
         {
             try
             {
@@ -193,20 +217,19 @@ namespace RNFS
                 }
 
                 // TODO: open file on background thread?
-                string base64Content;
+                byte[] buffer;
                 using (var file = File.OpenRead(filepath))
                 {
                     var length = (int)file.Length;
-                    var buffer = new byte[length];
+                    buffer = new byte[length];
                     await file.ReadAsync(buffer, 0, length).ConfigureAwait(false);
-                    base64Content = Convert.ToBase64String(buffer);
                 }
 
-                promise.Resolve(base64Content);
+                resolveContentWithEncoding(buffer, encoding);
             }
             catch (Exception ex)
             {
-                Reject(promise, filepath, ex); 
+                Reject(promise, filepath, ex);
             }
         }
 
@@ -222,16 +245,14 @@ namespace RNFS
                 }
 
                 // TODO: open file on background thread?
-                string base64Content;
+                var buffer = new byte[length];
                 using (var file = File.OpenRead(filepath))
                 {
                     file.Position = position;
-                    var buffer = new byte[length];
                     await file.ReadAsync(buffer, 0, length).ConfigureAwait(false);
-                    base64Content = Convert.ToBase64String(buffer);
                 }
 
-                promise.Resolve(base64Content);
+                resolveContentWithEncoding(buffer, encoding);
             }
             catch (Exception ex)
             {
@@ -456,7 +477,7 @@ namespace RNFS
                     request.Headers.Add(header.Key, header.Value.Value<string>());
                 }
 
-                await _tasks.AddAndInvokeAsync(jobId, token => 
+                await _tasks.AddAndInvokeAsync(jobId, token =>
                     ProcessRequestAsync(promise, request, filepath, jobId, progressDivider, token));
             }
             catch (Exception ex)
@@ -477,7 +498,7 @@ namespace RNFS
             try
             {
                 var properties = await ApplicationData.Current.LocalFolder.Properties.RetrievePropertiesAsync(
-                    new[] 
+                    new[]
                     {
                         "System.FreeSpace",
                         "System.Capacity",
