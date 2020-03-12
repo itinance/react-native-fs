@@ -538,10 +538,10 @@ namespace RNFSvnext
         }
 
         [ReactEvent]
-        public ReactEvent<Dictionary<string, JSValue>> DownloadBegin { get; set; }
+        public Action<Dictionary<string, JSValue>> DownloadBegin { get; set; }
 
         [ReactEvent]
-        public ReactEvent<Dictionary<string, JSValue>> DownloadProgress { get; set; }
+        public Action<Dictionary<string, JSValue>> DownloadProgress { get; set; }
 
         private async Task ProcessRequestAsync(IReactPromise<IReadOnlyDictionary<string, JSValue>> promise, HttpRequestMessage request, string filepath, int jobId, int progressIncrement, CancellationToken token)
         {
@@ -624,15 +624,13 @@ namespace RNFSvnext
                 RejectFileNotFound(promise, filepath);
                 return;
             }
-            ReactError err = new ReactError();
-            err.Exception = ex;
+            ReactError err = new ReactError{ Message = ex.Message };
             promise.Reject(err);
         }
 
         private void RejectFileNotFound<T>(IReactPromise<T> promise, String filepath)
         {
-            ReactError err = new ReactError();
-            err.Message = "ENOENT: no such file or directory, open '" + filepath + "'";
+            ReactError err = new ReactError { Message = "ENOENT: no such file or directory, open '" + filepath + "'" };
             promise.Reject(err);
         }
 

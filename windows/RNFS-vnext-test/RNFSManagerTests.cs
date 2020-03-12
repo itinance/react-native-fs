@@ -17,15 +17,15 @@ namespace RNFSvnext.Test
     [TestClass]
     public class RNFSManagerTests
     {
-        private ReactModuleBuilderMock m_moduleBuilder;
+        private Microsoft.ReactNative.Managed.UnitTests.ReactModuleBuilderMock m_moduleBuilder;
         private ReactModuleInfo m_moduleInfo;
         private RNFSManager m_module;
 
         [TestInitialize]
         public void Initialize()
         {
-            m_moduleBuilder = new ReactModuleBuilderMock();
-            m_moduleInfo = new ReactModuleInfo(typeof(RNFSManager), "RNFSManager", "RNFSManager");
+            m_moduleBuilder = new Microsoft.ReactNative.Managed.UnitTests.ReactModuleBuilderMock();
+            m_moduleInfo = new ReactModuleInfo(typeof(RNFSManager));
             m_module = (RNFSManager)m_moduleInfo.ModuleProvider(m_moduleBuilder);
         }
 
@@ -50,7 +50,7 @@ namespace RNFSvnext.Test
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
             var hello = "Hello World";
             var base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(hello));
-            m_moduleBuilder.Call2("writeFile", path, base64Content, new JSValue(0), 
+            m_moduleBuilder.Call2("writeFile", path, base64Content, new JSValue(0),
                 (int result) =>
                 {
                     // Assert
@@ -61,7 +61,7 @@ namespace RNFSvnext.Test
                     File.Delete(path);
 
                 },
-                (JSValue error) => Assert.Fail());
+                (JSValue error) => Assert.Fail()).Wait() ;
             Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);
 
         }
@@ -93,7 +93,7 @@ namespace RNFSvnext.Test
 
                    // Cleanup
                    File.Delete(path);
-               });
+               }).Wait();
 
             Assert.IsTrue(m_moduleBuilder.IsRejectCallbackCalled);
         }
@@ -125,7 +125,7 @@ namespace RNFSvnext.Test
                               //Cleanup
                               Directory.Delete(path);
 
-                          });
+                          }).Wait();
             Assert.IsTrue(m_moduleBuilder.IsRejectCallbackCalled);
         }
 
@@ -145,7 +145,7 @@ namespace RNFSvnext.Test
 
                               Assert.AreEqual(message, $"Access to the path '{path}' is denied.", $"Message was {message}");
 
-                          });
+                          }).Wait();
             Assert.IsTrue(m_moduleBuilder.IsRejectCallbackCalled);
         }
 
@@ -170,7 +170,7 @@ namespace RNFSvnext.Test
                           (JSValue error) =>
                           {
                               Assert.Fail();
-                          });
+                          }).Wait();
             Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);            
         }
 
@@ -195,7 +195,7 @@ namespace RNFSvnext.Test
                          (JSValue error) =>
                          {
                              Assert.Fail();
-                         });
+                         }).Wait();
             Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);
         }
 
@@ -223,7 +223,7 @@ namespace RNFSvnext.Test
                         (JSValue error) =>
                         {
                             Assert.Fail();
-                        });
+                        }).Wait();
             Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);
 
     
@@ -252,7 +252,7 @@ namespace RNFSvnext.Test
 
                 // Cleanup
                 Directory.Delete(path);
-            });
+            }).Wait();
 
             Assert.IsTrue(m_moduleBuilder.IsRejectCallbackCalled);
 
@@ -281,7 +281,7 @@ namespace RNFSvnext.Test
             (JSValue error) =>
             {
                 Assert.Fail();
-            });
+            }).Wait();
 
             Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);
 
@@ -315,7 +315,7 @@ namespace RNFSvnext.Test
             (JSValue error) =>
             {
                 Assert.Fail();
-            });
+            }).Wait();
             Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);
         }
 
@@ -333,7 +333,7 @@ namespace RNFSvnext.Test
            {
                var message = error.Object["message"].String;
                Assert.AreEqual(message, $"Access to the path '{path}' is denied.", $"Message was {message}");
-           });
+           }).Wait();
 
            Assert.IsTrue(m_moduleBuilder.IsRejectCallbackCalled);
         }
