@@ -624,7 +624,7 @@ namespace RNFSvnext
                 RejectFileNotFound(promise, filepath);
                 return;
             }
-            ReactError err = new ReactError{ Message = ex.Message };
+            ReactError err = new ReactError{ Exception = ex };
             promise.Reject(err);
         }
 
