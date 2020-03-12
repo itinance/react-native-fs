@@ -61,7 +61,10 @@ namespace RNFSvnext.Test
                     File.Delete(path);
 
                 },
-                (JSValue error) => Assert.Fail()).Wait() ;
+                (JSValue error) =>
+                {
+                    Assert.Fail();
+                }).Wait() ;
             Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);
 
         }
@@ -81,21 +84,20 @@ namespace RNFSvnext.Test
             m_moduleBuilder.Call2("writeFile", path, base64Content, new JSValue(0),
                (int result) =>
                {
-                   Assert.Fail();
-                   
-
-               },
-               (JSValue error) =>
-               {
-                   // Assert
                    var contents = File.ReadAllText(path);
                    Assert.AreEqual("Hello World Earth", contents);
 
                    // Cleanup
                    File.Delete(path);
+                   
+               },
+               (JSValue error) =>
+               {
+                   Assert.Fail();
+
                }).Wait();
 
-            Assert.IsTrue(m_moduleBuilder.IsRejectCallbackCalled);
+            Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);
         }
 
 
