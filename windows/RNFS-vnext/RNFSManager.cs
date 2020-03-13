@@ -386,7 +386,7 @@ namespace RNFSvnext
                     { "ctime", new JSValue(ConvertToUnixTimestamp(fileSystemInfo.CreationTime)) },
                     { "mtime", new JSValue(ConvertToUnixTimestamp(fileSystemInfo.LastWriteTime)) },
                     { "size", new JSValue(fileInfo?.Length ?? 0) },
-                    { "type", new JSValue(fileInfo != null ? RNFSDocumentDirectoryPath: RNFSDocumentDirectoryPath) },
+                    { "type", new JSValue(fileInfo != null ? RNFSFileTypeRegular: RNFSFileTypeDirectory) },
                 };
 
                 promise.Resolve(new JSValue(statMap));
@@ -538,10 +538,10 @@ namespace RNFSvnext
         }
 
         [ReactEvent]
-        public Action<Dictionary<string, JSValue>> DownloadBegin { get; set; }
+        public Action<JSValue> DownloadBegin { get; set; }
 
         [ReactEvent]
-        public Action<Dictionary<string, JSValue>> DownloadProgress { get; set; }
+        public Action<JSValue> DownloadProgress { get; set; }
 
         private async Task ProcessRequestAsync(IReactPromise<IReadOnlyDictionary<string, JSValue>> promise, HttpRequestMessage request, string filepath, int jobId, int progressIncrement, CancellationToken token)
         {
@@ -556,13 +556,16 @@ namespace RNFSvnext
                     }
 
                     var contentLength = response.Content.Headers.ContentLength ;
-                    DownloadBegin(new Dictionary<string, JSValue>()
+                    var beginEvent = new JSValue(new Dictionary<string, JSValue>
                     {
                         { "jobId", new JSValue(jobId) },
                         { "statusCode", new JSValue((int)response.StatusCode) },
                         { "contentLength", contentLength.HasValue ? new JSValue( contentLength.Value ) : JSValue.Null },
-                        { "headers", new JSValue(headersMap) },
+                        { "headers", new JSValue(headersMap) }
                     });
+                    
+                    // TODO this is throwing exception
+                    //DownloadBegin(beginEvent);
                     
 
                     // TODO: open file on background thread?
@@ -585,12 +588,18 @@ namespace RNFSvnext
                                 if (totalRead * 100 / contentLengthForProgress >= nextProgressIncrement ||
                                     totalRead == contentLengthForProgress)
                                 {
-                                    DownloadProgress(new Dictionary<string, JSValue>()
-                                    {
-                                        { "jobId", new JSValue(jobId) },
-                                        { "contentLength", contentLength.HasValue ? new JSValue( contentLength.Value ) : JSValue.Null },
-                                        { "bytesWritten", new JSValue(totalRead) },
-                                    });
+                                    var progressEvent = new JSValue(
+                                        new Dictionary<string, JSValue>
+
+                                        {
+                                            { "jobId", new JSValue(jobId) },
+                                            { "contentLength", contentLength.HasValue ? new JSValue( contentLength.Value ) : JSValue.Null },
+                                            { "bytesWritten", new JSValue(totalRead) }
+                                        }
+                                    );
+
+                                    // TODO this is throwing exception
+                                    //DownloadProgress(progressEvent);
 
                                     nextProgressIncrement += progressIncrement;
                                 }

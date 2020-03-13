@@ -561,11 +561,11 @@ namespace RNFSvnext.Test
                Assert.AreEqual(error.Object["message"].String.Substring(0, 6), "ENOENT");
 
            }).Wait();
-           Assert.IsTrue(m_moduleBuilder.IsRejectCallbackCalled);
+            Assert.IsTrue(m_moduleBuilder.IsRejectCallbackCalled);
 
         }
 
-        
+
 
         [TestMethod]
         public void RNFSManager_read_InvalidPath()
@@ -585,7 +585,7 @@ namespace RNFSvnext.Test
 
         }
 
-        
+
         [TestMethod]
         public void RNFSManager_read_Directory()
         {
@@ -603,7 +603,7 @@ namespace RNFSvnext.Test
 
             (JSValue error) =>
             {
-               Assert.AreEqual(error.Object["message"].String.Substring(0, 6), "ENOENT");
+                Assert.AreEqual(error.Object["message"].String.Substring(0, 6), "ENOENT");
 
             }).Wait();
             Assert.IsTrue(m_moduleBuilder.IsRejectCallbackCalled);
@@ -612,7 +612,7 @@ namespace RNFSvnext.Test
             Directory.Delete(path);
         }
 
-        
+
         [TestMethod]
         public void RNFSManager_read_MoreThanContent()
         {
@@ -684,7 +684,7 @@ namespace RNFSvnext.Test
             File.Delete(path);
         }
 
-        
+
 
         [TestMethod]
         public void RNFSManager_hash_InvalidAlgorithm()
@@ -707,7 +707,7 @@ namespace RNFSvnext.Test
 
         }
 
-        
+
         [TestMethod]
         public void RNFSManager_hash_NotExists()
         {
@@ -730,7 +730,7 @@ namespace RNFSvnext.Test
 
         }
 
-        
+
         [TestMethod]
         public void RNFSManger_hash_Directory()
         {
@@ -768,7 +768,7 @@ namespace RNFSvnext.Test
             // Run test
             var newPath = Path.Combine(tempFolder, Guid.NewGuid().ToString());
             m_moduleBuilder.Call2("moveFile", path, newPath, new JSValue(),
-            (int r) => {},
+            (int r) => { },
             (JSValue error) =>
             {
                 Assert.Fail();
@@ -787,7 +787,7 @@ namespace RNFSvnext.Test
             File.Delete(newPath);
         }
 
-        
+
 
         [TestMethod]
         public void RNFSManager_moveFile_NotExists()
@@ -806,7 +806,7 @@ namespace RNFSvnext.Test
             {
                 Assert.AreEqual(error.Object["message"].String.Substring(0, 6), "ENOENT");
 
-            }).Wait();           
+            }).Wait();
         }
 
         [TestMethod]
@@ -841,7 +841,7 @@ namespace RNFSvnext.Test
             File.Delete(newPath);
         }
 
-        
+
         [TestMethod]
         public void RNFSManager_copyFile_NotExists()
         {
@@ -861,10 +861,10 @@ namespace RNFSvnext.Test
 
                         }).Wait();
             Assert.IsTrue(m_moduleBuilder.IsRejectCallbackCalled);
-            
+
         }
 
-        
+
 
         [TestMethod]
         public void RNFSManager_readDir()
@@ -878,8 +878,8 @@ namespace RNFSvnext.Test
             var hello = "Hello World";
             File.WriteAllText(path, hello);
 
-            m_moduleBuilder.Call2("readDir", dirpath, 
-                (JSValue v) => 
+            m_moduleBuilder.Call2("readDir", dirpath,
+                (JSValue v) =>
                 {
                     var fileInfos = v.Array;
                     Assert.AreEqual(fileInfos.Count, 1);
@@ -897,12 +897,12 @@ namespace RNFSvnext.Test
                     File.Delete(path);
                     Directory.Delete(dirpath);
 
-                }, 
+                },
                 (JSValue err) => { Assert.Fail(); }).Wait();
             Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);
-    
-           
-            
+
+
+
         }
 
 
@@ -930,7 +930,7 @@ namespace RNFSvnext.Test
 
         }
 
-        
+
         [TestMethod]
         public async Task RNFSManager_readDir_Multiple()
         {
@@ -959,14 +959,10 @@ namespace RNFSvnext.Test
             Directory.Delete(dirpath);
         }
 
-        /*
-        [TestMethod]
-        public async Task RNFSManager_readDir_Subdirectory()
-        {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
 
+        [TestMethod]
+        public void RNFSManager_readDir_Subdirectory()
+        {
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
             var dirpath = Path.Combine(tempFolder, Guid.NewGuid().ToString());
@@ -975,33 +971,39 @@ namespace RNFSvnext.Test
             Directory.CreateDirectory(subdirpath);
 
             // Run test
-            var promise = new MockPromise();
-            manager.readDir(dirpath, promise);
-            var result = await promise.Task;
-            var fileInfos = (JArray)result;
-            Assert.AreEqual(1, fileInfos.Count);
-            var item = fileInfos[0];
-            var fileInfo = (IDictionary<string, JToken>)item;
-            Assert.IsTrue(fileInfo.ContainsKey("type"));
-            Assert.AreEqual(1, fileInfo["type"].Value<int>());
-            Assert.AreEqual(0, fileInfo["size"].Value<int>());
-            Assert.AreEqual(subdirpath, fileInfo["path"].Value<string>());
-            Assert.AreEqual(subdirpath.Split(Path.DirectorySeparatorChar).Last(), fileInfo["name"].Value<string>());
-            Assert.AreEqual(
-                ConvertToUnixTimestamp(new DirectoryInfo(subdirpath).LastWriteTimeUtc),
-                fileInfo["mtime"].Value<double>());
+            m_moduleBuilder.Call2("readDir", dirpath,
+              (JSValue v) =>
+              {
+                  var fileInfos = v.Array;
+                  Assert.AreEqual(fileInfos.Count, 1);
+                  var fileInfo = fileInfos[0].Object;
+
+                  Assert.IsTrue(fileInfo.ContainsKey("type"));
+                  Assert.AreEqual(1, fileInfo["type"].Int64);
+                  Assert.AreEqual(0, fileInfo["size"].Int64);
+                  Assert.AreEqual(subdirpath, fileInfo["path"].String);
+                  Assert.AreEqual(subdirpath.Split(Path.DirectorySeparatorChar).Last(), fileInfo["name"].String);
+                  Assert.AreEqual(
+                      ConvertToUnixTimestamp(new DirectoryInfo(subdirpath).LastWriteTimeUtc),
+                      fileInfo["mtime"].Double);
+
+
+              },
+              (JSValue err) => { Assert.Fail(); }).Wait();
+
+
+
 
             // Cleanup
             Directory.Delete(subdirpath);
             Directory.Delete(dirpath);
         }
 
+
         [TestMethod]
-        public async Task RNFSManager_stat()
+        public void RNFSManager_stat()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+
 
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
@@ -1009,45 +1011,53 @@ namespace RNFSvnext.Test
             File.WriteAllText(path, "Hello World");
 
             // Run test
-            var promise = new MockPromise();
-            manager.stat(path, promise);
-            var result = await promise.Task;
-            Assert.IsInstanceOfType(result, typeof(JObject));
-            var stat = (JObject)result;
-            Assert.AreEqual(0, stat.Value<int>("type"));
-            Assert.AreEqual(11, stat.Value<int>("size"));
-            Assert.AreEqual(
-                ConvertToUnixTimestamp(new FileInfo(path).CreationTimeUtc),
-                stat.Value<double>("ctime"));
-            Assert.AreEqual(
-                ConvertToUnixTimestamp(new FileInfo(path).LastWriteTimeUtc),
-                stat.Value<double>("mtime"));
+            m_moduleBuilder.Call2("stat", path,
+             (JSValue v) =>
+             {
+                 var stat = v.Object;
+                 Assert.AreEqual(0, stat["type"].Int64);
+                 Assert.AreEqual(11, stat["size"].Int64);
+                 Assert.AreEqual(
+                     ConvertToUnixTimestamp(new FileInfo(path).CreationTimeUtc),
+                     stat["ctime"].Double);
+                 Assert.AreEqual(
+                     ConvertToUnixTimestamp(new FileInfo(path).LastWriteTimeUtc),
+                     stat["mtime"].Double);
+
+
+             },
+             (JSValue err) => { Assert.Fail(); }).Wait();
 
             // Cleanup
             File.Delete(path);
         }
 
+
+
         [TestMethod]
-        public async Task RNFSManager_stat_NotExists()
+        public void RNFSManager_stat_NotExists()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+
 
             // Run test
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
-            var promise = new MockPromise();
-            manager.stat(path, promise);
-            await AssertRejectAsync(promise, ex => Assert.AreEqual("File does not exist.", ex.Message));
+            // Run test
+            m_moduleBuilder.Call2("stat", path,
+             (JSValue v) =>
+             Assert.Fail(),
+             (JSValue err) =>
+             {
+                 Assert.AreEqual("File does not exist.", err.Object["message"]);
+             }).Wait();
+
         }
 
+
         [TestMethod]
-        public async Task RNFSManager_stat_Directory()
+        public void RNFSManager_stat_Directory()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+
 
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
@@ -1055,30 +1065,37 @@ namespace RNFSvnext.Test
             Directory.CreateDirectory(path);
 
             // Run test
-            var promise = new MockPromise();
-            manager.stat(path, promise);
-            var result = await promise.Task;
-            Assert.IsInstanceOfType(result, typeof(JObject));
-            var stat = (JObject)result;
-            Assert.AreEqual(1, stat.Value<int>("type"));
-            Assert.AreEqual(0, stat.Value<int>("size"));
-            Assert.AreEqual(
-                ConvertToUnixTimestamp(new DirectoryInfo(path).CreationTimeUtc),
-                stat.Value<double>("ctime"));
-            Assert.AreEqual(
-                ConvertToUnixTimestamp(new DirectoryInfo(path).LastWriteTimeUtc),
-                stat.Value<double>("mtime"));
+
+            m_moduleBuilder.Call2("stat", path,
+            (JSValue v) =>
+            {
+                var stat = v.Object;
+                Assert.AreEqual(1, stat["type"].Int64);
+                Assert.AreEqual(0, stat["size"].Int64);
+                Assert.AreEqual(
+                    ConvertToUnixTimestamp(new DirectoryInfo(path).CreationTimeUtc),
+                    stat["ctime"].Double);
+                Assert.AreEqual(
+                    ConvertToUnixTimestamp(new DirectoryInfo(path).LastWriteTimeUtc),
+                    stat["mtime"].Double);
+            },
+            (JSValue err) =>
+            {
+                Assert.Fail();
+            }).Wait();
+
+            Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);
+
 
             // Cleanup
             Directory.Delete(path);
         }
 
+
         [TestMethod]
-        public async Task RNFSManager_unlink_Directory()
+        public void RNFSManager_unlink_Directory()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+
 
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
@@ -1091,18 +1108,26 @@ namespace RNFSvnext.Test
             File.WriteAllText(path2, hello);
 
             // Run test
-            var promise = new MockPromise();
-            manager.unlink(dirpath, promise);
-            await promise.Task;
-            Assert.IsFalse(new DirectoryInfo(dirpath).Exists);
+            m_moduleBuilder.Call2("unlink", dirpath,
+            (int v) =>
+            {
+                Assert.IsFalse(new DirectoryInfo(dirpath).Exists);
+            },
+            (JSValue err) =>
+            {
+                Assert.Fail();
+            }).Wait();
+
+            Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);
+
         }
 
+
+
         [TestMethod]
-        public async Task RNFSManager_unlink_File()
+        public void RNFSManager_unlink_File()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+
 
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
@@ -1110,18 +1135,22 @@ namespace RNFSvnext.Test
             File.WriteAllText(path, "Hello World");
 
             // Run test
-            var promise = new MockPromise();
-            manager.unlink(path, promise);
-            await promise.Task;
-            Assert.IsFalse(new FileInfo(path).Exists);
+            m_moduleBuilder.Call2("unlink", path,
+            (int v) =>
+            {
+                Assert.IsFalse(new FileInfo(path).Exists);
+            },
+            (JSValue err) =>
+            {
+                Assert.Fail();
+            }).Wait();
+
         }
 
+
         [TestMethod]
-        public async Task RNFSManager_unlink_Recursive()
+        public void RNFSManager_unlink_Recursive()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
 
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
@@ -1133,42 +1162,63 @@ namespace RNFSvnext.Test
             File.WriteAllText(path, hello);
 
             // Run test
-            var promise = new MockPromise();
-            manager.unlink(dirpath, promise);
-            await promise.Task;
+            m_moduleBuilder.Call2("unlink", dirpath,
+            (int v) =>
+            {
+
+            },
+            (JSValue err) =>
+            {
+                Assert.Fail();
+            }).Wait();
+
+            // Run test
             Assert.IsFalse(new FileInfo(path).Exists);
             Assert.IsFalse(new DirectoryInfo(subdirpath).Exists);
             Assert.IsFalse(new DirectoryInfo(dirpath).Exists);
+
+
         }
 
+
+
         [TestMethod]
-        public async Task RNFSManager_unlink_NotExists()
+        public void RNFSManager_unlink_NotExists()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+            // Run test
+            var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
+            var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
+            m_moduleBuilder.Call2("unlink", path,
+            (int v) =>
+            {
+                Assert.Fail();
+            },
+            (JSValue err) =>
+            {
+                Assert.AreEqual("File does not exist.", err.Object["message"].String);
+            }).Wait();
+            Assert.IsTrue(m_moduleBuilder.IsRejectCallbackCalled);
+
+        }
+
+
+        [TestMethod]
+        public void RNFSManager_mkdir()
+        {
 
             // Run test
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
-            var promise = new MockPromise();
-            manager.unlink(path, promise);
-            await AssertRejectAsync(promise, ex => Assert.AreEqual("File does not exist.", ex.Message));
-        }
+            m_moduleBuilder.Call2("mkdir", path, new JSValue(),
+           (int v) =>
+           {
 
-        [TestMethod]
-        public async Task RNFSManager_mkdir()
-        {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+           },
+           (JSValue err) =>
+           {
+               Assert.Fail();
+           }).Wait();
 
-            // Run test
-            var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
-            var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
-            var promise = new MockPromise();
-            manager.mkdir(path, null, promise);
-            await promise.Task;
 
             // Assert
             Assert.IsTrue(new DirectoryInfo(path).Exists);
@@ -1177,20 +1227,27 @@ namespace RNFSvnext.Test
             Directory.Delete(path);
         }
 
+
+
         [TestMethod]
-        public async Task RNFSManager_mkdir_Intermediate()
+        public void RNFSManager_mkdir_Intermediate()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+
 
             // Run test
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
             var subdirpath = Path.Combine(path, Guid.NewGuid().ToString());
-            var promise = new MockPromise();
-            manager.mkdir(subdirpath, null, promise);
-            await promise.Task;
+            m_moduleBuilder.Call2("mkdir", subdirpath, new JSValue(),
+           (int v) =>
+           {
+
+           },
+           (JSValue err) =>
+           {
+               Assert.Fail();
+           }).Wait();
+
 
             // Assert
             Assert.IsTrue(new DirectoryInfo(subdirpath).Exists);
@@ -1201,12 +1258,10 @@ namespace RNFSvnext.Test
             Directory.Delete(path);
         }
 
+
         [TestMethod]
-        public async Task RNFSManager_mkdir_ExistingFile()
+        public void RNFSManager_mkdir_ExistingFile()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
 
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
@@ -1214,20 +1269,27 @@ namespace RNFSvnext.Test
             File.WriteAllText(path, "Hello World");
 
             // Run test
-            var promise = new MockPromise();
-            manager.mkdir(path, null, promise);
-            await AssertRejectAsync(promise, ex => Assert.AreEqual(ex.Message, $"Cannot create '{path}' because a file or directory with the same name already exists.", $"Message was {ex.Message}"));
+            m_moduleBuilder.Call2("mkdir", path, new JSValue(),
+           (int v) =>
+           {
+               Assert.Fail();
+           },
+           (JSValue err) =>
+           {
+               var message = err.Object["message"].String;
+               Assert.AreEqual(message, $"Cannot create '{path}' because a file or directory with the same name already exists.", $"Message was {message}");
+           }).Wait();
 
             // Cleanup
             File.Delete(path);
         }
 
+
+
         [TestMethod]
-        public async Task RNFSManager_mkdir_ExistingDirectory()
+        public void RNFSManager_mkdir_ExistingDirectory()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+
 
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
@@ -1235,9 +1297,15 @@ namespace RNFSvnext.Test
             Directory.CreateDirectory(path);
 
             // Run test
-            var promise = new MockPromise();
-            manager.mkdir(path, null, promise);
-            await promise.Task;
+            m_moduleBuilder.Call2("mkdir", path, new JSValue(),
+          (int v) =>
+          {
+
+          },
+          (JSValue err) =>
+          {
+              Assert.Fail();
+          }).Wait();
 
             // Assert
             Assert.IsTrue(new DirectoryInfo(path).Exists);
@@ -1246,76 +1314,74 @@ namespace RNFSvnext.Test
             Directory.Delete(path);
         }
 
+        
         [TestMethod]
-        public async Task RNFSManager_mkdir_Fail()
+        public void RNFSManager_mkdir_Fail()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
 
-            // Run test
-            var promise = new MockPromise();
             var path = $"{Windows.ApplicationModel.Package.Current.InstalledLocation.Path}\\badPath";
-            manager.mkdir(path, null, promise);
-
-            await AssertRejectAsync(
-                promise,
-                ex => Assert.AreEqual($"Access to the path '{path}' is denied.", ex.Message, $"Message was {ex.Message}"));
+            // Run test
+            m_moduleBuilder.Call2("mkdir", path, new JSValue(),
+           (int v) =>
+           {
+               Assert.Fail();
+           },
+           (JSValue err) =>
+           {
+               var message = err.Object["message"].String;
+               Assert.AreEqual(message, $"Access to the path '{path}' is denied.", $"Message was {message}");
+           }).Wait();
+            
         }
 
+        
+
         [TestMethod]
-        public async Task RNFSManager_getFSInfo()
+        public void RNFSManager_getFSInfo()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
 
             // Run test
-            var promise = new MockPromise();
-            manager.getFSInfo(promise);
-            var result = await promise.Task;
-            var dictionary = result as IDictionary<string, JToken>;
-            Assert.IsNotNull(dictionary);
-            Assert.IsTrue(dictionary.ContainsKey("freeSpace"));
-            Assert.IsTrue(dictionary.ContainsKey("totalSpace"));
+            m_moduleBuilder.Call2("getFSInfo", (JSValue v) =>
+            {
+                Assert.IsNotNull(v.Object);
+                Assert.IsTrue(v.Object.ContainsKey("freeSpace"));
+                Assert.IsTrue(v.Object.ContainsKey("totalSpace"));
+            },
+            (JSValue e) => Assert.Fail()).Wait();
+            Assert.IsTrue(m_moduleBuilder.IsResolveCallbackCalled);
         }
 
-        [TestMethod]
-        public async Task RNFSManager_touch()
-        {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+        
 
+        [TestMethod]
+        public void RNFSManager_touch()
+        {
             // Run test
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
             var ctime = ConvertFromUnixTimestamp(ConvertToUnixTimestamp(DateTime.Now.AddDays(-1)));
             var mtime = ConvertFromUnixTimestamp(ConvertToUnixTimestamp(DateTime.Now.AddHours(-1)));
-            var promise = new MockPromise();
-            manager.touch(
-                path,
-                ConvertToUnixTimestamp(mtime),
-                ConvertToUnixTimestamp(ctime),
-                promise);
-            var result = await promise.Task;
-            Assert.IsInstanceOfType(result, typeof(string));
-            Assert.AreEqual(path, (string)result);
-            var fileInfo = new FileInfo(path);
-            Assert.IsTrue(fileInfo.Exists);
-            Assert.AreEqual(ctime, fileInfo.CreationTime);
-            Assert.AreEqual(mtime, fileInfo.LastWriteTime);
-
+            m_moduleBuilder.Call2("touch", path, ConvertToUnixTimestamp(mtime),
+                ConvertToUnixTimestamp(ctime), (string result) =>
+                {
+                    Assert.AreEqual(path, result);
+                    var fileInfo = new FileInfo(path);
+                    Assert.IsTrue(fileInfo.Exists);
+                    Assert.AreEqual(ctime, fileInfo.CreationTime);
+                    Assert.AreEqual(mtime, fileInfo.LastWriteTime);
+                },
+                (JSValue err) => Assert.Fail()).Wait();
+ 
             // Cleanup
             File.Delete(path);
         }
 
+        
+
         [TestMethod]
         public async Task RNFSManager_touch_ExistingFile()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+
 
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
@@ -1325,30 +1391,28 @@ namespace RNFSvnext.Test
             // Run test
             var ctime = ConvertFromUnixTimestamp(ConvertToUnixTimestamp(DateTime.Now.AddDays(-1)));
             var mtime = ConvertFromUnixTimestamp(ConvertToUnixTimestamp(DateTime.Now.AddHours(-1)));
-            var promise = new MockPromise();
-            manager.touch(
-                path,
-                ConvertToUnixTimestamp(mtime),
-                ConvertToUnixTimestamp(ctime),
-                promise);
-            var result = await promise.Task;
-            Assert.IsInstanceOfType(result, typeof(string));
-            Assert.AreEqual(path, (string)result);
-            var fileInfo = new FileInfo(path);
-            Assert.IsTrue(fileInfo.Exists);
-            Assert.AreEqual(ctime, fileInfo.CreationTime);
-            Assert.AreEqual(mtime, fileInfo.LastWriteTime);
+
+            m_moduleBuilder.Call2("touch", path, ConvertToUnixTimestamp(mtime),
+               ConvertToUnixTimestamp(ctime), (string result) =>
+               {
+                   Assert.AreEqual(path, result);
+                   var fileInfo = new FileInfo(path);
+                   Assert.IsTrue(fileInfo.Exists);
+                   Assert.AreEqual(ctime, fileInfo.CreationTime);
+                   Assert.AreEqual(mtime, fileInfo.LastWriteTime);
+               },
+               (JSValue err) => Assert.Fail()).Wait();
+
 
             // Cleanup
             File.Delete(path);
         }
 
+        
         [TestMethod]
         public async Task RNFSManager_touch_ExistingDirectory()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
+
 
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
@@ -1358,54 +1422,60 @@ namespace RNFSvnext.Test
             // Run test
             var ctime = ConvertFromUnixTimestamp(ConvertToUnixTimestamp(DateTime.Now.AddDays(-1)));
             var mtime = ConvertFromUnixTimestamp(ConvertToUnixTimestamp(DateTime.Now.AddHours(-1)));
-            var promise = new MockPromise();
-            manager.touch(
-                path,
-                ConvertToUnixTimestamp(mtime),
-                ConvertToUnixTimestamp(ctime),
-                promise);
-            await AssertRejectAsync(promise, ex => Assert.AreEqual(ex.Message, $"Access to the path '{path}' is denied.", $"Message was {ex.Message}"));
 
+            m_moduleBuilder.Call2("touch", path, ConvertToUnixTimestamp(mtime),
+               ConvertToUnixTimestamp(ctime), (string result) =>
+               {
+                   Assert.Fail();
+               },
+               (JSValue err) => 
+               {
+                   var message = err.Object["message"].String;
+                   Assert.AreEqual(message, $"Access to the path '{path}' is denied.", $"Message was {message}");
+               }).Wait();
             // Cleanup
             Directory.Delete(path);
         }
 
+        
         [TestMethod]
         [TestCategory("Network")]
-        public async Task RNFSManager_downloadFile()
+        public void RNFSManager_downloadFile()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context)
-            {
-                Emitter = CreateEventEmitter((_, __) => { }),
-            };
+
 
             // Run test
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
-            var options = new JObject
+            var options = new Dictionary<string, JSValue>
             {
                 { "toFile", path },
                 { "fromUrl", "http://httpbin.org/get" },
                 { "jobId", 1 },
-                { "headers", new JObject() },
+                { "headers", new JSValue() },
                 { "progressDivider", 100 },
             };
 
-            var promise = new MockPromise();
-            manager.downloadFile(options, promise);
-            var result = await promise.Task;
-            Assert.IsInstanceOfType(result, typeof(JObject));
-            var json = (JObject)result;
-            Assert.AreEqual(1, json["jobId"].Value<int>());
-            Assert.AreEqual(new FileInfo(path).Length, json["bytesWritten"].Value<long>());
-            Assert.AreEqual(200, json["statusCode"].Value<long>());
+
+            m_moduleBuilder.Call2("downloadFile", options,
+                (JSValue result) =>
+                {
+                    var json = result.Object;
+                    Assert.AreEqual(1, json["jobId"].Int64);
+                    Assert.AreEqual(new FileInfo(path).Length, json["bytesWritten"].Int64);
+                    Assert.AreEqual(200, json["statusCode"].Int64);
+                },
+                (JSValue err) =>
+                {
+                    Assert.Fail();
+                }).Wait();
+
 
             // Cleanup
             File.Delete(path);
         }
 
+        /*
         [TestMethod]
         [TestCategory("Network")]
         public async Task RNFSManager_downloadFile_Progress()
@@ -1444,6 +1514,7 @@ namespace RNFSvnext.Test
             File.Delete(path);
         }
 
+        /*
         [TestMethod]
         [TestCategory("Network")]
         public async Task RNFSManager_downloadFile_Headers()
@@ -1681,7 +1752,7 @@ namespace RNFSvnext.Test
             return Math.Floor(diff.TotalSeconds);
         }
 
-        /*
+        
 
         public static DateTime ConvertFromUnixTimestamp(double timestamp)
         {
@@ -1691,6 +1762,7 @@ namespace RNFSvnext.Test
             return dateTimeUtc.ToLocalTime();
         }
 
+        /*
         public static RCTNativeAppEventEmitter CreateEventEmitter(Action<string, object> onEmit)
         {
             return new RCTNativeAppEventEmitter
