@@ -26,7 +26,7 @@ namespace RNFSvnext.Test
         {
             m_moduleBuilder = new Microsoft.ReactNative.Managed.UnitTests.ReactModuleBuilderMock();
             m_moduleInfo = new ReactModuleInfo(typeof(RNFSManager));
-            m_module = (RNFSManager)m_moduleInfo.ModuleProvider(m_moduleBuilder);
+            m_module = (RNFSManager)m_moduleBuilder.CreateModule<RNFSManager>(m_moduleInfo);
         }
 
         [TestMethod]
@@ -1437,7 +1437,7 @@ namespace RNFSvnext.Test
             Directory.Delete(path);
         }
 
-        
+
         [TestMethod]
         [TestCategory("Network")]
         public void RNFSManager_downloadFile()
@@ -1456,6 +1456,18 @@ namespace RNFSvnext.Test
                 { "progressDivider", 100 },
             };
 
+            var eventCount = 0;
+            m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadBegin", (JSValue ev1) =>
+            {
+                eventCount++;
+                // TODO check
+                 m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadProgress", (JSValue ev2) =>
+                 {
+
+
+                 });
+            });
+
 
             m_moduleBuilder.Call2("downloadFile", options,
                 (JSValue result) =>
@@ -1470,7 +1482,7 @@ namespace RNFSvnext.Test
                     Assert.Fail();
                 }).Wait();
 
-
+            Assert.AreEqual(eventCount, 1);
             // Cleanup
             File.Delete(path);
         }

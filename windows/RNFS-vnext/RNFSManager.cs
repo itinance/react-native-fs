@@ -538,10 +538,10 @@ namespace RNFSvnext
         }
 
         [ReactEvent]
-        public Action<JSValue> DownloadBegin { get; set; }
+        public Action<JSValue> DownloadBegin = null;
 
         [ReactEvent]
-        public Action<JSValue> DownloadProgress { get; set; }
+        public Action<JSValue> DownloadProgress = null;
 
         private async Task ProcessRequestAsync(IReactPromise<IReadOnlyDictionary<string, JSValue>> promise, HttpRequestMessage request, string filepath, int jobId, int progressIncrement, CancellationToken token)
         {
@@ -565,7 +565,7 @@ namespace RNFSvnext
                     });
                     
                     // TODO this is throwing exception
-                    //DownloadBegin(beginEvent);
+                    DownloadBegin(beginEvent);
                     
 
                     // TODO: open file on background thread?
@@ -599,7 +599,7 @@ namespace RNFSvnext
                                     );
 
                                     // TODO this is throwing exception
-                                    //DownloadProgress(progressEvent);
+                                    DownloadProgress(progressEvent);
 
                                     nextProgressIncrement += progressIncrement;
                                 }
