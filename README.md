@@ -91,7 +91,7 @@ project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/
 ...
 dependencies {
     ...
-    compile project(':react-native-fs')
+    implementation project(':react-native-fs')
 }
 ```
 
