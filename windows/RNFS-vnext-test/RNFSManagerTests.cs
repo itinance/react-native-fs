@@ -1487,59 +1487,73 @@ namespace RNFSvnext.Test
             File.Delete(path);
         }
 
-        /*
+        
         [TestMethod]
         [TestCategory("Network")]
-        public async Task RNFSManager_downloadFile_Progress()
+        public void RNFSManager_downloadFile_Progress()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context);
-            var waitHandle = new AutoResetEvent(false);
-            var progressCount = 0;
-            manager.Emitter = CreateEventEmitter((name, data) =>
+            int progressCount = 0;
+            m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadBegin", (JSValue ev1) =>
             {
-                if (name == "DownloadProgress-1")
+                // TODO check
+                m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadProgress", (JSValue ev2) =>
                 {
                     progressCount++;
-                }
+
+                });
             });
 
             // Run test
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
-            var options = new JObject
+            var options = new Dictionary<string, JSValue>
             {
                 { "toFile", path },
                 { "fromUrl", "http://httpbin.org/bytes/102400" },
                 { "jobId", 1 },
-                { "headers", new JObject() },
+                { "headers", new JSValue() },
                 { "progressDivider", 10 },
             };
 
-            var promise = new MockPromise();
-            manager.downloadFile(options, promise);
-            await promise.Task;
+            m_moduleBuilder.Call2("downloadFile", options,
+                (JSValue result) =>
+                {
+                    var json = result.Object;
+                    Assert.AreEqual(1, json["jobId"].Int64);
+                    Assert.AreEqual(new FileInfo(path).Length, json["bytesWritten"].Int64);
+                    Assert.AreEqual(200, json["statusCode"].Int64);
+                },
+                (JSValue err) =>
+                {
+                    Assert.Fail();
+                }).Wait();
+
+
             Assert.IsTrue(progressCount >= 10);
 
             // Cleanup
             File.Delete(path);
         }
 
-        /*
+        
         [TestMethod]
         [TestCategory("Network")]
-        public async Task RNFSManager_downloadFile_Headers()
+        public void RNFSManager_downloadFile_Headers()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context)
+            int progressCount = 0;
+            m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadBegin", (JSValue ev1) =>
             {
-                Emitter = CreateEventEmitter((_, __) => { }),
-            };
+                // TODO check
+                m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadProgress", (JSValue ev2) =>
+                {
+                    progressCount++;
+
+                });
+            });
+
 
             // Run test
-            var expectedHeaders = new JObject
+            var expectedHeaders = new Dictionary<string, JSValue>
             {
                 { "Accept", "foo/bar" },
                 { "ContentLength", 0 },
@@ -1548,18 +1562,25 @@ namespace RNFSvnext.Test
 
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
-            var options = new JObject
+            var options = new Dictionary<string, JSValue>
             {
                 { "toFile", path },
                 { "fromUrl", "http://httpbin.org/headers" },
                 { "jobId", 1 },
-                { "headers", expectedHeaders },
+                { "headers", new JSValue(expectedHeaders) },
                 { "progressDivider", 100 },
             };
 
-            var promise = new MockPromise();
-            manager.downloadFile(options, promise);
-            await promise.Task;
+            m_moduleBuilder.Call2("downloadFile", options,
+               (JSValue result) =>
+               {
+                   
+               },
+               (JSValue err) =>
+               {
+                   Assert.Fail();
+               }).Wait();
+
             var actualHeaders = (JObject)JObject.Parse(File.ReadAllText(path))["headers"];
             Assert.AreEqual(0, actualHeaders.Value<int>("ContentLength"));
             Assert.AreEqual("qux", actualHeaders.Value<string>("X-Custom-Header"));
@@ -1569,16 +1590,22 @@ namespace RNFSvnext.Test
             File.Delete(path);
         }
 
+        
         [TestMethod]
         [TestCategory("Network")]
-        public async Task RNFSManager_downloadFile_ExistingFile()
+        public void RNFSManager_downloadFile_ExistingFile()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context)
+            int progressCount = 0;
+            m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadBegin", (JSValue ev1) =>
             {
-                Emitter = CreateEventEmitter((_, __) => { }),
-            };
+                // TODO check
+                m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadProgress", (JSValue ev2) =>
+                {
+                    progressCount++;
+
+                });
+            });
+
 
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
@@ -1586,38 +1613,51 @@ namespace RNFSvnext.Test
             File.WriteAllText(path, "Hello World");
 
             // Run test
-            var options = new JObject
+            var options = new Dictionary<string, JSValue>
             {
                 { "toFile", path },
                 { "fromUrl", "http://httpbin.org/get" },
                 { "jobId", 1 },
-                { "headers", new JObject() },
+                { "headers", new JSValue() },
                 { "progressDivider", 100 },
             };
 
-            var promise = new MockPromise();
-            manager.downloadFile(options, promise);
-            var result = await promise.Task;
-            Assert.IsInstanceOfType(result, typeof(JObject));
-            var json = (JObject)result;
-            Assert.AreEqual(1, json["jobId"].Value<int>());
-            Assert.AreEqual(new FileInfo(path).Length, json["bytesWritten"].Value<long>());
-            Assert.AreEqual(200, json["statusCode"].Value<long>());
+            m_moduleBuilder.Call2("downloadFile", options,
+             (JSValue result) =>
+             {
+                 var json = result.Object;
+                 Assert.AreEqual(1, json["jobId"].Int64);
+                 Assert.AreEqual(new FileInfo(path).Length, json["bytesWritten"].Int64);
+                 Assert.AreEqual(200, json["statusCode"].Int64);
+
+             },
+             (JSValue err) =>
+             {
+                 Assert.Fail();
+             }).Wait();
+
+            
 
             // Cleanup
             File.Delete(path);
         }
 
+        
         [TestMethod]
         [TestCategory("Network")]
-        public async Task RNFSManager_downloadFile_ExistingDirectory()
+        public void RNFSManager_downloadFile_ExistingDirectory()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context)
+            int progressCount = 0;
+            m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadBegin", (JSValue ev1) =>
             {
-                Emitter = CreateEventEmitter((_, __) => { }),
-            };
+                // TODO check
+                m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadProgress", (JSValue ev2) =>
+                {
+                    progressCount++;
+
+                });
+            });
+
 
             // Setup environment
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
@@ -1625,137 +1665,174 @@ namespace RNFSvnext.Test
             Directory.CreateDirectory(path);
 
             // Run test
-            var options = new JObject
+            var options = new Dictionary<string, JSValue>
             {
                 { "toFile", path },
                 { "fromUrl", "http://httpbin.org/get" },
                 { "jobId", 1 },
-                { "headers", new JObject() },
+                { "headers", new JSValue() },
                 { "progressDivider", 100 },
             };
 
-            var promise = new MockPromise();
-            manager.downloadFile(options, promise);
-            await AssertRejectAsync(promise, ex => Assert.AreEqual(ex.Message, $"Access to the path '{path}' is denied.", $"Message was {ex.Message}"));
+            m_moduleBuilder.Call2("downloadFile", options,
+             (JSValue result) =>
+             {
+                 Assert.Fail();
+
+             },
+             (JSValue err) =>
+             {
+                 var msg = err.Object["message"];
+                 Assert.AreEqual(msg, $"Access to the path '{path}' is denied.", $"Message was {msg}");
+             }).Wait();
+
 
             // Cleanup
             Directory.Delete(path);
         }
 
+        
         [TestMethod]
         [TestCategory("Network")]
-        public async Task RNFSManager_downloadFile_Redirect()
+        public void RNFSManager_downloadFile_Redirect()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context)
+            int progressCount = 0;
+            m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadBegin", (JSValue ev1) =>
             {
-                Emitter = CreateEventEmitter((_, __) => { }),
-            };
+                // TODO check
+                m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadProgress", (JSValue ev2) =>
+                {
+                    progressCount++;
+
+                });
+            });
 
             // Run test
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
-            var options = new JObject
+            var options = new Dictionary<string, JSValue>
             {
                 { "toFile", path },
                 { "fromUrl", "http://httpbin.org/redirect/1" },
                 { "jobId", 1 },
-                { "headers", new JObject() },
+                { "headers", new JSValue() },
                 { "progressDivider", 100 },
             };
 
-            var promise = new MockPromise();
-            manager.downloadFile(options, promise);
-            var result = await promise.Task;
-            Assert.IsInstanceOfType(result, typeof(JObject));
-            var json = (JObject)result;
-            Assert.AreEqual(1, json["jobId"].Value<int>());
-            Assert.AreEqual(new FileInfo(path).Length, json["bytesWritten"].Value<long>());
-            Assert.AreEqual(200, json["statusCode"].Value<long>());
+            m_moduleBuilder.Call2("downloadFile", options,
+             (JSValue result) =>
+             {
+                 var json = result.Object;
+                 Assert.AreEqual(1, json["jobId"].Int64);
+                 Assert.AreEqual(new FileInfo(path).Length, json["bytesWritten"].Int64);
+                 Assert.AreEqual(200, json["statusCode"].Int64);
+
+             },
+             (JSValue err) =>
+             {
+                 Assert.Fail();
+             }).Wait();
+
 
             // Cleanup
             File.Delete(path);
         }
 
+        
         [TestMethod]
         [TestCategory("Network")]
-        public async Task RNFSManager_stopDownload()
+        public void RNFSManager_stopDownload()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context)
+            int progressCount = 0;
+            m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadBegin", (JSValue ev1) =>
             {
-                Emitter = CreateEventEmitter((_, __) => { }),
-            };
+                // TODO check
+                m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadProgress", (JSValue ev2) =>
+                {
+                    progressCount++;
+
+                });
+            });
 
             // Run test
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
-            var options = new JObject
+            var options = new Dictionary<string, JSValue>
             {
                 { "toFile", path },
                 { "fromUrl", "http://httpbin.org/delay/10" },
                 { "jobId", 1 },
-                { "headers", new JObject() },
+                { "headers", new JSValue() },
                 { "progressDivider", 100 },
             };
 
-            var promise = new MockPromise();
-            manager.downloadFile(options, promise);
-            manager.stopDownload(1);
-            await AssertRejectAsync(promise, ex => Assert.AreEqual("A task was canceled.", ex.Message, ex.Message));
+            var promise = m_moduleBuilder.Call2("downloadFile", options,
+            (JSValue result) =>
+            {
+
+
+            },
+            (JSValue err) =>
+            {
+                var msg = err.Object["message"].String;
+                Assert.AreEqual("A task was canceled.", msg, msg);
+            });
+
+            m_moduleBuilder.Call0("stopDownload", 1);
+            promise.Wait();
+          
+
             Assert.IsFalse(new FileInfo(path).Exists);
         }
 
+        
+
         [TestMethod]
         [TestCategory("Network")]
-        public async Task RNFSManager_stopDownload_AfterComplete()
+        public void RNFSManager_stopDownload_AfterComplete()
         {
-            // Initialize module
-            var context = new ReactContext();
-            var manager = new RNFSManager(context)
+            int progressCount = 0;
+            m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadBegin", (JSValue ev1) =>
             {
-                Emitter = CreateEventEmitter((_, __) => { }),
-            };
+                // TODO check
+                m_moduleBuilder.ExpectEvent("RCTDeviceEventEmitter", "DownloadProgress", (JSValue ev2) =>
+                {
+                    progressCount++;
+
+                });
+            });
 
             // Run test
             var tempFolder = ApplicationData.Current.TemporaryFolder.Path;
             var path = Path.Combine(tempFolder, Guid.NewGuid().ToString());
-            var options = new JObject
+            var options = new Dictionary<string, JSValue>
             {
                 { "toFile", path },
                 { "fromUrl", "http://httpbin.org/delay/1" },
                 { "jobId", 1 },
-                { "headers", new JObject() },
+                { "headers", new JSValue() },
                 { "progressDivider", 100 },
             };
 
-            var promise = new MockPromise();
-            manager.downloadFile(options, promise);
-            await promise.Task;
-            manager.stopDownload(1);
+            m_moduleBuilder.Call2("downloadFile", options,
+           (JSValue result) =>
+           {
+
+
+           },
+           (JSValue err) =>
+           {
+
+           }).Wait();
+
+            m_moduleBuilder.Call0("stopDownload", 1);
+
             Assert.IsTrue(new FileInfo(path).Exists);
 
             // Cleanup
             File.Delete(path);
         }
 
-        private static async Task AssertRejectAsync(MockPromise promise, Action<RejectException> assert)
-        {
-            try
-            {
-                await promise.Task;
-            }
-            catch (RejectException ex)
-            {
-                assert(ex);
-                return;
-            }
-
-            Assert.Fail("No exception thrown.");
-        }
-        */
 
         public static double ConvertToUnixTimestamp(DateTime date)
         {
@@ -1774,104 +1851,9 @@ namespace RNFSvnext.Test
             return dateTimeUtc.ToLocalTime();
         }
 
-        /*
-        public static RCTNativeAppEventEmitter CreateEventEmitter(Action<string, object> onEmit)
-        {
-            return new RCTNativeAppEventEmitter
-            {
-                InvocationHandler = new MockInvocationHandler((name, args) =>
-                {
-                    if (name == "emit")
-                    {
-                        var eventName = (string)args[0];
-                        var eventData = args[1];
-                        onEmit(eventName, eventData);
-                        return;
-                    }
+        
 
-                    throw new NotSupportedException();
-                }),
-            };
-        }
-
-        class MockPromise<T> : IReactPromise<T>
-        {
-            private readonly TaskCompletionSource<object> _tcs = new TaskCompletionSource<object>();
-            public Task<object> Task
-            {
-                get
-                {
-                    return _tcs.Task;
-                }
-            }
-
-            public void Reject(string code, string message)
-            {
-                _tcs.SetException(new RejectException(code, message));
-            }
-
-            public void Reject(string code, Exception exception)
-            {
-                _tcs.SetException(new RejectException(code, null, exception));
-            }
-
-            public void Reject(string code, string message, Exception exception)
-            {
-                _tcs.SetException(new RejectException(code, message, exception));
-            }
-
-            public void Reject(string message)
-            {
-                _tcs.SetException(new RejectException(null, message));
-            }
-
-            public void Reject(Exception exception)
-            {
-                _tcs.SetException(new RejectException(null, null, exception));
-            }
-
-            public void Reject(string code, string message, string stack, JToken userInfo)
-            {
-                _tcs.SetException(new RejectException(code, message));
-            }
-
-            public void Resolve(object value)
-            {
-                _tcs.SetResult(value);
-            }
-        }
-
-        class RejectException : Exception
-        {
-            public RejectException(string code, string message, Exception innerException)
-                : base(message, innerException)
-            {
-                Code = code;
-            }
-
-            public RejectException(string code, string message)
-                : base(message)
-            {
-                Code = code;
-            }
-
-            public string Code { get; }
-        }
-
-        class MockInvocationHandler : IInvocationHandler
-        {
-            private readonly Action<string, object[]> _onInvoke;
-            public MockInvocationHandler(Action<string, object[]> onInvoke)
-            {
-                _onInvoke = onInvoke;
-            }
-
-            public void Invoke(string name, object[] args)
-            {
-                _onInvoke(name, args);
-            }
-        }
-        */
+        
     }
 }
 
