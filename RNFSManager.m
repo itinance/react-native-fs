@@ -995,6 +995,8 @@ RCT_EXPORT_METHOD(touch:(NSString*)filepath
            @"RNFSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
            @"RNFSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
            @"RNFSApplicationSupportDirectoryPath": [self getPathForDirectory:NSApplicationSupportDirectory],
+           // Per Apple's docs, all app content in Application Support must be within a subdirectory of the app's bundle identifier
+           @"RNFSApplicationSupportDirectoryBundlePath": [[self getPathForDirectory:NSApplicationSupportDirectory] stringByAppendingPathComponent:[[NSBundle mainBundle] bundleIdentifier]],
            @"RNFSExternalDirectoryPath": [NSNull null],
            @"RNFSExternalStorageDirectoryPath": [NSNull null],
            @"RNFSTemporaryDirectoryPath": NSTemporaryDirectory(),

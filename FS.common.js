@@ -522,6 +522,8 @@ var RNFS = {
   DocumentDirectoryPath: RNFSManager.RNFSDocumentDirectoryPath,
   DownloadDirectoryPath: RNFSManager.RNFSDownloadDirectoryPath,
   ApplicationSupportDirectoryPath: RNFSManager.RNFSApplicationSupportDirectoryPath,
+  // Per Apple's docs, all app content in Application Support must be within a subdirectory of the app's bundle identifier
+  ApplicationSupportDirectoryBundlePath: RNFSManager.RNFSApplicationSupportDirectoryBundlePath,
   ExternalDirectoryPath: RNFSManager.RNFSExternalDirectoryPath,
   ExternalStorageDirectoryPath: RNFSManager.RNFSExternalStorageDirectoryPath,
   TemporaryDirectoryPath: RNFSManager.RNFSTemporaryDirectoryPath,
