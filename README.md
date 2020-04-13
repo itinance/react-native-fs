@@ -162,7 +162,7 @@ public class MainApplication extends Application implements ReactApplication {
 ```
 
   * For react-native 0.60.0 and higher
-  You don't need to change MainApplication.java, since native packages are automatically linked.
+    * You don't need to change `MainApplication.java`, since native packages are automatically linked.
 
 
 ## Usage (Windows)
