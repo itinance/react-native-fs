@@ -65,7 +65,7 @@ namespace RNFSvnext
                         return externalItems[0].Path;
                     }
                 }
-                return null;
+                return "";
             }
         }
 
@@ -94,7 +94,7 @@ namespace RNFSvnext
                 {
                     return pictures;
                 }
-                return null;
+                return "";
             }
         }
 
