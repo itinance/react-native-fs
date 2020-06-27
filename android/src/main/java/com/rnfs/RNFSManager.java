@@ -206,6 +206,18 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void exists(String filepath, Promise promise) {
+    Uri uri = Uri.parse(filepath);
+    if ("content".equalsIgnoreCase(uri.getScheme())) {
+      try (
+              InputStream stream = reactContext.getContentResolver().openInputStream(uri)
+      ) {
+        promise.resolve(true);
+      } catch (Exception ex) {
+        promise.resolve(false);
+      }
+      return;
+    }
+
     try {
       File file = new File(filepath);
       promise.resolve(file.exists());
