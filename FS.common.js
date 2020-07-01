@@ -27,7 +27,7 @@ var getJobId = () => {
   return jobId;
 };
 
-var normalizeFilePath = (path: string) => (path.startsWith('file://') ? path.slice(7) : path);
+var normalizeFilePath = (path: string) => (path.startsWith('file://') ? decodeURI(path).slice(7) : path);
 
 type MkdirOptions = {
   NSURLIsExcludedFromBackupKey?: boolean; // iOS only
