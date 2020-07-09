@@ -40,17 +40,21 @@ void RNFSManager::ConstantsViaConstantsProvider(ReactConstantProvider& constants
 }
 
 void RNFSManager::mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
-{
     try
     {
         std::filesystem::path path(directory);
         path.make_preferred();
-        std::filesystem::create_directories(directory);
-
+        // Consistent with Apple's createDirectoryAtPath method and result, but not with Android's
+        if (std::filesystem::create_directories(directory) == false) 
+        {
+            promise.Reject("Failed to create directory.");
+        }
         promise.Resolve();
     }
-    CATCH_REJECT_PROMISE_MSG(promise, "failed to create directory");
-}
+    catch (...)
+    {
+        promise.Reject("Unexpected error while making directory.");
+    }
 
 void RNFSManager::moveFile(
     std::string filepath,
@@ -90,18 +94,22 @@ winrt::fire_and_forget RNFSManager::unlink(std::string filePath, ReactPromise<vo
 
         promise.Resolve();
     }
-    CATCH_REJECT_PROMISE_MSG(promise, "failed to unlink");
+    catch (...)
+    {
+        promise.Reject("Failed to unlink.");
+    }
 }
 
 void RNFSManager::exists(std::string fullpath, ReactPromise<bool> promise) noexcept
-{
     try
     {
         std::filesystem::path path(fullpath);
         promise.Resolve(std::filesystem::exists(path));
     }
-    CATCH_REJECT_PROMISE_MSG(promise, "failed to check if file or directory exists");
-}
+    catch (...)
+    {
+        promise.Reject("Failed to check if file or directory exists.");
+    }
 
 void RNFSManager::stopDownload(int jobID) noexcept {
 
@@ -120,22 +128,24 @@ void RNFSManager::stopUpload(int jobID) noexcept {
 }
 
 winrt::fire_and_forget RNFSManager::readFile(std::string filePath, ReactPromise<std::string> promise) noexcept
+try
 {
-    try
-    {
-        winrt::hstring directoryPath, fileName;
-        splitPath(filePath, directoryPath, fileName);
+    winrt::hstring directoryPath, fileName;
+    splitPath(filePath, directoryPath, fileName);
 
-        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-        StorageFile file = co_await folder.GetFileAsync(fileName);
+    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+    StorageFile file = co_await folder.GetFileAsync(fileName);
 
-        Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
-        winrt::hstring base64Content = CryptographicBuffer::EncodeToBase64String(buffer);
+    Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
+    winrt::hstring base64Content = CryptographicBuffer::EncodeToBase64String(buffer);
 
-        promise.Resolve(winrt::to_string(base64Content));
-    }
-    CATCH_REJECT_PROMISE_MSG(promise, "failed to read file");
+    promise.Resolve(winrt::to_string(base64Content));
 }
+catch (...)
+{
+    promise.Reject("Failed to read file.");
+}
+
 
 void RNFSManager::stat(std::string filepath, RN::ReactPromise<RN::JSValueArray> promise) noexcept {
 
