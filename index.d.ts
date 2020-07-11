@@ -20,7 +20,7 @@ type ReadDirItem = {
 type StatResult = {
 	name: string | undefined // The name of the item TODO: why is this not documented?
 	path: string // The absolute path to the item
-	size: string // Size in bytes
+	size: number // Size in bytes
 	mode: number // UNIX file mode
 	ctime: number // Created date
 	mtime: number // Last modified date
