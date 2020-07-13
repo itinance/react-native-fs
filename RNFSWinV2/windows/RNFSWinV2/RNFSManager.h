@@ -62,8 +62,8 @@ struct RNFSManager
     REACT_METHOD(readFile);
     winrt::fire_and_forget readFile(std::string filePath, RN::ReactPromise<std::string> promise) noexcept;
 
-    REACT_METHOD(read);
-    void read(
+    REACT_METHOD(readTest1);
+    winrt::fire_and_forget readTest1(
         std::string filePath,
         int length,
         int position,
@@ -88,7 +88,7 @@ struct RNFSManager
 
 
     REACT_METHOD(write);
-    void write(
+    winrt::fire_and_forget write(
         std::string filePath,
         std::string base64Content,
         int position,

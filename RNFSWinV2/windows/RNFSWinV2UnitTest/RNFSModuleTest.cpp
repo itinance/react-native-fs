@@ -75,7 +75,7 @@ namespace ReactNativeTests {
         TEST_METHOD(TestMethodCall_readfileSuccessful1) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"readFile",
-                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(value == "2b || !2b\n\nby Bill Shakey\n"
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(value == "MmIgfHwgITJiIGJ5IEJpbGwgU2hha2V5DQoNCg0KYWFh"
                 ); }),
                 std::function<void(React::JSValue const&)>(
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read file."); }),
@@ -86,7 +86,7 @@ namespace ReactNativeTests {
         TEST_METHOD(TestMethodCall_readfileSuccessful2) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"readFile",
-                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(value == "2b || !2b\n\nby Bill Shakey\n"
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(value == "MmIgfHwgITJiIGJ5IEJpbGwgU2hha2V5DQoNCg0KYWFh"
                 ); }),
                 std::function<void(React::JSValue const&)>(
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read file."); }),
@@ -106,11 +106,102 @@ namespace ReactNativeTests {
         }
 
         /*
+            writefile() tests
+        */
+        TEST_METHOD(TestMethodCall_writefileSuccessful) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"writeFile",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to write to file."); }),
+                "c:/Github/TestWrite.txt", "MmIgfHwgITJiIGJ5IEJpbGwgU2hha2V5DQoNCg0KYWFh", React::JSValueObject{}));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_writefileUnsuccessful) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"writeFile",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to write to file."); }),
+                "c:/Github/TestWrite/Testwrite.txt", "MmIgfHwgITJiIGJ5IEJpbGwgU2hha2V5DQoNCg0KYWFh", React::JSValueObject{}));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
+
+        /*
+            readDir() tests
+        */
+        TEST_METHOD(TestMethodCall_readDirSuccessful1) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"readDir",
+                std::function<void(React::JSValueObject&)>([](React::JSValueObject&) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read directory."); }),
+                "C:/Github/node_modules"));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_readDirSuccessful2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"readDir",
+                std::function<void(React::JSValueObject&)>([](React::JSValueObject&) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read directory."); }),
+                "C:/Github/Hello"));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_readDirUnsuccessful) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"readDir",
+                std::function<void(React::JSValueObject&)>([](React::JSValueObject&) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read directory."); }),
+                "C:/Github/Hello/World/Toast/Bro"));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
+
+        /*
+            write() tests
+        */
+        TEST_METHOD(TestMethodCall_writeToBeginning) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"write",
+                std::function<void(React::JSValueObject&)>([](React::JSValueObject&) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to write to file."); }),
+                "C:/Github/toWriteTo.txt", "YWFh", 0));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_writeToNegativeIndex) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"write",
+                std::function<void(React::JSValueObject&)>([](React::JSValueObject&) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to write to file."); }),
+                "C:/Github/toWriteTo.txt", "YmJiCg==", -1));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        /*
+            read() tests
+        */
+        TEST_METHOD(TestMethodCall_readSuccessful1) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"readTest1",
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(value == "Yg=="); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read from file."); }),
+                "c:/Github/TestWrite.txt", 1, 1));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+
+        /*
             unlink() tests
         */
-
         TEST_METHOD(TestMethodCall_unlinkSuccessful) {
-            std::string toCompare("");
             Mso::FutureWait(m_builderMock.Call2(
                 L"unlink",
                 std::function<void()>([]() noexcept { TestCheck(true); }),

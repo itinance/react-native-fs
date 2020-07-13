@@ -81,24 +81,23 @@ void RNFSManager::getAllExternalFilesDirs(RN::ReactPromise<std::string> promise)
 }
 
 winrt::fire_and_forget RNFSManager::unlink(std::string filePath, ReactPromise<void> promise) noexcept
-{
     try
     {
         winrt::hstring directoryPath, fileName;
         splitPath(filePath, directoryPath, fileName);
-
+    
         StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-
+    
         auto target = co_await folder.GetItemAsync(fileName);
         co_await target.DeleteAsync();
-
+    
         promise.Resolve();
     }
     catch (...)
     {
         promise.Reject("Failed to unlink.");
     }
-}
+
 
 void RNFSManager::exists(std::string fullpath, ReactPromise<bool> promise) noexcept
     try
@@ -128,23 +127,23 @@ void RNFSManager::stopUpload(int jobID) noexcept {
 }
 
 winrt::fire_and_forget RNFSManager::readFile(std::string filePath, ReactPromise<std::string> promise) noexcept
-try
-{
-    winrt::hstring directoryPath, fileName;
-    splitPath(filePath, directoryPath, fileName);
-
-    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-    StorageFile file = co_await folder.GetFileAsync(fileName);
-
-    Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
-    winrt::hstring base64Content = CryptographicBuffer::EncodeToBase64String(buffer);
-
-    promise.Resolve(winrt::to_string(base64Content));
-}
-catch (...)
-{
-    promise.Reject("Failed to read file.");
-}
+    try
+    {
+        winrt::hstring directoryPath, fileName;
+        splitPath(filePath, directoryPath, fileName);
+    
+        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+        StorageFile file = co_await folder.GetFileAsync(fileName);
+    
+        Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
+        winrt::hstring base64Content = CryptographicBuffer::EncodeToBase64String(buffer);
+    
+        promise.Resolve(winrt::to_string(base64Content));
+    }
+    catch (...)
+    {
+        promise.Reject("Failed to read file.");
+    }
 
 
 void RNFSManager::stat(std::string filepath, RN::ReactPromise<RN::JSValueArray> promise) noexcept {
@@ -152,7 +151,6 @@ void RNFSManager::stat(std::string filepath, RN::ReactPromise<RN::JSValueArray> 
 }
 
 winrt::fire_and_forget RNFSManager::readDir(std::string directory, ReactPromise<JSValueArray> promise) noexcept
-{
     try
     {
         std::filesystem::path path(directory);
@@ -178,23 +176,44 @@ winrt::fire_and_forget RNFSManager::readDir(std::string directory, ReactPromise<
 
         promise.Resolve(resultsArray);
     }
-    CATCH_REJECT_PROMISE_MSG(promise, "failed to read directory");
+    catch (...)
+    {
+        promise.Reject("Failed to read directory.");
+    }
+
+
+winrt::fire_and_forget RNFSManager::readTest1(std::string filePath, int length, int position, RN::ReactPromise<std::string> promise) noexcept
+{
+    try
+    {
+        winrt::hstring directoryPath, fileName;
+        splitPath(filePath, directoryPath, fileName);
+
+        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+        StorageFile file = co_await folder.GetFileAsync(fileName);
+
+        Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
+
+        Streams::IRandomAccessStream stream = co_await file.OpenReadAsync();
+        stream.Seek(position);
+
+        stream.ReadAsync(buffer, length, Streams::InputStreamOptions::None);
+        std::string result = winrt::to_string(CryptographicBuffer::EncodeToBase64String(buffer));
+
+        promise.Resolve(result);
+    }
+    catch (...)
+    {
+        promise.Reject("Failed to read from file.");
+    }
 }
 
-void RNFSManager::read(
-    std::string filePath,
-    int length,
-    int position,
-    RN::ReactPromise<std::string> promise) noexcept {
-    promise.Resolve("");
-}
 
 void RNFSManager::hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept {
 
 }
 
 winrt::fire_and_forget RNFSManager::writeFile(std::string filePath, std::string base64Content, JSValueObject options, ReactPromise<void> promise) noexcept
-{
     try
     {
         winrt::hstring base64ContentStr = winrt::to_hstring(base64Content);
@@ -211,8 +230,10 @@ winrt::fire_and_forget RNFSManager::writeFile(std::string filePath, std::string 
 
         promise.Resolve();
     }
-    CATCH_REJECT_PROMISE_MSG(promise, "failed to write file");
-}
+    catch (...)
+    {
+        promise.Reject("Failed to write to file.");
+    }
 
 void RNFSManager::appendFile(
     std::string filepath,
@@ -221,13 +242,31 @@ void RNFSManager::appendFile(
     promise.Resolve();
 }
 
-void RNFSManager::write(
-    std::string filePath,
-    std::string base64Content,
-    int position,
-    RN::ReactPromise<void> promise) noexcept {
-    promise.Resolve();
-}
+winrt::fire_and_forget RNFSManager::write(std::string filePath, std::string base64Content, int position, ReactPromise<void> promise) noexcept
+    try {
+        winrt::hstring directoryPath, fileName;
+        splitPath(filePath, directoryPath, fileName);
+
+        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+        StorageFile file = co_await folder.GetFileAsync(fileName);
+
+        winrt::hstring base64ContentStr = winrt::to_hstring(base64Content);
+        Streams::IBuffer buffer = CryptographicBuffer::DecodeFromBase64String(base64ContentStr);
+        Streams::IRandomAccessStream stream = co_await file.OpenAsync(FileAccessMode::ReadWrite);
+
+        if (position < 0) {
+            stream.Seek(UINT64_MAX); // Writes to end of file
+        }
+        else {
+            stream.Seek(position);
+        }
+        co_await stream.WriteAsync(buffer);
+        promise.Resolve();
+    }
+    catch(...) {
+        promise.Reject("Failed to write to file.");
+    }
+    
 
 void RNFSManager::downloadFile (
     RN::JSValueObject options,
