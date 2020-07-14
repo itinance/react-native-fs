@@ -23,6 +23,10 @@ using namespace winrt::Windows::Storage;
         result.Reject(message);                                                                                        \
     }
 
+// 
+
+const auto UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
+
 void RNFSManager::ConstantsViaConstantsProvider(ReactConstantProvider& constants) noexcept
 {
     // TODO: add back
@@ -56,21 +60,50 @@ void RNFSManager::mkdir(std::string directory, RN::JSValueObject options, RN::Re
         promise.Reject("Unexpected error while making directory.");
     }
 
-void RNFSManager::moveFile(
-    std::string filepath,
-    std::string destPath,
-    RN::JSValueObject options,
-    RN::ReactPromise<void> promise) noexcept {
+winrt::fire_and_forget RNFSManager::moveFile(std::string filepath, std::string destPath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+    try 
+    {
+        winrt::hstring directoryPath, fileName;
+        splitPath(filepath, directoryPath, fileName);
 
-}
+        std::filesystem::path dest(destPath);
+        dest.make_preferred();
 
-void RNFSManager::copyFile(
-    std::string filepath,
-    std::string destPath,
-    RN::JSValueObject options,
-    RN::ReactPromise<void> promise) noexcept {
+        StorageFolder srcFolder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+        StorageFolder destFolder = co_await StorageFolder::GetFolderFromPathAsync(dest.c_str());
+        StorageFile file = co_await srcFolder.GetFileAsync(fileName);
 
-}
+        co_await file.MoveAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
+
+        promise.Resolve();
+    }
+    catch (...)
+    {
+        promise.Reject("Failed to move file");
+    }
+
+
+winrt::fire_and_forget RNFSManager::copyFile(std::string filepath, std::string destPath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+    try
+    {
+        winrt::hstring directoryPath, fileName;
+        splitPath(filepath, directoryPath, fileName);
+
+        std::filesystem::path dest(destPath);
+        dest.make_preferred();
+
+        StorageFolder srcFolder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+        StorageFolder destFolder = co_await StorageFolder::GetFolderFromPathAsync(dest.c_str());
+        StorageFile file = co_await srcFolder.GetFileAsync(fileName);
+
+        co_await file.CopyAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
+
+        promise.Resolve();
+    }
+    catch (...)
+    {
+        promise.Reject("Failed to copy file");
+    }
 
 void RNFSManager::getFSInfo(RN::ReactPromise<RN::JSValueArray> promise) noexcept {
 
@@ -165,7 +198,8 @@ winrt::fire_and_forget RNFSManager::readDir(std::string directory, ReactPromise<
             auto properties = co_await item.GetBasicPropertiesAsync();
 
             JSValueObject itemInfo;
-            itemInfo["mtime"] = properties.DateModified().time_since_epoch() / std::chrono::seconds(1);
+            itemInfo["ctime"] = targetDirectory.DateCreated().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
+            itemInfo["mtime"] = properties.DateModified().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
             itemInfo["name"] = to_string(item.Name());
             itemInfo["path"] = to_string(item.Path());
             itemInfo["size"] = properties.Size();
@@ -182,7 +216,7 @@ winrt::fire_and_forget RNFSManager::readDir(std::string directory, ReactPromise<
     }
 
 
-winrt::fire_and_forget RNFSManager::readTest1(std::string filePath, int length, int position, RN::ReactPromise<std::string> promise) noexcept
+winrt::fire_and_forget RNFSManager::read(std::string filePath, int length, int position, RN::ReactPromise<std::string> promise) noexcept
 {
     try
     {

@@ -137,7 +137,7 @@ namespace ReactNativeTests {
                 std::function<void(React::JSValueObject&)>([](React::JSValueObject&) noexcept { TestCheck(true); }),
                 std::function<void(React::JSValue const&)>(
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read directory."); }),
-                "C:/Github/node_modules"));
+                "C:\\Github\\wait"));
             TestCheck(m_builderMock.IsResolveCallbackCalled());
         }
 
@@ -189,7 +189,7 @@ namespace ReactNativeTests {
         */
         TEST_METHOD(TestMethodCall_readSuccessful1) {
             Mso::FutureWait(m_builderMock.Call2(
-                L"readTest1",
+                L"read",
                 std::function<void(std::string)>([](std::string value) noexcept { TestCheck(value == "Yg=="); }),
                 std::function<void(React::JSValue const&)>(
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read from file."); }),
@@ -197,6 +197,55 @@ namespace ReactNativeTests {
             TestCheck(m_builderMock.IsResolveCallbackCalled());
         }
 
+        TEST_METHOD(TestMethodCall_readSuccessful2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"read",
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(value == "fHwgITJiIGJ5IEJpbGwgU2hha2U="); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read from file."); }),
+                "c:/Github/toRead.txt", 20, 3));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_readUnsuccessful1) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"read",
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read from file."); }),
+                "c:/Github/toRead.txt", 9999, -1));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_readUnsuccessful2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"read",
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read from file."); }),
+                "c:/Github/toRead.txt", -1, 9999));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_readUnsuccessful3) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"read",
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read from file."); }),
+                "c:/Github/toRead.txt", 9999, 9999));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_readUnsuccessful4) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"read",
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read from file."); }),
+                "c:/Github/toRead.txt", -9999, -9999));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
 
         /*
             unlink() tests
