@@ -248,8 +248,57 @@ namespace ReactNativeTests {
         }
 
         /*
+            moveFile() tests
+        */
+
+
+        /*
+            copyFile() tests
+        */
+
+
+        /*
+            touch() tests
+        */
+        TEST_METHOD(TestMethodCall_touchSuccessful) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"touch",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to touch file."); }),
+                "c:/Github/TestWrite.txt", 1593561600, 1593561600));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        /*
+            getFSInfo() tests
+        */
+        //TEST_METHOD(TestMethodCall_getFSInfoSuccessful) {
+        //    Mso::FutureWait(m_builderMock.Call2(
+        //        L"getFSInfo",
+        //        std::function<void()>([]() noexcept { TestCheck(true); }),
+        //        std::function<void(React::JSValue const&)>(
+        //            [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to retrieve file system info."); })));
+        //    TestCheck(m_builderMock.IsResolveCallbackCalled());
+        //}
+
+        /*
+            stat() tests
+        */
+        TEST_METHOD(TestMethodCall_statSuccessful) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"stat",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to retrieve file info."); }),
+                "c:/Github/toMove.rtf"));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        /*
             unlink() tests
         */
+
         TEST_METHOD(TestMethodCall_unlinkSuccessful) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"unlink",

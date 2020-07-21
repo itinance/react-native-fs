@@ -9,7 +9,7 @@ namespace RN = winrt::Microsoft::ReactNative;
 REACT_MODULE(RNFSManager, L"RNFSManager");
 struct RNFSManager
 {
-    REACT_CONSTANT_PROVIDER(ConstantsViaConstantsProvider)
+    REACT_CONSTANT_PROVIDER(ConstantsViaConstantsProvider) // Implemented, but unsure how this works
         void ConstantsViaConstantsProvider(RN::ReactConstantProvider& constants) noexcept;
 
     REACT_METHOD(mkdir); // Implemented
@@ -29,11 +29,11 @@ struct RNFSManager
         RN::JSValueObject options,
         RN::ReactPromise<void> promise) noexcept;
 
-    REACT_METHOD(getFSInfo);
-    void getFSInfo(RN::ReactPromise<RN::JSValueArray> promise) noexcept;
+    REACT_METHOD(getFSInfo); // Implemented, no unit tests but cannot be tested
+    winrt::fire_and_forget getFSInfo(RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
-    REACT_METHOD(getAllExternalFilesDirs);
-    void getAllExternalFilesDirs(RN::ReactPromise<std::string> promise) noexcept;
+    //REACT_METHOD(getAllExternalFilesDirs); // TODO: Check to see what design consensus would be. Unlikely that we need it
+    //void getAllExternalFilesDirs(RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_METHOD(unlink); // Implemented
     winrt::fire_and_forget unlink(std::string filePath, RN::ReactPromise<void> promise) noexcept;
@@ -41,23 +41,17 @@ struct RNFSManager
     REACT_METHOD(exists); // Implemented
     void exists(std::string fullpath, RN::ReactPromise<bool> promise) noexcept;
 
-    REACT_METHOD(stopDownload);
+    REACT_METHOD(stopDownload); //DOWNLOADER
     void stopDownload(int jobID) noexcept;
 
-    REACT_METHOD(resumeDownload);
-    void resumeDownload(int jobID) noexcept;
-
-    REACT_METHOD(isResumable);
-    void isResumable(int jobID, RN::ReactPromise<bool> promise) noexcept;
-
-    REACT_METHOD(stopUpload);
+    REACT_METHOD(stopUpload); //DOWNLOADER
     void stopUpload(int jobID) noexcept;
 
     REACT_METHOD(readDir); // Implemented
     winrt::fire_and_forget readDir(std::string directory, RN::ReactPromise<RN::JSValueArray> promise) noexcept;
 
-    REACT_METHOD(stat);
-    void stat(std::string filepath, RN::ReactPromise<RN::JSValueArray> promise) noexcept;
+    REACT_METHOD(stat); // Implemented, unit tests not done
+    winrt::fire_and_forget stat(std::string filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
     REACT_METHOD(readFile); // Implemented
     winrt::fire_and_forget readFile(std::string filePath, RN::ReactPromise<std::string> promise) noexcept;
@@ -69,7 +63,7 @@ struct RNFSManager
         int position,
         RN::ReactPromise<std::string> promise) noexcept;
 
-    REACT_METHOD(hash);
+    REACT_METHOD(hash); // TODO: ...
     void hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_METHOD(writeFile); // Implemented
@@ -79,8 +73,8 @@ struct RNFSManager
         RN::JSValueObject options,
         RN::ReactPromise<void> promise) noexcept;
 
-    REACT_METHOD(appendFile);
-    void appendFile(
+    REACT_METHOD(appendFile); // Implemented, no unit tests
+    winrt::fire_and_forget appendFile(
         std::string filepath,
         std::string base64Content,
         RN::ReactPromise<void> promise
@@ -95,17 +89,14 @@ struct RNFSManager
         RN::ReactPromise<void> promise) noexcept;
 
 
-    REACT_METHOD(downloadFile);
+    REACT_METHOD(downloadFile); //DOWNLOADER
     void downloadFile(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
-    REACT_METHOD(uploadFiles);
+    REACT_METHOD(uploadFiles); //DOWNLOADER
     void uploadFiles(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
-    REACT_METHOD(touch);
+    REACT_METHOD(touch); // Implemented, unit tests incomplete
     void touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<void> promise) noexcept;
-
-    REACT_METHOD(scanFile);
-    void scanFile(std::string path, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
 private:
     void splitPath(const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept;

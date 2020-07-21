@@ -16,21 +16,31 @@ using namespace winrt::Microsoft::ReactNative;
 using namespace winrt::Windows::ApplicationModel;
 using namespace winrt::Windows::Security::Cryptography;
 using namespace winrt::Windows::Storage;
+using namespace winrt::Windows::Foundation;
 
-#define CATCH_REJECT_PROMISE_MSG(result, message)                                                                      \
+#define CATCH_REJECT_PROMISE_MSG(result, message)                           using namespace winrt::Windows::Storage;                                           \
     catch (...)                                                                                                        \
     {                                                                                                                  \
         result.Reject(message);                                                                                        \
     }
 
 // 
+const int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
 
-const auto UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
+struct handle_closer
+{
+    void operator()(HANDLE h) noexcept { assert(h != INVALID_HANDLE_VALUE); if (h) CloseHandle(h); }
+};
+
+inline HANDLE safe_handle(HANDLE h) noexcept
+{
+    return (h == INVALID_HANDLE_VALUE) ? nullptr : h;
+}
 
 void RNFSManager::ConstantsViaConstantsProvider(ReactConstantProvider& constants) noexcept
 {
     // TODO: add back
-    // constants.Add(L"RNFSMainBundlePath", to_string(Package::Current().InstalledLocation().Path()));
+    //constants.Add(L"RNFSMainBundlePath", to_string(Package::Current().InstalledLocation().Path()));
     constants.Add(L"RNFSCachesDirectoryPath", to_string(ApplicationData::Current().LocalCacheFolder().Path()));
 
     constants.Add(L"RNFSRoamingDirectoryPath", to_string(ApplicationData::Current().RoamingFolder().Path()));
@@ -105,12 +115,22 @@ winrt::fire_and_forget RNFSManager::copyFile(std::string filepath, std::string d
         promise.Reject("Failed to copy file");
     }
 
-void RNFSManager::getFSInfo(RN::ReactPromise<RN::JSValueArray> promise) noexcept {
+// TODO: Find a way to test this. May need a demo app because the program crashes when testing for some reason
+winrt::fire_and_forget RNFSManager::getFSInfo(RN::ReactPromise<RN::JSValueObject> promise) noexcept
+try
+{
+    auto localFolder{ Windows::Storage::ApplicationData::Current().LocalFolder() };
+    auto properties = co_await localFolder.Properties().RetrievePropertiesAsync({L"System.FreeSpace", L"System.Capacity"});
 
+    JSValueObject result;
+    result["freeSpace"] = unbox_value<double>(properties.Lookup(L"System.FreeSpace"));
+    result["totalSpace"] = unbox_value<double>(properties.Lookup(L"System.Capacity"));
+    
+    promise.Resolve(result);
 }
-
-void RNFSManager::getAllExternalFilesDirs(RN::ReactPromise<std::string> promise) noexcept {
-
+catch (...)
+{
+    promise.Reject("Failed to retrieve file system info.");
 }
 
 winrt::fire_and_forget RNFSManager::unlink(std::string filePath, ReactPromise<void> promise) noexcept
@@ -143,19 +163,15 @@ void RNFSManager::exists(std::string fullpath, ReactPromise<bool> promise) noexc
         promise.Reject("Failed to check if file or directory exists.");
     }
 
-void RNFSManager::stopDownload(int jobID) noexcept {
+// TODO: Downloader
+void RNFSManager::stopDownload(int jobID) noexcept
+{
 
 }
 
-void RNFSManager::resumeDownload(int jobID) noexcept {
-
-}
-
-void RNFSManager::isResumable(int jobID, RN::ReactPromise<bool> promise) noexcept {
-
-}
-
-void RNFSManager::stopUpload(int jobID) noexcept {
+// TODO: Downloader
+void RNFSManager::stopUpload(int jobID) noexcept
+{
 
 }
 
@@ -178,9 +194,43 @@ winrt::fire_and_forget RNFSManager::readFile(std::string filePath, ReactPromise<
         promise.Reject("Failed to read file.");
     }
 
+winrt::fire_and_forget RNFSManager::stat(std::string filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept
+try
+{
+    std::filesystem::path path(filepath);
+    path.make_preferred();
 
-void RNFSManager::stat(std::string filepath, RN::ReactPromise<RN::JSValueArray> promise) noexcept {
+    std::string resultPath = winrt::to_string(path.c_str());
+    auto directoryPath = path.has_parent_path() ? winrt::to_hstring(path.parent_path().c_str()) : L"";
+    auto fileName = path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"";
 
+    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+
+    bool isFile = !fileName.empty();
+
+    FileProperties::IStorageItemContentProperties properties = (isFile)
+        ? (co_await folder.GetFileAsync(fileName)).Properties()
+        : folder.Properties();
+
+    auto propertyMap = co_await properties.RetrievePropertiesAsync({ L"System.DateCreated", L"System.DateModified", L"System.Size" });
+
+    auto ctime = winrt::unbox_value<DateTime>(propertyMap.Lookup(L"System.DateCreated")).time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
+    auto mtime = winrt::unbox_value<DateTime>(propertyMap.Lookup(L"System.DateModified")).time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
+    auto size = std::to_string(winrt::unbox_value<uint64_t>(propertyMap.Lookup(L"System.Size")));
+
+    JSValueObject fileInfo;
+    fileInfo["path"] = resultPath;
+    fileInfo["ctime"] = ctime;
+    fileInfo["mtime"] = mtime;
+    fileInfo["size"] = size;
+    fileInfo["isFile"] = isFile;
+    fileInfo["isFolder"] = !isFile;
+
+    promise.Resolve(fileInfo);
+}
+catch (...)
+{
+    promise.Reject("Failed to retrieve file info.");
 }
 
 winrt::fire_and_forget RNFSManager::readDir(std::string directory, ReactPromise<JSValueArray> promise) noexcept
@@ -203,7 +253,8 @@ winrt::fire_and_forget RNFSManager::readDir(std::string directory, ReactPromise<
             itemInfo["name"] = to_string(item.Name());
             itemInfo["path"] = to_string(item.Path());
             itemInfo["size"] = properties.Size();
-            itemInfo["type"] = item.IsOfType(StorageItemTypes::Folder) ? 1 : 0;
+            itemInfo["isFile"] = item.IsOfType(StorageItemTypes::File) ? true : false;
+            itemInfo["isFolder"] = item.IsOfType(StorageItemTypes::Folder) ? true : false;
 
             resultsArray.push_back(std::move(itemInfo));
         }
@@ -217,7 +268,6 @@ winrt::fire_and_forget RNFSManager::readDir(std::string directory, ReactPromise<
 
 
 winrt::fire_and_forget RNFSManager::read(std::string filePath, int length, int position, RN::ReactPromise<std::string> promise) noexcept
-{
     try
     {
         winrt::hstring directoryPath, fileName;
@@ -240,9 +290,8 @@ winrt::fire_and_forget RNFSManager::read(std::string filePath, int length, int p
     {
         promise.Reject("Failed to read from file.");
     }
-}
 
-
+// TODO: Implement
 void RNFSManager::hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept {
 
 }
@@ -269,11 +318,28 @@ winrt::fire_and_forget RNFSManager::writeFile(std::string filePath, std::string 
         promise.Reject("Failed to write to file.");
     }
 
-void RNFSManager::appendFile(
-    std::string filepath,
-    std::string base64Content,
-    RN::ReactPromise<void> promise) noexcept {
+// TODO: Implement
+winrt::fire_and_forget RNFSManager::appendFile(std::string filepath, std::string base64Content, RN::ReactPromise<void> promise) noexcept
+try
+{
+    winrt::hstring directoryPath, fileName;
+    splitPath(filepath, directoryPath, fileName);
+
+    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+    StorageFile file = co_await folder.GetFileAsync(fileName);
+
+    winrt::hstring base64ContentStr = winrt::to_hstring(base64Content);
+    Streams::IBuffer buffer = CryptographicBuffer::DecodeFromBase64String(base64ContentStr);
+    Streams::IRandomAccessStream stream = co_await file.OpenAsync(FileAccessMode::ReadWrite);
+
+    stream.Seek(UINT64_MAX); // Writes to end of file
+    co_await stream.WriteAsync(buffer);
+
     promise.Resolve();
+}
+catch (...) 
+{
+    promise.Reject("Failed to append to file");
 }
 
 winrt::fire_and_forget RNFSManager::write(std::string filePath, std::string base64Content, int position, ReactPromise<void> promise) noexcept
@@ -302,27 +368,57 @@ winrt::fire_and_forget RNFSManager::write(std::string filePath, std::string base
     }
     
 
-void RNFSManager::downloadFile (
-    RN::JSValueObject options,
-    RN::ReactPromise<RN::JSValueObject> promise) noexcept {
+// TODO: Downloader
+void RNFSManager::downloadFile (RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept 
+{
 
 }
 
+// TODO: Downloader
 void RNFSManager::uploadFiles(
     RN::JSValueObject options,
     RN::ReactPromise<RN::JSValueObject> promise) noexcept {
 }
 
-void RNFSManager::touch (
-    std::string filepath,
-    double mtime,
-    double ctime,
-    RN::ReactPromise<void> promise) noexcept {
+void RNFSManager::touch (std::string filepath, double mtime, double ctime, RN::ReactPromise<void> promise) noexcept
+try
+{
+    std::filesystem::path path(filepath);
+    path.make_preferred();
+    auto s_path = path.c_str();
+    LPCWSTR actual_path = s_path;
+    DWORD accessMode = GENERIC_READ | GENERIC_WRITE;
+    DWORD shareMode = FILE_SHARE_WRITE;
+    DWORD creationMode = OPEN_EXISTING;
 
+    std::unique_ptr<void, handle_closer> handle(safe_handle(CreateFile2(actual_path, accessMode, shareMode, creationMode, nullptr)));
+    if (!handle)
+    {
+        promise.Reject("Failed to open file to touch.");
+    }
+
+    int64_t mtime_64 = static_cast<int64_t>(mtime * 10000000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000;
+    int64_t ctime_64 = static_cast<int64_t>(ctime * 10000000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000;
+
+    FILETIME cFileTime, mFileTime;
+    cFileTime.dwLowDateTime = static_cast<DWORD>(ctime_64);
+    ctime_64 >>= 32;
+    cFileTime.dwHighDateTime = static_cast<DWORD>(ctime_64);
+
+    mFileTime.dwLowDateTime = static_cast<DWORD>(mtime_64);
+    mtime_64 >>= 32;
+    mFileTime.dwHighDateTime = static_cast<DWORD>(mtime_64);
+
+    if (SetFileTime(handle.get(), &cFileTime, &mFileTime, nullptr) == 0)
+    {
+        promise.Reject("Failed to set new creation time and modified time of file.");
+    }
+
+    promise.Resolve();
 }
-
-void RNFSManager::scanFile(std::string path, RN::ReactPromise<RN::JSValueObject> promise) noexcept {
-
+catch (...)
+{
+    promise.Reject("Failed to touch file.");
 }
 
 void RNFSManager::splitPath(
