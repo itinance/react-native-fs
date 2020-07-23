@@ -220,6 +220,12 @@ RCT_EXPORT_METHOD(unlink:(NSString*)filepath
     return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
   }
 
+  BOOL isDeletableFile = [manager isDeletableFileAtPath:filepath];
+    
+  if (!isDeletableFile) {
+      return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: probably this filepath - Symbolic Link '%@'", filepath], nil);
+  }
+
   NSError *error = nil;
   BOOL success = [manager removeItemAtPath:filepath error:&error];
 
