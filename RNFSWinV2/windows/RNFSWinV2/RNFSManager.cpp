@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <windows.h>
 #include <winrt/Windows.Security.Cryptography.h>
+#include <winrt/Windows.Security.Cryptography.Core.h>
 #include <winrt/Windows.Storage.FileProperties.h>
 #include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.Storage.h>
@@ -15,17 +16,19 @@ using namespace winrt;
 using namespace winrt::Microsoft::ReactNative;
 using namespace winrt::Windows::ApplicationModel;
 using namespace winrt::Windows::Security::Cryptography;
+using namespace winrt::Windows::Security::Cryptography::Core;
 using namespace winrt::Windows::Storage;
 using namespace winrt::Windows::Foundation;
 
-#define CATCH_REJECT_PROMISE_MSG(result, message)                           using namespace winrt::Windows::Storage;                                           \
-    catch (...)                                                                                                        \
-    {                                                                                                                  \
-        result.Reject(message);                                                                                        \
-    }
-
-// 
 const int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
+
+const std::map<std::string, std::function<HashAlgorithmProvider()>> availableHashes {
+    {"md5", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Md5()); } },
+    {"sha1", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha1()); } },
+    {"sha256", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha256()); } },
+    {"sha384", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha384()); } },
+    {"sha512", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha512()); } }
+};
 
 struct handle_closer
 {
@@ -291,9 +294,41 @@ winrt::fire_and_forget RNFSManager::read(std::string filePath, int length, int p
         promise.Reject("Failed to read from file.");
     }
 
-// TODO: Implement
-void RNFSManager::hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept {
+// Note: SHA224 is not part of winrt  
+winrt::fire_and_forget RNFSManager::hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept
+try
+{
+    auto temp = algorithm;
+    if (algorithm.compare("sha224") == 0)
+    {
+        promise.Reject("WinRT does not offer sha224 encryption.");
+        co_return;
+    }
 
+    winrt::hstring directoryPath, fileName;
+    splitPath(filepath, directoryPath, fileName);
+
+    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+    StorageFile file = co_await folder.GetFileAsync(fileName);
+
+    auto search = availableHashes.find(algorithm);
+    if (search == availableHashes.end())
+    {
+        promise.Reject("Failed to find hash algorithm.");
+        co_return;
+    }
+
+    HashAlgorithmProvider provider = search->second();
+    Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
+
+    auto hashedBuffer = provider.HashData(buffer);
+    auto result = winrt::to_string(CryptographicBuffer::EncodeToHexString(hashedBuffer));
+
+    promise.Resolve(result);
+}
+catch (...)
+{
+    promise.Reject("Failed to get checksum from file.");
 }
 
 winrt::fire_and_forget RNFSManager::writeFile(std::string filePath, std::string base64Content, JSValueObject options, ReactPromise<void> promise) noexcept
@@ -369,7 +404,7 @@ winrt::fire_and_forget RNFSManager::write(std::string filePath, std::string base
     
 
 // TODO: Downloader
-void RNFSManager::downloadFile (RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept 
+void RNFSManager::downloadFile(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept 
 {
 
 }
@@ -413,8 +448,10 @@ try
     {
         promise.Reject("Failed to set new creation time and modified time of file.");
     }
-
-    promise.Resolve();
+    else
+    {
+        promise.Resolve();
+    }
 }
 catch (...)
 {

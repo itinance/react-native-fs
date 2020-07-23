@@ -50,7 +50,7 @@ struct RNFSManager
     REACT_METHOD(readDir); // Implemented
     winrt::fire_and_forget readDir(std::string directory, RN::ReactPromise<RN::JSValueArray> promise) noexcept;
 
-    REACT_METHOD(stat); // Implemented, unit tests not done
+    REACT_METHOD(stat); // Implemented, unit tests incomplete
     winrt::fire_and_forget stat(std::string filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
     REACT_METHOD(readFile); // Implemented
@@ -63,8 +63,8 @@ struct RNFSManager
         int position,
         RN::ReactPromise<std::string> promise) noexcept;
 
-    REACT_METHOD(hash); // TODO: ...
-    void hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept;
+    REACT_METHOD(hash); // Implemented
+    winrt::fire_and_forget hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_METHOD(writeFile); // Implemented
     winrt::fire_and_forget writeFile(
