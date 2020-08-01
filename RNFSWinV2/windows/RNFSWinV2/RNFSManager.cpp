@@ -11,6 +11,9 @@
 #include <winrt/Windows.Storage.FileProperties.h>
 #include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.Storage.h>
+#include <winrt/Windows.Web.Http.h>
+#include <winrt/Windows.ApplicationModel.h>
+#include <winrt/Windows.Foundation.h>
 
 using namespace winrt;
 using namespace winrt::Microsoft::ReactNative;
@@ -20,7 +23,95 @@ using namespace winrt::Windows::Security::Cryptography::Core;
 using namespace winrt::Windows::Storage;
 using namespace winrt::Windows::Foundation;
 
-const int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
+CancellationDisposable::CancellationDisposable(IAsyncInfo const& async, std::function<void()>&& onCancel) noexcept
+    : m_async{async}
+    , m_onCancel{std::move(onCancel)}
+{
+}
+
+CancellationDisposable::CancellationDisposable(CancellationDisposable&& other) noexcept
+    : m_async{ std::move(other.m_async) }
+    , m_onCancel{ std::move(other.m_onCancel) }
+{
+}
+
+CancellationDisposable& CancellationDisposable::operator=(CancellationDisposable&& other) noexcept
+{
+    if (this != &other)
+    {
+        CancellationDisposable temp{ std::move(*this) };
+        m_async = std::move(other.m_async);
+        m_onCancel = std::move(other.m_onCancel);
+    }
+    return *this;
+}
+
+CancellationDisposable::~CancellationDisposable() noexcept
+{
+    Cancel();
+}
+
+void CancellationDisposable::Cancel() noexcept
+{
+    if (m_async)
+    {
+        if (m_async.Status() == AsyncStatus::Started)
+        {
+            m_async.Cancel();
+        }
+
+        if (m_onCancel)
+        {
+            m_onCancel();
+        }
+    }
+}
+
+TaskCancellationManager::~TaskCancellationManager() noexcept
+{
+    // Do the explicit cleaning to make sure that CancellationDisposable
+    // destructors run while this instance still has valid fields because
+    // they are used by the onCancel callback.
+    // We also want to clear the m_pendingTasks before running the
+    // CancellationDisposable destructors since they touch the m_pendingTasks.
+    std::map<JobId, CancellationDisposable> pendingTasks;
+    {
+        std::scoped_lock lock{ m_mutex };
+        pendingTasks = std::move(m_pendingTasks);
+    }
+}
+
+void TaskCancellationManager::Add(JobId jobId, IAsyncInfo const& async) noexcept
+{
+    std::scoped_lock lock{ m_mutex };
+    m_pendingTasks.try_emplace(jobId, async, [this, jobId]() { Cancel(jobId); });
+}
+
+void TaskCancellationManager::Cancel(JobId jobId) noexcept
+{
+    // The destructor of the token does the cancellation. We must do it outside of lock.
+    CancellationDisposable token;
+
+    {
+        std::scoped_lock lock{ m_mutex };
+        if (!m_pendingTasks.empty())
+        {
+            if (auto it = m_pendingTasks.find(jobId); it != m_pendingTasks.end())
+            {
+                token = std::move(it->second);
+                m_pendingTasks.erase(it);
+            }
+        }
+    }
+}
+
+
+winrt::Windows::Web::Http::HttpClient _httpClient{};
+
+ReactContext _reactContext;
+
+REACT_EVENT(TimedEvent, L"TimedEventCpp");
+std::function<void(int)> TimedEvent;
 
 const std::map<std::string, std::function<HashAlgorithmProvider()>> availableHashes {
     {"md5", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Md5()); } },
@@ -40,10 +131,16 @@ inline HANDLE safe_handle(HANDLE h) noexcept
     return (h == INVALID_HANDLE_VALUE) ? nullptr : h;
 }
 
+REACT_INIT(Initialize)
+void Initialize(ReactContext const& reactContext) noexcept
+{
+    _reactContext = reactContext;
+}
+
 void RNFSManager::ConstantsViaConstantsProvider(ReactConstantProvider& constants) noexcept
 {
     // TODO: add back
-    //constants.Add(L"RNFSMainBundlePath", to_string(Package::Current().InstalledLocation().Path()));
+    constants.Add(L"RNFSMainBundlePath", to_string(Package::Current().InstalledLocation().Path()));
     constants.Add(L"RNFSCachesDirectoryPath", to_string(ApplicationData::Current().LocalCacheFolder().Path()));
 
     constants.Add(L"RNFSRoamingDirectoryPath", to_string(ApplicationData::Current().RoamingFolder().Path()));
@@ -57,66 +154,69 @@ void RNFSManager::ConstantsViaConstantsProvider(ReactConstantProvider& constants
 }
 
 void RNFSManager::mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
-    try
+try
+{
+    std::filesystem::path path(directory);
+    path.make_preferred();
+    // Consistent with Apple's createDirectoryAtPath method and result, but not with Android's
+    if (std::filesystem::create_directories(directory) == false) 
     {
-        std::filesystem::path path(directory);
-        path.make_preferred();
-        // Consistent with Apple's createDirectoryAtPath method and result, but not with Android's
-        if (std::filesystem::create_directories(directory) == false) 
-        {
-            promise.Reject("Failed to create directory.");
-        }
+        promise.Reject("Failed to create directory.");
+    }
+    else
+    {
         promise.Resolve();
     }
-    catch (...)
-    {
-        promise.Reject("Unexpected error while making directory.");
-    }
+}
+catch (...)
+{
+    promise.Reject("Unexpected error while making directory.");
+}
 
 winrt::fire_and_forget RNFSManager::moveFile(std::string filepath, std::string destPath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
-    try 
-    {
-        winrt::hstring directoryPath, fileName;
-        splitPath(filepath, directoryPath, fileName);
+try 
+{
+    winrt::hstring directoryPath, fileName;
+    splitPath(filepath, directoryPath, fileName);
 
-        std::filesystem::path dest(destPath);
-        dest.make_preferred();
+    std::filesystem::path dest(destPath);
+    dest.make_preferred();
 
-        StorageFolder srcFolder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-        StorageFolder destFolder = co_await StorageFolder::GetFolderFromPathAsync(dest.c_str());
-        StorageFile file = co_await srcFolder.GetFileAsync(fileName);
+    StorageFolder srcFolder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+    StorageFolder destFolder = co_await StorageFolder::GetFolderFromPathAsync(dest.c_str());
+    StorageFile file = co_await srcFolder.GetFileAsync(fileName);
 
-        co_await file.MoveAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
+    co_await file.MoveAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
 
-        promise.Resolve();
-    }
-    catch (...)
-    {
-        promise.Reject("Failed to move file");
-    }
+    promise.Resolve();
+}
+catch (...)
+{
+    promise.Reject("Failed to move file");
+}
 
 
 winrt::fire_and_forget RNFSManager::copyFile(std::string filepath, std::string destPath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
-    try
-    {
-        winrt::hstring directoryPath, fileName;
-        splitPath(filepath, directoryPath, fileName);
+try
+{
+    winrt::hstring directoryPath, fileName;
+    splitPath(filepath, directoryPath, fileName);
 
-        std::filesystem::path dest(destPath);
-        dest.make_preferred();
+    std::filesystem::path dest(destPath);
+    dest.make_preferred();
 
-        StorageFolder srcFolder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-        StorageFolder destFolder = co_await StorageFolder::GetFolderFromPathAsync(dest.c_str());
-        StorageFile file = co_await srcFolder.GetFileAsync(fileName);
+    StorageFolder srcFolder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+    StorageFolder destFolder = co_await StorageFolder::GetFolderFromPathAsync(dest.c_str());
+    StorageFile file = co_await srcFolder.GetFileAsync(fileName);
 
-        co_await file.CopyAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
+    co_await file.CopyAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
 
-        promise.Resolve();
-    }
-    catch (...)
-    {
-        promise.Reject("Failed to copy file");
-    }
+    promise.Resolve();
+}
+catch (...)
+{
+    promise.Reject("Failed to copy file.");
+}
 
 // TODO: Find a way to test this. May need a demo app because the program crashes when testing for some reason
 winrt::fire_and_forget RNFSManager::getFSInfo(RN::ReactPromise<RN::JSValueObject> promise) noexcept
@@ -137,65 +237,65 @@ catch (...)
 }
 
 winrt::fire_and_forget RNFSManager::unlink(std::string filePath, ReactPromise<void> promise) noexcept
-    try
-    {
-        winrt::hstring directoryPath, fileName;
-        splitPath(filePath, directoryPath, fileName);
-    
-        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-    
-        auto target = co_await folder.GetItemAsync(fileName);
-        co_await target.DeleteAsync();
-    
-        promise.Resolve();
-    }
-    catch (...)
-    {
-        promise.Reject("Failed to unlink.");
-    }
+try
+{
+    winrt::hstring directoryPath, fileName;
+    splitPath(filePath, directoryPath, fileName);
+
+    StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+
+    auto target = co_await folder.GetItemAsync(fileName);
+    co_await target.DeleteAsync();
+
+    promise.Resolve();
+}
+catch (...)
+{
+    promise.Reject("Failed to unlink.");
+}
 
 
 void RNFSManager::exists(std::string fullpath, ReactPromise<bool> promise) noexcept
-    try
-    {
-        std::filesystem::path path(fullpath);
-        promise.Resolve(std::filesystem::exists(path));
-    }
-    catch (...)
-    {
-        promise.Reject("Failed to check if file or directory exists.");
-    }
-
-// TODO: Downloader
-void RNFSManager::stopDownload(int jobID) noexcept
+try
 {
-
+    std::filesystem::path path(fullpath);
+    promise.Resolve(std::filesystem::exists(path));
+}
+catch (...)
+{
+    promise.Reject("Failed to check if file or directory exists.");
 }
 
 // TODO: Downloader
-void RNFSManager::stopUpload(int jobID) noexcept
+void RNFSManager::stopDownload(int32_t jobId) noexcept
+{
+    m_tasks.Cancel(jobId);
+}
+
+// TODO: Downloader
+void RNFSManager::stopUpload(int32_t jobID) noexcept
 {
 
 }
 
 winrt::fire_and_forget RNFSManager::readFile(std::string filePath, ReactPromise<std::string> promise) noexcept
-    try
-    {
-        winrt::hstring directoryPath, fileName;
-        splitPath(filePath, directoryPath, fileName);
-    
-        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-        StorageFile file = co_await folder.GetFileAsync(fileName);
-    
-        Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
-        winrt::hstring base64Content = CryptographicBuffer::EncodeToBase64String(buffer);
-    
-        promise.Resolve(winrt::to_string(base64Content));
-    }
-    catch (...)
-    {
-        promise.Reject("Failed to read file.");
-    }
+try
+{
+    winrt::hstring directoryPath, fileName;
+    splitPath(filePath, directoryPath, fileName);
+
+    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+    StorageFile file = co_await folder.GetFileAsync(fileName);
+
+    Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
+    winrt::hstring base64Content = CryptographicBuffer::EncodeToBase64String(buffer);
+
+    promise.Resolve(winrt::to_string(base64Content));
+}
+catch (...)
+{
+    promise.Reject("Failed to read file.");
+}
 
 winrt::fire_and_forget RNFSManager::stat(std::string filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept
 try
@@ -237,62 +337,62 @@ catch (...)
 }
 
 winrt::fire_and_forget RNFSManager::readDir(std::string directory, ReactPromise<JSValueArray> promise) noexcept
-    try
+try
+{
+    std::filesystem::path path(directory);
+    path.make_preferred();
+    StorageFolder targetDirectory{ co_await StorageFolder::GetFolderFromPathAsync(path.c_str()) };
+
+    JSValueArray resultsArray;
+
+    auto items = co_await targetDirectory.GetItemsAsync();
+    for (auto item : items)
     {
-        std::filesystem::path path(directory);
-        path.make_preferred();
-        StorageFolder targetDirectory{ co_await StorageFolder::GetFolderFromPathAsync(path.c_str()) };
+        auto properties = co_await item.GetBasicPropertiesAsync();
 
-        JSValueArray resultsArray;
+        JSValueObject itemInfo;
+        itemInfo["ctime"] = targetDirectory.DateCreated().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
+        itemInfo["mtime"] = properties.DateModified().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
+        itemInfo["name"] = to_string(item.Name());
+        itemInfo["path"] = to_string(item.Path());
+        itemInfo["size"] = properties.Size();
+        itemInfo["isFile"] = item.IsOfType(StorageItemTypes::File) ? true : false;
+        itemInfo["isFolder"] = item.IsOfType(StorageItemTypes::Folder) ? true : false;
 
-        auto items = co_await targetDirectory.GetItemsAsync();
-        for (auto item : items)
-        {
-            auto properties = co_await item.GetBasicPropertiesAsync();
-
-            JSValueObject itemInfo;
-            itemInfo["ctime"] = targetDirectory.DateCreated().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
-            itemInfo["mtime"] = properties.DateModified().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
-            itemInfo["name"] = to_string(item.Name());
-            itemInfo["path"] = to_string(item.Path());
-            itemInfo["size"] = properties.Size();
-            itemInfo["isFile"] = item.IsOfType(StorageItemTypes::File) ? true : false;
-            itemInfo["isFolder"] = item.IsOfType(StorageItemTypes::Folder) ? true : false;
-
-            resultsArray.push_back(std::move(itemInfo));
-        }
-
-        promise.Resolve(resultsArray);
+        resultsArray.push_back(std::move(itemInfo));
     }
-    catch (...)
-    {
-        promise.Reject("Failed to read directory.");
-    }
+
+    promise.Resolve(resultsArray);
+}
+catch (...)
+{
+    promise.Reject("Failed to read directory.");
+}
 
 
 winrt::fire_and_forget RNFSManager::read(std::string filePath, int length, int position, RN::ReactPromise<std::string> promise) noexcept
-    try
-    {
-        winrt::hstring directoryPath, fileName;
-        splitPath(filePath, directoryPath, fileName);
+try
+{
+    winrt::hstring directoryPath, fileName;
+    splitPath(filePath, directoryPath, fileName);
 
-        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-        StorageFile file = co_await folder.GetFileAsync(fileName);
+    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+    StorageFile file = co_await folder.GetFileAsync(fileName);
 
-        Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
+    Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
 
-        Streams::IRandomAccessStream stream = co_await file.OpenReadAsync();
-        stream.Seek(position);
+    Streams::IRandomAccessStream stream = co_await file.OpenReadAsync();
+    stream.Seek(position);
 
-        stream.ReadAsync(buffer, length, Streams::InputStreamOptions::None);
-        std::string result = winrt::to_string(CryptographicBuffer::EncodeToBase64String(buffer));
+    stream.ReadAsync(buffer, length, Streams::InputStreamOptions::None);
+    std::string result = winrt::to_string(CryptographicBuffer::EncodeToBase64String(buffer));
 
-        promise.Resolve(result);
-    }
-    catch (...)
-    {
-        promise.Reject("Failed to read from file.");
-    }
+    promise.Resolve(result);
+}
+catch (...)
+{
+    promise.Reject("Failed to read from file.");
+}
 
 // Note: SHA224 is not part of winrt  
 winrt::fire_and_forget RNFSManager::hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept
@@ -332,26 +432,26 @@ catch (...)
 }
 
 winrt::fire_and_forget RNFSManager::writeFile(std::string filePath, std::string base64Content, JSValueObject options, ReactPromise<void> promise) noexcept
-    try
-    {
-        winrt::hstring base64ContentStr = winrt::to_hstring(base64Content);
-        Streams::IBuffer buffer = CryptographicBuffer::DecodeFromBase64String(base64ContentStr);
+try
+{
+    winrt::hstring base64ContentStr = winrt::to_hstring(base64Content);
+    Streams::IBuffer buffer = CryptographicBuffer::DecodeFromBase64String(base64ContentStr);
 
-        winrt::hstring directoryPath, fileName;
-        splitPath(filePath, directoryPath, fileName);
+    winrt::hstring directoryPath, fileName;
+    splitPath(filePath, directoryPath, fileName);
 
-        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-        StorageFile file = co_await folder.CreateFileAsync(fileName, CreationCollisionOption::ReplaceExisting);
+    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+    StorageFile file = co_await folder.CreateFileAsync(fileName, CreationCollisionOption::ReplaceExisting);
 
-        Streams::IRandomAccessStream stream = co_await file.OpenAsync(FileAccessMode::ReadWrite);
-        co_await stream.WriteAsync(buffer);
+    Streams::IRandomAccessStream stream = co_await file.OpenAsync(FileAccessMode::ReadWrite);
+    co_await stream.WriteAsync(buffer);
 
-        promise.Resolve();
-    }
-    catch (...)
-    {
-        promise.Reject("Failed to write to file.");
-    }
+    promise.Resolve();
+}
+catch (...)
+{
+    promise.Reject("Failed to write to file.");
+}
 
 // TODO: Implement
 winrt::fire_and_forget RNFSManager::appendFile(std::string filepath, std::string base64Content, RN::ReactPromise<void> promise) noexcept
@@ -378,35 +478,89 @@ catch (...)
 }
 
 winrt::fire_and_forget RNFSManager::write(std::string filePath, std::string base64Content, int position, ReactPromise<void> promise) noexcept
-    try {
-        winrt::hstring directoryPath, fileName;
-        splitPath(filePath, directoryPath, fileName);
+try {
+    winrt::hstring directoryPath, fileName;
+    splitPath(filePath, directoryPath, fileName);
 
-        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-        StorageFile file = co_await folder.GetFileAsync(fileName);
+    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+    StorageFile file = co_await folder.GetFileAsync(fileName);
 
-        winrt::hstring base64ContentStr = winrt::to_hstring(base64Content);
-        Streams::IBuffer buffer = CryptographicBuffer::DecodeFromBase64String(base64ContentStr);
-        Streams::IRandomAccessStream stream = co_await file.OpenAsync(FileAccessMode::ReadWrite);
+    winrt::hstring base64ContentStr = winrt::to_hstring(base64Content);
+    Streams::IBuffer buffer = CryptographicBuffer::DecodeFromBase64String(base64ContentStr);
+    Streams::IRandomAccessStream stream = co_await file.OpenAsync(FileAccessMode::ReadWrite);
 
-        if (position < 0) {
-            stream.Seek(UINT64_MAX); // Writes to end of file
-        }
-        else {
-            stream.Seek(position);
-        }
-        co_await stream.WriteAsync(buffer);
-        promise.Resolve();
+    if (position < 0) {
+        stream.Seek(UINT64_MAX); // Writes to end of file
     }
-    catch(...) {
-        promise.Reject("Failed to write to file.");
+    else {
+        stream.Seek(position);
     }
-    
+    co_await stream.WriteAsync(buffer);
+    promise.Resolve();
+}
+catch(...) {
+    promise.Reject("Failed to write to file.");
+}
+
 
 // TODO: Downloader
-void RNFSManager::downloadFile(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept 
+winrt::fire_and_forget RNFSManager::downloadFile( RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept 
+try
 {
+    // All of these are definitely not null
 
+    //Filepath
+    std::filesystem::path path(options["fromURL"].AsString());
+    path.make_preferred();
+    if (path.filename().empty())
+    {
+        promise.Reject("Failed to determine filename in path");
+        co_return;
+    }
+    auto filepath = winrt::to_hstring(path.c_str());
+
+    //URL
+    std::string fromURLString = options["fromURL"].AsString();
+    std::wstring URLForURI(fromURLString.begin(), fromURLString.end());
+    Uri uri{ URLForURI };
+
+    // These might be null though
+
+    //JobID
+    auto jobId = options["jobId"].AsInt32();
+
+    //Headers
+    auto const& headers = options["headers"].AsObject();
+
+    //Progress Interval
+    auto progressInterval = options["progressInterval"].AsInt64();
+
+    //Progress Divider
+    auto progressDivider = options["progressDivider"].AsInt64();
+    
+    //readTimeout
+    auto readTimeout = options["readTimeout"].AsInt64();
+
+    //connectionTimeout
+    auto connectionTimeout = options["connectionTimeout"].AsInt64();
+
+    //hasBeginCallback
+    auto hasBeginCallback = options["hasBeginCallback"].AsBoolean();
+
+    //hasBeginCallback
+    auto hasProgressCallback = options["hasProgressCallback"].AsBoolean();
+
+    winrt::Windows::Web::Http::HttpRequestMessage request(winrt::Windows::Web::Http::HttpMethod::Get(), uri);
+    for (const auto& header : headers)
+    {
+        request.Headers().Insert(winrt::to_hstring(header.first), winrt::to_hstring(header.second.AsString()));
+    }
+
+    promise.Resolve(JSValueObject());
+}
+catch (...)
+{
+    promise.Reject("Failed to download file.");
 }
 
 // TODO: Downloader
@@ -415,7 +569,7 @@ void RNFSManager::uploadFiles(
     RN::ReactPromise<RN::JSValueObject> promise) noexcept {
 }
 
-void RNFSManager::touch (std::string filepath, double mtime, double ctime, RN::ReactPromise<void> promise) noexcept
+void RNFSManager::touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<void> promise) noexcept
 try
 {
     std::filesystem::path path(filepath);
@@ -429,7 +583,8 @@ try
     std::unique_ptr<void, handle_closer> handle(safe_handle(CreateFile2(actual_path, accessMode, shareMode, creationMode, nullptr)));
     if (!handle)
     {
-        promise.Reject("Failed to open file to touch.");
+        promise.Reject("Failed to create handle for file to touch.");
+        return;
     }
 
     int64_t mtime_64 = static_cast<int64_t>(mtime * 10000000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000;
@@ -458,12 +613,16 @@ catch (...)
     promise.Reject("Failed to touch file.");
 }
 
-void RNFSManager::splitPath(
-    const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept
+void RNFSManager::splitPath(const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept
 {
     std::filesystem::path path(fullPath);
     path.make_preferred();
 
     directoryPath = path.has_parent_path() ? winrt::to_hstring(path.parent_path().c_str()) : L"";
     fileName = path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"";
+}
+
+void sendEvent()
+{
+
 }

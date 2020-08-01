@@ -26,7 +26,6 @@ namespace ReactNativeTests {
         /*
             mkdir() tests
         */
-
         TEST_METHOD(TestMethodCall_mkdirSuccessful) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"mkdir",
@@ -252,17 +251,83 @@ namespace ReactNativeTests {
         /*
             moveFile() tests
         */
+        TEST_METHOD(TestMethodCall_moveFileSuccessful1) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"moveFile",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to move file"); }),
+                testLocation + "toMove.rtf", testLocation + "temp"));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
 
+        TEST_METHOD(TestMethodCall_moveFileSuccessful2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"moveFile",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to move file"); }),
+                testLocation + "temp/toMove.rtf", testLocation));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_moveFileUnsuccessful1) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"moveFile",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to move file"); }),
+                testLocation + "squirrels", testLocation + "I//Like//Tooooaast"));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_moveFileUnsuccessful2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"moveFile",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to move file"); }),
+                testLocation + "toMove.rtf", testLocation + "toWriteTo.txt"));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
 
         /*
             copyFile() tests
         */
+        TEST_METHOD(TestMethodCall_copyFileSuccessful) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"copyFile",
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to copy file."); }),
+                testLocation + "toMove.rtf", testLocation + "Hello"));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
 
+        TEST_METHOD(TestMethodCall_copyFileUnsuccessful1) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"copyFile",
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to copy file."); }),
+                testLocation + "toMove.rtf", testLocation + "I//Like//Tooooaast"));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
+        
+        TEST_METHOD(TestMethodCall_copyFileUnsuccessful2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"copyFile",
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to copy file."); }),
+                testLocation + "I//Like//Tooooaast", testLocation));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
 
         /*
             touch() tests
         */
-        TEST_METHOD(TestMethodCall_touchSuccessful) {
+        TEST_METHOD(TestMethodCall_touchSuccessful1) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"touch",
                 std::function<void()>([]() noexcept { TestCheck(true); }),
@@ -270,6 +335,46 @@ namespace ReactNativeTests {
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to touch file."); }),
                 testLocation + "TestWrite.txt", 1593561600, 1593561600));
             TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_touchSuccessful2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"touch",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to touch file."); }),
+                testLocation + "TestWrite.txt", -1593561600, -1593561600));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_touchUnsuccessful1) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"touch",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to set new creation time and modified time of file."); }),
+                testLocation + "TestWrite.txt", -11707632000, -11707632000));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_touchUnsuccessful2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"touch",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to set new creation time and modified time of file."); }),
+                testLocation + "TestWrite.txt", 9223372036854775807, 9223372036854775807));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_touchSuccessful3) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"touch",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to create handle for file to touch."); }),
+                testLocation, 1593561600, 1593561600));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
         }
 
         /*
@@ -295,6 +400,16 @@ namespace ReactNativeTests {
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to retrieve file info."); }),
                 testLocation + "toMove.rtf"));
             TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_statUnsuccessful) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"stat",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to retrieve file info."); }),
+                testLocation + "NonexistantAddress"));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
         }
 
         /*

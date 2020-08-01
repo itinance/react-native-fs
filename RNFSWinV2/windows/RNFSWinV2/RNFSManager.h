@@ -3,26 +3,67 @@
 #pragma once
 #include "NativeModules.h"
 #include <string>
+#include <mutex>
+#include <winrt/Windows.Foundation.h>
 
 namespace RN = winrt::Microsoft::ReactNative;
+
+struct CancellationDisposable
+{
+    CancellationDisposable() = default;
+	CancellationDisposable(winrt::Windows::Foundation::IAsyncInfo const& async, std::function<void()>&& onCancel) noexcept;
+
+	CancellationDisposable(CancellationDisposable&& other) noexcept;
+	CancellationDisposable& operator=(CancellationDisposable&& other) noexcept;
+
+	CancellationDisposable(CancellationDisposable const&) = delete;
+	CancellationDisposable& operator=(CancellationDisposable const&) = delete;
+
+    ~CancellationDisposable() noexcept;
+
+    void Cancel() noexcept;
+private:
+    winrt::Windows::Foundation::IAsyncInfo m_async{ nullptr };
+    std::function<void()> m_onCancel;
+};
+
+struct TaskCancellationManager
+{
+    using JobId = int32_t;
+
+    TaskCancellationManager() = default;
+    ~TaskCancellationManager() noexcept;
+
+    TaskCancellationManager(TaskCancellationManager const&) = delete;
+    TaskCancellationManager& operator=(TaskCancellationManager const&) = delete;
+
+    void Add(JobId jobId, winrt::Windows::Foundation::IAsyncInfo const& async) noexcept;
+    void Cancel(JobId jobId) noexcept;
+
+private:
+    std::mutex m_mutex; // to protect m_pendingTasks
+    std::map<JobId, CancellationDisposable> m_pendingTasks;
+};
 
 REACT_MODULE(RNFSManager, L"RNFSManager");
 struct RNFSManager
 {
+    const int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
+
     REACT_CONSTANT_PROVIDER(ConstantsViaConstantsProvider) // Implemented, but unsure how this works
         void ConstantsViaConstantsProvider(RN::ReactConstantProvider& constants) noexcept;
 
     REACT_METHOD(mkdir); // Implemented
     void mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept;
 
-    REACT_METHOD(moveFile); // Implemented, no unit tests
+    REACT_METHOD(moveFile); // Implemented
     winrt::fire_and_forget moveFile(
         std::string filepath,
         std::string destPath,
         RN::JSValueObject options,
         RN::ReactPromise<void> promise) noexcept;
 
-    REACT_METHOD(copyFile); // Implemented, no unit tests
+    REACT_METHOD(copyFile); // Implemented
     winrt::fire_and_forget copyFile(
         std::string filepath,
         std::string destPath,
@@ -41,10 +82,10 @@ struct RNFSManager
     REACT_METHOD(exists); // Implemented
     void exists(std::string fullpath, RN::ReactPromise<bool> promise) noexcept;
 
-    REACT_METHOD(stopDownload); //DOWNLOADER
+    REACT_METHOD(stopDownload); // DOWNLOADER
     void stopDownload(int jobID) noexcept;
 
-    REACT_METHOD(stopUpload); //DOWNLOADER
+    REACT_METHOD(stopUpload); // DOWNLOADER
     void stopUpload(int jobID) noexcept;
 
     REACT_METHOD(readDir); // Implemented
@@ -89,15 +130,18 @@ struct RNFSManager
         RN::ReactPromise<void> promise) noexcept;
 
 
-    REACT_METHOD(downloadFile); //DOWNLOADER
-    void downloadFile(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
+    REACT_METHOD(downloadFile); // DOWNLOADER
+    winrt::fire_and_forget downloadFile(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
-    REACT_METHOD(uploadFiles); //DOWNLOADER
+    REACT_METHOD(uploadFiles); // DOWNLOADER
     void uploadFiles(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
-    REACT_METHOD(touch); // Implemented, unit tests incomplete
+    REACT_METHOD(touch); // Implemented
     void touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<void> promise) noexcept;
 
 private:
     void splitPath(const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept;
+
+private:
+    TaskCancellationManager m_tasks;
 };
