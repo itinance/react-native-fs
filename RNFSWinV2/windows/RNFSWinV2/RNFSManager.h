@@ -5,6 +5,13 @@
 #include <string>
 #include <mutex>
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Security.Cryptography.h>
+#include <winrt/Windows.Security.Cryptography.Core.h>
+#include <winrt/Windows.Web.Http.h>
+
+using namespace winrt::Windows::Security::Cryptography;
+using namespace winrt::Windows::Security::Cryptography::Core;
+using namespace winrt::Microsoft::ReactNative;
 
 namespace RN = winrt::Microsoft::ReactNative;
 
@@ -48,7 +55,9 @@ private:
 REACT_MODULE(RNFSManager, L"RNFSManager");
 struct RNFSManager
 {
-    const int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
+
+    REACT_INIT(Initialize)
+        void Initialize(ReactContext const& reactContext) noexcept;
 
     REACT_CONSTANT_PROVIDER(ConstantsViaConstantsProvider) // Implemented, but unsure how this works
         void ConstantsViaConstantsProvider(RN::ReactConstantProvider& constants) noexcept;
@@ -144,4 +153,21 @@ private:
 
 private:
     TaskCancellationManager m_tasks;
+    
+    const int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
+
+    const std::map<std::string, std::function<HashAlgorithmProvider()>> availableHashes{
+        {"md5", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Md5()); } },
+        {"sha1", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha1()); } },
+        {"sha256", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha256()); } },
+        {"sha384", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha384()); } },
+        {"sha512", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha512()); } }
+    };
+
+    winrt::Windows::Web::Http::HttpClient _httpClient;
+
+    ReactContext _reactContext;
+
+    REACT_EVENT(TimedEvent, L"TimedEventCpp");
+    std::function<void(int)> TimedEvent;
 };

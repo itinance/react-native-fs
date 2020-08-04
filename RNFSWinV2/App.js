@@ -17,8 +17,10 @@ import {
   TextInput,
   Button,
   Alert,
+  Picker
 } from 'react-native';
 
+import RNFS from 'react-native-fs';
 //import {Picker} from '@react-native-community/picker';
 
 import {
@@ -30,6 +32,59 @@ import {
 const App: () => React$Node = () => {
 
   const [selectedValue, setSelectedValue] = useState("md5");
+  const [mkdirParam, setMkdirParam] = useState('');
+  const [moveFileSource, setMoveFileSource] = useState('');
+  const [moveFileDest, setMoveFileDest] = useState('');
+  const [copyFileSource, setCopyFileSource] = useState('');
+  const [copyFileDest, setCopyFileDest] = useState('');
+
+  const mkdirExample = () => {
+    if(mkdirParam.length > 0) {
+      RNFS.mkdir(RNFS.DocumentDirectoryPath + '/' + mkdirParam)
+            .then((result) => {
+              Alert.alert('Successfully created directory.')
+            })
+            .catch((err) => {
+              Alert.alert(err.message)
+            })
+    }
+  }
+
+  const moveFileExample = () => {
+    if(moveFileSource.length > 0) {
+      RNFS.moveFile(RNFS.DocumentDirectoryPath + '/' + moveFileSource, 
+                    RNFS.DocumentDirectoryPath + '/' + moveFileDest)
+            .then((result) => {
+              Alert.alert('Successfully moved file to specified destination.')
+            })
+            .catch((err) => {
+              Alert.alert(err.message)
+            })
+    }
+  }
+
+  const copyFileExample = () => {
+    if(copyFileSource.length > 0) {
+      RNFS.copyFile(RNFS.DocumentDirectoryPath + '/' + copyFileSource, 
+                    RNFS.DocumentDirectoryPath + '/' + copyFileDest)
+            .then((result) => {
+              Alert.alert('Successfully put copy of file to specified destination.')
+            })
+            .catch((err) => {
+              Alert.alert(err.message)
+            })
+    }
+  }
+
+  const getFSInfoExample = () => {
+    RNFS.getFSInfo()
+          .then((result) => {
+            Alert.alert('Total space: ' + result.totalSpace + ' bytes\nFree space:  ' + result.freeSpace + ' bytes')
+          })
+          .catch((err) => {
+            Alert.alert(err.message)
+          })
+  }
 
   return (
     <>
@@ -54,6 +109,7 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "Folder Path"
+                onChangeText={mkdirParam => setMkdirParam(mkdirParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
@@ -61,7 +117,7 @@ const App: () => React$Node = () => {
             <Button
               title="Create Directory"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={mkdirExample}
             />
             </View>
           </View>
@@ -73,12 +129,14 @@ const App: () => React$Node = () => {
             </Text>
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
-                placeholder = "Source Path"
+                placeholder = "Source File Path"
+                onChangeText={moveFileSource => setMoveFileSource(moveFileSource)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
                 placeholder = "Destination Path"
+                onChangeText={moveFileDest => setMoveFileDest(moveFileDest)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
@@ -86,7 +144,7 @@ const App: () => React$Node = () => {
             <Button
               title="Move File to Destination"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={moveFileExample}
             />
             </View>
           </View>
@@ -98,12 +156,14 @@ const App: () => React$Node = () => {
             </Text>
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
-                placeholder = "Source Path"
+                placeholder = "Source File Path"
+                onChangeText={copyFileSource => setCopyFileSource(copyFileSource)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
                 placeholder = "Destination Path"
+                onChangeText={copyFileDest => setCopyFileDest(copyFileDest)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
@@ -111,7 +171,7 @@ const App: () => React$Node = () => {
             <Button
               title="Copy File to Destination"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={copyFileExample}
             />
             </View>
           </View>
@@ -122,8 +182,9 @@ const App: () => React$Node = () => {
               {"getFSInfo"}
             </Text>
             <Button
-              title="Currently Unavailable"
-              color="#999999"
+              title="Get Filesystem Information"
+              color = "#9a73ef"
+              onPress={getFSInfoExample}
             />
             </View>
           </View>
@@ -249,6 +310,18 @@ const App: () => React$Node = () => {
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
+              <Picker
+                selectedValue={selectedValue}
+                style={{ height: 50, width: 150 }}
+                onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+              >
+                <Picker.Item label="MD5" value="md5" />
+                <Picker.Item label="SHA1" value="sha1" />
+                <Picker.Item label="SHA224" value="sha224" />
+                <Picker.Item label="SHA256" value="sha256" />
+                <Picker.Item label="SHA384" value="sha384" />
+                <Picker.Item label="SHA512" value="sha512" />
+              </Picker>
               <View>
 
               </View>
@@ -353,12 +426,12 @@ const App: () => React$Node = () => {
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
-                placeholder = "Modified Time"
+                placeholder = "Modified UNIX Time"
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
-                placeholder = "Created Time"
+                placeholder = "Created UNIX Time"
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />

@@ -6,20 +6,15 @@
 
 #include <filesystem>
 #include <windows.h>
-#include <winrt/Windows.Security.Cryptography.h>
-#include <winrt/Windows.Security.Cryptography.Core.h>
 #include <winrt/Windows.Storage.FileProperties.h>
 #include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.Storage.h>
-#include <winrt/Windows.Web.Http.h>
+
 #include <winrt/Windows.ApplicationModel.h>
 #include <winrt/Windows.Foundation.h>
 
 using namespace winrt;
-using namespace winrt::Microsoft::ReactNative;
 using namespace winrt::Windows::ApplicationModel;
-using namespace winrt::Windows::Security::Cryptography;
-using namespace winrt::Windows::Security::Cryptography::Core;
 using namespace winrt::Windows::Storage;
 using namespace winrt::Windows::Foundation;
 
@@ -105,34 +100,17 @@ void TaskCancellationManager::Cancel(JobId jobId) noexcept
     }
 }
 
-
-winrt::Windows::Web::Http::HttpClient _httpClient{};
-
-ReactContext _reactContext;
-
-REACT_EVENT(TimedEvent, L"TimedEventCpp");
-std::function<void(int)> TimedEvent;
-
-const std::map<std::string, std::function<HashAlgorithmProvider()>> availableHashes {
-    {"md5", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Md5()); } },
-    {"sha1", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha1()); } },
-    {"sha256", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha256()); } },
-    {"sha384", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha384()); } },
-    {"sha512", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha512()); } }
-};
-
 struct handle_closer
 {
     void operator()(HANDLE h) noexcept { assert(h != INVALID_HANDLE_VALUE); if (h) CloseHandle(h); }
 };
 
-inline HANDLE safe_handle(HANDLE h) noexcept
+static inline HANDLE safe_handle(HANDLE h) noexcept
 {
     return (h == INVALID_HANDLE_VALUE) ? nullptr : h;
 }
 
-REACT_INIT(Initialize)
-void Initialize(ReactContext const& reactContext) noexcept
+void RNFSManager::Initialize(ReactContext const& reactContext) noexcept
 {
     _reactContext = reactContext;
 }
@@ -158,8 +136,9 @@ try
 {
     std::filesystem::path path(directory);
     path.make_preferred();
+
     // Consistent with Apple's createDirectoryAtPath method and result, but not with Android's
-    if (std::filesystem::create_directories(directory) == false) 
+    if (std::filesystem::create_directories(path) == false)
     {
         promise.Reject("Failed to create directory.");
     }
@@ -226,8 +205,11 @@ try
     auto properties = co_await localFolder.Properties().RetrievePropertiesAsync({L"System.FreeSpace", L"System.Capacity"});
 
     JSValueObject result;
-    result["freeSpace"] = unbox_value<double>(properties.Lookup(L"System.FreeSpace"));
-    result["totalSpace"] = unbox_value<double>(properties.Lookup(L"System.Capacity"));
+    //auto temp1 = properties.Lookup(L"System.FreeSpace");
+    //auto temp2 = properties.Lookup(L"System.Capacity");
+    //auto temp3 = unbox_value<uint64_t>(temp1);
+    result["freeSpace"] = unbox_value<uint64_t>(properties.Lookup(L"System.FreeSpace"));
+    result["totalSpace"] = unbox_value<uint64_t>(properties.Lookup(L"System.Capacity"));
     
     promise.Resolve(result);
 }
