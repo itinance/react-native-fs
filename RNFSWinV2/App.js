@@ -32,11 +32,20 @@ import {
 const App: () => React$Node = () => {
 
   const [selectedValue, setSelectedValue] = useState("md5");
+
   const [mkdirParam, setMkdirParam] = useState('');
+
   const [moveFileSource, setMoveFileSource] = useState('');
   const [moveFileDest, setMoveFileDest] = useState('');
+
   const [copyFileSource, setCopyFileSource] = useState('');
   const [copyFileDest, setCopyFileDest] = useState('');
+
+  const [unlinkFileParam, setUnlinkFileParam] = useState('');
+
+  const [readDirParam, setReadDirParam] = useState('');
+
+  const [statParam, setStatParam] = useState('');
 
   const mkdirExample = () => {
     if(mkdirParam.length > 0) {
@@ -79,7 +88,62 @@ const App: () => React$Node = () => {
   const getFSInfoExample = () => {
     RNFS.getFSInfo()
           .then((result) => {
-            Alert.alert('Total space: ' + result.totalSpace + ' bytes\nFree space:  ' + result.freeSpace + ' bytes')
+            Alert.alert('Total space: ' + result.totalSpace + ' bytes\nFree space: ' + result.freeSpace + ' bytes')
+          })
+          .catch((err) => {
+            Alert.alert(err.message)
+          })
+  }
+
+  const unlinkExample = () => {
+    if(unlinkFileParam.length > 0) {
+      RNFS.unlink(RNFS.DocumentDirectoryPath + '/' + unlinkFileParam)
+            .then((result) => {
+              Alert.alert('Successfully unlinked specified file or folder')
+            })
+            .catch((err) => {
+              Alert.alert(err.message)
+            })
+    }
+  }
+
+  const readDirExample = () => {
+    RNFS.readDir(RNFS.DocumentDirectoryPath + '/' + readDirParam)
+          .then((result) => {
+            if(result.length == 0) {
+              Alert.alert('Directory is empty')
+            }
+            else {
+              let title = 'Number of contents: ' + result.length
+              let output = '\nresult[0].name: ' + result[0].name +
+                            '\nresult[0].size: ' + result[0].size + ' bytes' +
+                            '\nresult[0].mtime: ' + result[0].mtime +
+                            '\nresult[0].ctime: ' + result[0].ctime +
+                            '\nresult[0].name: ' + result[0].name +
+                            '\nresult[0].path: ' + result[0].path +
+                            '\nresult[0].isFile(): ' + result[0].isFile() +
+                            '\nresult[0].isDirectory(): ' + result[0].isDirectory() 
+              Alert.alert(title, output)
+            }
+          })
+          .catch((err) => {
+            Alert.alert(err.message)
+          })
+  }
+
+  const statExample = () => {
+    RNFS.stat(RNFS.DocumentDirectoryPath + '/' + statParam)
+          .then((result) => {
+            let title = 'Stat Results:'
+            let output = 'result.path: ' + result.path +
+                          '\nresult.ctime: ' + result.ctime +
+                          '\nresult.mtime: ' + result.mtime +
+                          '\nresult.size: ' + result.size + ' bytes' +
+                          '\nresult.mode: ' + result.mode +
+                          '\nresult.originalFilePath: ' + result.originalFilePath +
+                          '\nresult.isFile(): ' + result.isFile() +
+                          '\nresult.isDirectory(): ' + result.isDirectory()
+            Alert.alert(title, output)
           })
           .catch((err) => {
             Alert.alert(err.message)
@@ -101,6 +165,22 @@ const App: () => React$Node = () => {
           <Text style={styles.sectionTitle}>
             {"React Native File System Windows Demo App"}
           </Text>
+
+          <View style={styles.body}>
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionDescription}>
+                <Text>
+                  {"RNFS.MainBundlePath: " + RNFS.MainBundlePath + "\n"}
+                  {"RNFS.CachesDirectoryPath: " + RNFS.CachesDirectoryPath + "\n"}
+                  {"RNFS.RoamingDirectoryPath: " + RNFS.RoamingDirectoryPath  + "\n"}
+                  {"RNFS.DocumentDirectoryPath: " + RNFS.DocumentDirectoryPath  + "\n"}
+                  {"RNFS.TemporaryDirectoryPath: " + RNFS.TemporaryDirectoryPath  + "\n"}
+                  {"RNFS.ExternalDirectoryPath: " + RNFS.ExternalDirectoryPath}
+                </Text>
+              </View>
+            </View>
+          </View>
+
           <View style={styles.body}>
             <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>
@@ -197,14 +277,15 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "Path"
+                onChangeText={UnlinkFileParam => setUnlinkFileParam(UnlinkFileParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               </View>
             <Button
-              title="Copy File to Destination"
+              title="Unlink File at Path"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={unlinkExample}
             />
             </View>
           </View>
@@ -217,6 +298,7 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "Directory Path"
+                onChangeText={readDirParam => setReadDirParam(readDirParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
@@ -224,7 +306,7 @@ const App: () => React$Node = () => {
             <Button
               title="Get Info About Directory"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={readDirExample}
             />
             </View>
           </View>
@@ -237,6 +319,7 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "File Path"
+                onChangeText={statParam => setStatParam(statParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
@@ -244,7 +327,7 @@ const App: () => React$Node = () => {
             <Button
               title="Get Info About Directory"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={statExample}
             />
             </View>
           </View>

@@ -205,9 +205,6 @@ try
     auto properties = co_await localFolder.Properties().RetrievePropertiesAsync({L"System.FreeSpace", L"System.Capacity"});
 
     JSValueObject result;
-    //auto temp1 = properties.Lookup(L"System.FreeSpace");
-    //auto temp2 = properties.Lookup(L"System.Capacity");
-    //auto temp3 = unbox_value<uint64_t>(temp1);
     result["freeSpace"] = unbox_value<uint64_t>(properties.Lookup(L"System.FreeSpace"));
     result["totalSpace"] = unbox_value<uint64_t>(properties.Lookup(L"System.Capacity"));
     
@@ -293,9 +290,23 @@ try
 
     bool isFile = !fileName.empty();
 
-    FileProperties::IStorageItemContentProperties properties = (isFile)
+    //FileProperties::IStorageItemContentProperties things;
+    //if (isFile)
+    //{
+    //    things = (co_await folder.GetFileAsync(fileName)).Properties();
+    //}
+    //else
+    //{
+    //    things = folder.Properties();
+    //}
+    //
+    //things.RetrievePropertiesAsync({ L"System.DateCreated", L"System.DateModified", L"System.Size" });
+
+    FileProperties::IStorageItemContentProperties properties = isFile
         ? (co_await folder.GetFileAsync(fileName)).Properties()
         : folder.Properties();
+
+    //FileProperties::IStorageItemContentProperties temp = folder.Properties();
 
     auto propertyMap = co_await properties.RetrievePropertiesAsync({ L"System.DateCreated", L"System.DateModified", L"System.Size" });
 
@@ -304,12 +315,10 @@ try
     auto size = std::to_string(winrt::unbox_value<uint64_t>(propertyMap.Lookup(L"System.Size")));
 
     JSValueObject fileInfo;
-    fileInfo["path"] = resultPath;
     fileInfo["ctime"] = ctime;
     fileInfo["mtime"] = mtime;
     fileInfo["size"] = size;
-    fileInfo["isFile"] = isFile;
-    fileInfo["isFolder"] = !isFile;
+    fileInfo["type"] = isFile ? 0 : 1;
 
     promise.Resolve(fileInfo);
 }
@@ -338,8 +347,7 @@ try
         itemInfo["name"] = to_string(item.Name());
         itemInfo["path"] = to_string(item.Path());
         itemInfo["size"] = properties.Size();
-        itemInfo["isFile"] = item.IsOfType(StorageItemTypes::File) ? true : false;
-        itemInfo["isFolder"] = item.IsOfType(StorageItemTypes::Folder) ? true : false;
+        itemInfo["type"] = item.IsOfType(StorageItemTypes::Folder) ? 1 : 0;
 
         resultsArray.push_back(std::move(itemInfo));
     }
