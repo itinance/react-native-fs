@@ -283,41 +283,40 @@ try
     path.make_preferred();
 
     std::string resultPath = winrt::to_string(path.c_str());
-    auto directoryPath = path.has_parent_path() ? winrt::to_hstring(path.parent_path().c_str()) : L"";
-    auto fileName = path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"";
+    auto potentialPath = winrt::to_hstring(resultPath);
+    bool isFile = false;
+    uint64_t ctime;
+    uint64_t mtime;
+    uint64_t size;
 
-    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+    // Try to open as folder
+    try {
+        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(potentialPath);
+        auto properties = co_await folder.GetBasicPropertiesAsync();
+        ctime = folder.DateCreated().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
+        mtime = properties.DateModified().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
+        size = properties.Size();
+    }
+    catch (...) {
+        isFile = true;
+    }
 
-    bool isFile = !fileName.empty();
-
-    //FileProperties::IStorageItemContentProperties things;
-    //if (isFile)
-    //{
-    //    things = (co_await folder.GetFileAsync(fileName)).Properties();
-    //}
-    //else
-    //{
-    //    things = folder.Properties();
-    //}
-    //
-    //things.RetrievePropertiesAsync({ L"System.DateCreated", L"System.DateModified", L"System.Size" });
-
-    FileProperties::IStorageItemContentProperties properties = isFile
-        ? (co_await folder.GetFileAsync(fileName)).Properties()
-        : folder.Properties();
-
-    //FileProperties::IStorageItemContentProperties temp = folder.Properties();
-
-    auto propertyMap = co_await properties.RetrievePropertiesAsync({ L"System.DateCreated", L"System.DateModified", L"System.Size" });
-
-    auto ctime = winrt::unbox_value<DateTime>(propertyMap.Lookup(L"System.DateCreated")).time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
-    auto mtime = winrt::unbox_value<DateTime>(propertyMap.Lookup(L"System.DateModified")).time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
-    auto size = std::to_string(winrt::unbox_value<uint64_t>(propertyMap.Lookup(L"System.Size")));
+    // Try to open as file
+    if (isFile) {
+        auto directoryPath = path.has_parent_path() ? winrt::to_hstring(path.parent_path().c_str()) : L"";
+        auto fileName = path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"";
+        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
+        auto properties = (co_await folder.GetFileAsync(fileName)).Properties();
+        auto propertyMap = co_await properties.RetrievePropertiesAsync({ L"System.DateCreated", L"System.DateModified", L"System.Size" });
+        ctime = winrt::unbox_value<DateTime>(propertyMap.Lookup(L"System.DateCreated")).time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
+        mtime = winrt::unbox_value<DateTime>(propertyMap.Lookup(L"System.DateModified")).time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
+        size = winrt::unbox_value<uint64_t>(propertyMap.Lookup(L"System.Size"));
+    }
 
     JSValueObject fileInfo;
     fileInfo["ctime"] = ctime;
     fileInfo["mtime"] = mtime;
-    fileInfo["size"] = size;
+    fileInfo["size"] = std::to_string(size);
     fileInfo["type"] = isFile ? 0 : 1;
 
     promise.Resolve(fileInfo);
