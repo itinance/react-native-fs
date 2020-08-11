@@ -29,9 +29,8 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-const App: () => React$Node = () => {
 
-  const [selectedValue, setSelectedValue] = useState("md5");
+const App: () => React$Node = () => {
 
   const [mkdirParam, setMkdirParam] = useState('');
 
@@ -46,6 +45,29 @@ const App: () => React$Node = () => {
   const [readDirParam, setReadDirParam] = useState('');
 
   const [statParam, setStatParam] = useState('');
+
+  const [readFileParam, setReadFileParam] = useState('');
+
+  const [readParam, setReadParam] = useState('');
+  const [readLengthParam, setReadLengthParam] = useState('');
+  const [readPositionParam, setReadPositionParam] = useState('');
+
+  const [hashFileParam, setHashFileParam] = useState('');
+  const [selectedValue, setSelectedValue] = useState('md5');
+
+  const [writeFileParam, setWriteFileParam] = useState('');
+  const [writeFileContentValue, setWriteFileContentValue] = useState('');
+
+  const [appendFileParam, setAppendFileParam] = useState('');
+  const [appendContentValue, setAppendContentValue] = useState('');
+
+  const [writeParam, setWriteParam] = useState('');
+  const [writeContentValue, setWriteContentValue] = useState('');
+  const [writePositionValue, setWritePositionValue] = useState('');
+
+  const [touchFilePathParam, setTouchFilePathParam] = useState('');
+  const [touchMTime, setTouchMTime] = useState('');
+  const [touchCTime, setTouchCTime] = useState('');
 
   const mkdirExample = () => {
     if(mkdirParam.length > 0) {
@@ -148,6 +170,111 @@ const App: () => React$Node = () => {
           .catch((err) => {
             Alert.alert(err.message)
           })
+  }
+
+  const readFileExample = () => {
+    if(readFileParam.length > 0) {
+      RNFS.readFile(RNFS.DocumentDirectoryPath + '/' + readFileParam)
+            .then((result) => {
+              Alert.alert('File Contents:', result)
+            })
+            .catch((err) => {
+              Alert.alert(err.message)
+            })
+    }
+  }
+
+  const readExample = () => {
+    if(readParam.length > 0) {
+
+      var length = parseInt(readLengthParam, 10)
+      var position = parseInt(readPositionParam, 10)
+
+      if(length == NaN || position == NaN) {
+        Alert.alert('Length and Position must be integers')
+        return
+      }
+
+      RNFS.read(RNFS.DocumentDirectoryPath + '/' + readParam, length, position)
+            .then((result) => {
+              Alert.alert('File Contents:', result)
+            })
+            .catch((err) => {
+              Alert.alert(err.message)
+            })
+    }
+  }
+
+  const hashFileExample = () => {
+    if(hashFileParam.length > 0) {
+      RNFS.hash(RNFS.DocumentDirectoryPath + '/' + hashFileParam, selectedValue)
+            .then((result) => {
+              Alert.alert('Hashed File Contents:', result)
+            })
+            .catch((err) => {
+              Alert.alert(err.message)
+            })
+    }
+  }
+  
+  const writeFileExample = () => {
+
+    if(writeFileParam.length > 0 && writeFileContentValue.length > 0) {
+      RNFS.writeFile(RNFS.DocumentDirectoryPath + '/' + writeFileParam, writeFileContentValue)
+            .then((result) => {
+              Alert.alert('Successfully Wrote to File')
+            })
+            .catch((err) => {
+              Alert.alert(err.message)
+            })
+    }
+  }
+
+  const appendFileExample = () => {
+
+    if(appendFileParam.length > 0 && appendContentValue.length > 0) {
+      RNFS.appendFile(RNFS.DocumentDirectoryPath + '/' + appendFileParam, appendContentValue)
+            .then((result) => {
+              Alert.alert('Successfully Appended to File')
+            })
+            .catch((err) => {
+              Alert.alert(err.message)
+            })
+    }
+  }
+
+  const writeExample = () => {
+
+    if(writeParam.length > 0 && writeContentValue.length > 0) {
+
+      var position = parseInt(writePositionValue, 10)
+
+      if(position == NaN) {
+        Alert.alert('Length and Position must be integers')
+        return
+      }
+
+      RNFS.write(RNFS.DocumentDirectoryPath + '/' + writeParam, writeContentValue, position)
+            .then((result) => {
+              Alert.alert('Successfully Wrote to File ')
+            })
+            .catch((err) => {
+              Alert.alert(err.message)
+            })
+    }
+  }
+
+  const touchFileExample = () => {
+    if(touchFilePathParam.length > 0 && touchMTime.length > 0 && touchCTime.length > 0) {
+      
+      RNFS.touch(RNFS.DocumentDirectoryPath + '/' + touchFilePathParam, new Date(touchMTime), new Date(touchCTime))
+            .then((result) => {
+              Alert.alert('Successfully Appended to File', result)
+            })
+            .catch((err) => {
+              Alert.alert(err.message)
+            })
+    }
   }
 
   return (
@@ -340,6 +467,7 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "File Path"
+                onChangeText={readFileParam => setReadFileParam(readFileParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
@@ -347,7 +475,7 @@ const App: () => React$Node = () => {
             <Button
               title="Read File"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={readFileExample}
             />
             </View>
           </View>
@@ -360,16 +488,19 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "File Path"
+                onChangeText={readParam => setReadParam(readParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
-                placeholder = "Length"
+                placeholder = "Length (Please Enter Integer)"
+                onChangeText={readLengthParam => setReadLengthParam(readLengthParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
-                placeholder = "Position"
+                placeholder = 'Position (Please Enter Integer)'
+                onChangeText={readPositionParam => setReadPositionParam(readPositionParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
@@ -377,7 +508,7 @@ const App: () => React$Node = () => {
             <Button
               title="Read File Excerpt From Position"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={readExample}
             />
             </View>
           </View>
@@ -390,11 +521,13 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "File Path"
+                onChangeText={hashFileParam => setHashFileParam(hashFileParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <Picker
                 selectedValue={selectedValue}
+                onChangeText={readPositionParam => setReadPositionParam(readPositionParam)}
                 style={{ height: 50, width: 150 }}
                 onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
               >
@@ -412,7 +545,7 @@ const App: () => React$Node = () => {
             <Button
               title="Hash File Contents"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={hashFileExample}
             />
             </View>
           </View>
@@ -425,11 +558,13 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "File Path"
+                onChangeText={writeFileParam => setWriteFileParam(writeFileParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
                 placeholder = "Content"
+                onChangeText={writeFileContentValue => setWriteFileContentValue(writeFileContentValue)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
@@ -437,7 +572,7 @@ const App: () => React$Node = () => {
             <Button
               title="Write Content to File"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={writeFileExample}
             />
             </View>
           </View>
@@ -450,11 +585,13 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "File Path"
+                onChangeText={appendFileParam => setAppendFileParam(appendFileParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
                 placeholder = "Content"
+                onChangeText={appendContentValue => setAppendContentValue(appendContentValue)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
@@ -462,7 +599,7 @@ const App: () => React$Node = () => {
             <Button
               title="Append Content to File"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={appendFileExample}
             />
             </View>
           </View>
@@ -475,16 +612,19 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "File Path"
+                onChangeText={writeParam => setWriteParam(writeParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
                 placeholder = "Content"
+                onChangeText={writeContentValue => setWriteContentValue(writeContentValue)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
                 placeholder = "Position"
+                onChangeText={writePositionValue => setWritePositionValue(writePositionValue)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
@@ -492,7 +632,7 @@ const App: () => React$Node = () => {
             <Button
               title="Write Content to File at Position"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={writeExample}
             />
             </View>
           </View>
@@ -505,16 +645,19 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "File Path"
+                onChangeText={touchFilePathParam => setTouchFilePathParam(touchFilePathParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
                 placeholder = "Modified UNIX Time"
+                onChangeText={touchMTime => setTouchMTime(touchMTime)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
                 placeholder = "Created UNIX Time"
+                onChangeText={touchCTime => setTouchCTime(touchCTime)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
@@ -522,7 +665,7 @@ const App: () => React$Node = () => {
             <Button
               title="Touch File with New Times"
               color="#9a73ef"
-              onPress={() => Alert.alert('Button with adjusted color pressed')}
+              onPress={touchFileExample}
             />
             </View>
           </View>

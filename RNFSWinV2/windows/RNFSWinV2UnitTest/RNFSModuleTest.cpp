@@ -392,7 +392,7 @@ namespace ReactNativeTests {
         /*
             stat() tests
         */
-        TEST_METHOD(TestMethodCall_statSuccessful) {
+        TEST_METHOD(TestMethodCall_statSuccessful1) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"stat",
                 std::function<void()>([]() noexcept { TestCheck(true); }),
@@ -402,7 +402,17 @@ namespace ReactNativeTests {
             TestCheck(m_builderMock.IsResolveCallbackCalled());
         }
 
-        TEST_METHOD(TestMethodCall_statUnsuccessful) {
+        TEST_METHOD(TestMethodCall_statSuccessful2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"stat",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to retrieve file info."); }),
+                testLocation + "toMove.rtf/"));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_statUnsuccessful1) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"stat",
                 std::function<void()>([]() noexcept { TestCheck(true); }),

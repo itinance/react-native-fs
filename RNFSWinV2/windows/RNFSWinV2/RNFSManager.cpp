@@ -282,32 +282,38 @@ try
     std::filesystem::path path(filepath);
     path.make_preferred();
 
-    std::string resultPath = winrt::to_string(path.c_str());
-    auto potentialPath = winrt::to_hstring(resultPath);
-    bool isFile = false;
-    uint64_t ctime;
-    uint64_t mtime;
-    uint64_t size;
+    std::string resultPath{ winrt::to_string(path.c_str()) };
+    auto potentialPath{ winrt::to_hstring(resultPath) };
+    bool isFile{ false };
+    uint64_t ctime{ 0 };
+    uint64_t mtime{ 0 };
+    uint64_t size{ 0 };
 
     // Try to open as folder
     try {
-        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(potentialPath);
-        auto properties = co_await folder.GetBasicPropertiesAsync();
+        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(potentialPath) };
+        auto properties{ co_await folder.GetBasicPropertiesAsync() };
         ctime = folder.DateCreated().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
         mtime = properties.DateModified().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
         size = properties.Size();
     }
     catch (...) {
         isFile = true;
+        auto lastCharIndex = filepath.length() - 1;
+        if (resultPath[lastCharIndex] == '\\')
+        {
+            path = std::filesystem::path(resultPath.substr(0, lastCharIndex));
+        }
     }
 
     // Try to open as file
     if (isFile) {
-        auto directoryPath = path.has_parent_path() ? winrt::to_hstring(path.parent_path().c_str()) : L"";
-        auto fileName = path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"";
-        StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-        auto properties = (co_await folder.GetFileAsync(fileName)).Properties();
-        auto propertyMap = co_await properties.RetrievePropertiesAsync({ L"System.DateCreated", L"System.DateModified", L"System.Size" });
+        auto directoryPath{ path.has_parent_path() ? winrt::to_hstring(path.parent_path().c_str()) : L"" };
+        auto fileName{ path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"" };
+
+        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+        auto properties{ (co_await folder.GetFileAsync(fileName)).Properties() };
+        auto propertyMap{ co_await properties.RetrievePropertiesAsync({ L"System.DateCreated", L"System.DateModified", L"System.Size" }) };
         ctime = winrt::unbox_value<DateTime>(propertyMap.Lookup(L"System.DateCreated")).time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
         mtime = winrt::unbox_value<DateTime>(propertyMap.Lookup(L"System.DateModified")).time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
         size = winrt::unbox_value<uint64_t>(propertyMap.Lookup(L"System.Size"));
@@ -420,9 +426,13 @@ catch (...)
     promise.Reject("Failed to get checksum from file.");
 }
 
+// TODO: Check if the string is actually ever encoded in the first place.
 winrt::fire_and_forget RNFSManager::writeFile(std::string filePath, std::string base64Content, JSValueObject options, ReactPromise<void> promise) noexcept
 try
 {
+    std::string temp1 = filePath;
+    std::string temp2 = base64Content;
+
     winrt::hstring base64ContentStr = winrt::to_hstring(base64Content);
     Streams::IBuffer buffer = CryptographicBuffer::DecodeFromBase64String(base64ContentStr);
 
@@ -558,6 +568,7 @@ void RNFSManager::uploadFiles(
     RN::ReactPromise<RN::JSValueObject> promise) noexcept {
 }
 
+// TODO: Modify FS.Common.js to detect Windows (or at least if the platform isn't Android to modify the creation time)
 void RNFSManager::touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<void> promise) noexcept
 try
 {
@@ -576,19 +587,19 @@ try
         return;
     }
 
-    int64_t mtime_64 = static_cast<int64_t>(mtime * 10000000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000;
-    int64_t ctime_64 = static_cast<int64_t>(ctime * 10000000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000;
+    int64_t mtime_64 = static_cast<int64_t>(mtime * 10000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000;
+    //int64_t ctime_64 = static_cast<int64_t>(ctime * 10000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000;
 
     FILETIME cFileTime, mFileTime;
-    cFileTime.dwLowDateTime = static_cast<DWORD>(ctime_64);
-    ctime_64 >>= 32;
-    cFileTime.dwHighDateTime = static_cast<DWORD>(ctime_64);
+    //cFileTime.dwLowDateTime = static_cast<DWORD>(ctime_64);
+    //ctime_64 >>= 32;
+    //cFileTime.dwHighDateTime = static_cast<DWORD>(ctime_64);
 
     mFileTime.dwLowDateTime = static_cast<DWORD>(mtime_64);
     mtime_64 >>= 32;
     mFileTime.dwHighDateTime = static_cast<DWORD>(mtime_64);
 
-    if (SetFileTime(handle.get(), &cFileTime, &mFileTime, nullptr) == 0)
+    if (SetFileTime(handle.get(), nullptr/*&cFileTime*/, nullptr, &mFileTime) == 0)
     {
         promise.Reject("Failed to set new creation time and modified time of file.");
     }
