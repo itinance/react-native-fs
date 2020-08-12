@@ -146,7 +146,7 @@ struct RNFSManager
     void uploadFiles(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
     REACT_METHOD(touch); // Implemented
-    void touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<void> promise) noexcept;
+    void touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<std::string> promise) noexcept;
 
 private:
     void splitPath(const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept;

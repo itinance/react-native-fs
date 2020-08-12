@@ -16,6 +16,7 @@ var RNFS_NativeEventEmitter = new NativeEventEmitter(RNFSManager);
 var base64 = require('base-64');
 var utf8 = require('utf8');
 var isIOS = require('react-native').Platform.OS === 'ios';
+var isAndroid = require('react-native').Platform.OS === 'android'; // To accomodate Windows
 
 var RNFSFileTypeRegular = RNFSManager.RNFSFileTypeRegular;
 var RNFSFileTypeDirectory = RNFSManager.RNFSFileTypeDirectory;
@@ -602,7 +603,7 @@ var RNFS = {
     if (ctime && !(ctime instanceof Date)) throw new Error('touch: Invalid value for argument `ctime`');
     if (mtime && !(mtime instanceof Date)) throw new Error('touch: Invalid value for argument `mtime`');
     var ctimeTime = 0;
-    if (isIOS) {
+    if (isIOS && !isAndroid) { // Modified to accomodate Windows
       ctimeTime = ctime && ctime.getTime();
     }
     return RNFSManager.touch(

@@ -165,6 +165,29 @@ namespace ReactNativeTests {
         /*
             write() tests
         */
+        TEST_METHOD(TestMethodCall_appendSuccessful) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"appendFile",
+                std::function<void(React::JSValueObject&)>([](React::JSValueObject&) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to append to file."); }),
+                testLocation + "toWriteTo.txt", "YWFh"));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_appendUnsuccessful) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"appendFile",
+                std::function<void(React::JSValueObject&)>([](React::JSValueObject&) noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to append to file."); }),
+                testLocation + "Nonexistant", "YmJiCg=="));
+            TestCheck(m_builderMock.IsRejectCallbackCalled());
+        }
+
+        /*
+            appendFile() tests
+        */
         TEST_METHOD(TestMethodCall_writeToBeginning) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"write",
@@ -347,17 +370,7 @@ namespace ReactNativeTests {
             TestCheck(m_builderMock.IsResolveCallbackCalled());
         }
 
-        TEST_METHOD(TestMethodCall_touchUnsuccessful1) {
-            Mso::FutureWait(m_builderMock.Call2(
-                L"touch",
-                std::function<void()>([]() noexcept { TestCheck(true); }),
-                std::function<void(React::JSValue const&)>(
-                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to set new creation time and modified time of file."); }),
-                testLocation + "TestWrite.txt", -11707632000, -11707632000));
-            TestCheck(m_builderMock.IsRejectCallbackCalled());
-        }
-
-        TEST_METHOD(TestMethodCall_touchUnsuccessful2) {
+        TEST_METHOD(TestMethodCall_touchUnsuccessfulSetTime) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"touch",
                 std::function<void()>([]() noexcept { TestCheck(true); }),
@@ -367,7 +380,7 @@ namespace ReactNativeTests {
             TestCheck(m_builderMock.IsRejectCallbackCalled());
         }
 
-        TEST_METHOD(TestMethodCall_touchSuccessful3) {
+        TEST_METHOD(TestMethodCall_touchSuccessfulMakeHandle) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"touch",
                 std::function<void()>([]() noexcept { TestCheck(true); }),
@@ -432,6 +445,7 @@ namespace ReactNativeTests {
                 std::function<void(React::JSValue const&)>(
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to get checksum from file."); }),
                 testLocation + "toHash.txt", "md5"));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
             TestCheck(m_builderMock.IsResolveCallbackCalled());
         }
 
@@ -528,14 +542,5 @@ namespace ReactNativeTests {
             TestCheck(m_builderMock.IsRejectCallbackCalled());
         }
 
-        //TEST_METHOD(TestMethodCall_NegateAsyncPromiseError) {
-        //    Mso::FutureWait(m_builderMock.Call2(
-        //        L"NegateAsyncPromise",
-        //        std::function<void(int)>([](int result) noexcept { TestCheck(result == -5); }),
-        //        std::function<void(React::JSValue const&)>(
-        //            [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Already negative"); }),
-        //        -5));
-        //    TestCheck(m_builderMock.IsRejectCallbackCalled());
-        //}
     };
 }

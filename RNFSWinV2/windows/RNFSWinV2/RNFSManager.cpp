@@ -117,7 +117,6 @@ void RNFSManager::Initialize(ReactContext const& reactContext) noexcept
 
 void RNFSManager::ConstantsViaConstantsProvider(ReactConstantProvider& constants) noexcept
 {
-    // TODO: add back
     constants.Add(L"RNFSMainBundlePath", to_string(Package::Current().InstalledLocation().Path()));
     constants.Add(L"RNFSCachesDirectoryPath", to_string(ApplicationData::Current().LocalCacheFolder().Path()));
 
@@ -161,9 +160,9 @@ try
     std::filesystem::path dest(destPath);
     dest.make_preferred();
 
-    StorageFolder srcFolder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-    StorageFolder destFolder = co_await StorageFolder::GetFolderFromPathAsync(dest.c_str());
-    StorageFile file = co_await srcFolder.GetFileAsync(fileName);
+    StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+    StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(dest.c_str()) };
+    StorageFile file{ co_await srcFolder.GetFileAsync(fileName) };
 
     co_await file.MoveAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
 
@@ -184,9 +183,9 @@ try
     std::filesystem::path dest(destPath);
     dest.make_preferred();
 
-    StorageFolder srcFolder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-    StorageFolder destFolder = co_await StorageFolder::GetFolderFromPathAsync(dest.c_str());
-    StorageFile file = co_await srcFolder.GetFileAsync(fileName);
+    StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+    StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(dest.c_str()) };
+    StorageFile file{ co_await srcFolder.GetFileAsync(fileName) };
 
     co_await file.CopyAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
 
@@ -202,7 +201,7 @@ winrt::fire_and_forget RNFSManager::getFSInfo(RN::ReactPromise<RN::JSValueObject
 try
 {
     auto localFolder{ Windows::Storage::ApplicationData::Current().LocalFolder() };
-    auto properties = co_await localFolder.Properties().RetrievePropertiesAsync({L"System.FreeSpace", L"System.Capacity"});
+    auto properties{ co_await localFolder.Properties().RetrievePropertiesAsync({L"System.FreeSpace", L"System.Capacity"}) };
 
     JSValueObject result;
     result["freeSpace"] = unbox_value<uint64_t>(properties.Lookup(L"System.FreeSpace"));
@@ -215,15 +214,15 @@ catch (...)
     promise.Reject("Failed to retrieve file system info.");
 }
 
-winrt::fire_and_forget RNFSManager::unlink(std::string filePath, ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::unlink(std::string filepath, ReactPromise<void> promise) noexcept
 try
 {
     winrt::hstring directoryPath, fileName;
-    splitPath(filePath, directoryPath, fileName);
+    splitPath(filepath, directoryPath, fileName);
 
     StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
 
-    auto target = co_await folder.GetItemAsync(fileName);
+    auto target{ co_await folder.GetItemAsync(fileName) };
     co_await target.DeleteAsync();
 
     promise.Resolve();
@@ -234,10 +233,10 @@ catch (...)
 }
 
 
-void RNFSManager::exists(std::string fullpath, ReactPromise<bool> promise) noexcept
+void RNFSManager::exists(std::string filepath, ReactPromise<bool> promise) noexcept
 try
 {
-    std::filesystem::path path(fullpath);
+    std::filesystem::path path(filepath);
     promise.Resolve(std::filesystem::exists(path));
 }
 catch (...)
@@ -246,28 +245,28 @@ catch (...)
 }
 
 // TODO: Downloader
-void RNFSManager::stopDownload(int32_t jobId) noexcept
+void RNFSManager::stopDownload(int32_t jobID) noexcept
 {
-    m_tasks.Cancel(jobId);
+    m_tasks.Cancel(jobID);
 }
 
 // TODO: Downloader
 void RNFSManager::stopUpload(int32_t jobID) noexcept
 {
-
+    m_tasks.Cancel(jobID);
 }
 
-winrt::fire_and_forget RNFSManager::readFile(std::string filePath, ReactPromise<std::string> promise) noexcept
+winrt::fire_and_forget RNFSManager::readFile(std::string filepath, ReactPromise<std::string> promise) noexcept
 try
 {
     winrt::hstring directoryPath, fileName;
-    splitPath(filePath, directoryPath, fileName);
+    splitPath(filepath, directoryPath, fileName);
 
-    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-    StorageFile file = co_await folder.GetFileAsync(fileName);
+    StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+    StorageFile file{ co_await folder.GetFileAsync(fileName) };
 
-    Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
-    winrt::hstring base64Content = CryptographicBuffer::EncodeToBase64String(buffer);
+    Streams::IBuffer buffer{ co_await FileIO::ReadBufferAsync(file) };
+    winrt::hstring base64Content{ CryptographicBuffer::EncodeToBase64String(buffer) };
 
     promise.Resolve(winrt::to_string(base64Content));
 }
@@ -299,7 +298,7 @@ try
     }
     catch (...) {
         isFile = true;
-        auto lastCharIndex = filepath.length() - 1;
+        auto lastCharIndex{ filepath.length() - 1 };
         if (resultPath[lastCharIndex] == '\\')
         {
             path = std::filesystem::path(resultPath.substr(0, lastCharIndex));
@@ -341,10 +340,10 @@ try
 
     JSValueArray resultsArray;
 
-    auto items = co_await targetDirectory.GetItemsAsync();
+    auto items{ co_await targetDirectory.GetItemsAsync() };
     for (auto item : items)
     {
-        auto properties = co_await item.GetBasicPropertiesAsync();
+        auto properties{ co_await item.GetBasicPropertiesAsync() };
 
         JSValueObject itemInfo;
         itemInfo["ctime"] = targetDirectory.DateCreated().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
@@ -365,22 +364,22 @@ catch (...)
 }
 
 
-winrt::fire_and_forget RNFSManager::read(std::string filePath, int length, int position, RN::ReactPromise<std::string> promise) noexcept
+winrt::fire_and_forget RNFSManager::read(std::string filepath, int length, int position, RN::ReactPromise<std::string> promise) noexcept
 try
 {
     winrt::hstring directoryPath, fileName;
-    splitPath(filePath, directoryPath, fileName);
+    splitPath(filepath, directoryPath, fileName);
 
-    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-    StorageFile file = co_await folder.GetFileAsync(fileName);
+    StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+    StorageFile file{ co_await folder.GetFileAsync(fileName) };
 
-    Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
+    Streams::IBuffer buffer{ co_await FileIO::ReadBufferAsync(file) };
 
-    Streams::IRandomAccessStream stream = co_await file.OpenReadAsync();
+    Streams::IRandomAccessStream stream{ co_await file.OpenReadAsync() };
     stream.Seek(position);
 
     stream.ReadAsync(buffer, length, Streams::InputStreamOptions::None);
-    std::string result = winrt::to_string(CryptographicBuffer::EncodeToBase64String(buffer));
+    std::string result{ winrt::to_string(CryptographicBuffer::EncodeToBase64String(buffer)) };
 
     promise.Resolve(result);
 }
@@ -389,11 +388,12 @@ catch (...)
     promise.Reject("Failed to read from file.");
 }
 
-// Note: SHA224 is not part of winrt  
+ 
 winrt::fire_and_forget RNFSManager::hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept
 try
 {
     auto temp = algorithm;
+    // Note: SHA224 is not part of winrt 
     if (algorithm.compare("sha224") == 0)
     {
         promise.Reject("WinRT does not offer sha224 encryption.");
@@ -403,21 +403,21 @@ try
     winrt::hstring directoryPath, fileName;
     splitPath(filepath, directoryPath, fileName);
 
-    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-    StorageFile file = co_await folder.GetFileAsync(fileName);
+    StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+    StorageFile file{ co_await folder.GetFileAsync(fileName) };
 
-    auto search = availableHashes.find(algorithm);
+    auto search{ availableHashes.find(algorithm) };
     if (search == availableHashes.end())
     {
         promise.Reject("Failed to find hash algorithm.");
         co_return;
     }
 
-    HashAlgorithmProvider provider = search->second();
-    Streams::IBuffer buffer = co_await FileIO::ReadBufferAsync(file);
+    HashAlgorithmProvider provider{ search->second() };
+    Streams::IBuffer buffer{ co_await FileIO::ReadBufferAsync(file) };
 
-    auto hashedBuffer = provider.HashData(buffer);
-    auto result = winrt::to_string(CryptographicBuffer::EncodeToHexString(hashedBuffer));
+    auto hashedBuffer{ provider.HashData(buffer) };
+    auto result{ winrt::to_string(CryptographicBuffer::EncodeToHexString(hashedBuffer)) };
 
     promise.Resolve(result);
 }
@@ -426,23 +426,20 @@ catch (...)
     promise.Reject("Failed to get checksum from file.");
 }
 
-// TODO: Check if the string is actually ever encoded in the first place.
-winrt::fire_and_forget RNFSManager::writeFile(std::string filePath, std::string base64Content, JSValueObject options, ReactPromise<void> promise) noexcept
+
+winrt::fire_and_forget RNFSManager::writeFile(std::string filepath, std::string base64Content, JSValueObject options, ReactPromise<void> promise) noexcept
 try
 {
-    std::string temp1 = filePath;
-    std::string temp2 = base64Content;
-
-    winrt::hstring base64ContentStr = winrt::to_hstring(base64Content);
-    Streams::IBuffer buffer = CryptographicBuffer::DecodeFromBase64String(base64ContentStr);
+    winrt::hstring base64ContentStr{ winrt::to_hstring(base64Content) };
+    Streams::IBuffer buffer{ CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
 
     winrt::hstring directoryPath, fileName;
-    splitPath(filePath, directoryPath, fileName);
+    splitPath(filepath, directoryPath, fileName);
 
-    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-    StorageFile file = co_await folder.CreateFileAsync(fileName, CreationCollisionOption::ReplaceExisting);
+    StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+    StorageFile file{ co_await folder.CreateFileAsync(fileName, CreationCollisionOption::ReplaceExisting) };
 
-    Streams::IRandomAccessStream stream = co_await file.OpenAsync(FileAccessMode::ReadWrite);
+    Streams::IRandomAccessStream stream{ co_await file.OpenAsync(FileAccessMode::ReadWrite) };
     co_await stream.WriteAsync(buffer);
 
     promise.Resolve();
@@ -452,19 +449,19 @@ catch (...)
     promise.Reject("Failed to write to file.");
 }
 
-// TODO: Implement
+
 winrt::fire_and_forget RNFSManager::appendFile(std::string filepath, std::string base64Content, RN::ReactPromise<void> promise) noexcept
 try
 {
     winrt::hstring directoryPath, fileName;
     splitPath(filepath, directoryPath, fileName);
 
-    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-    StorageFile file = co_await folder.GetFileAsync(fileName);
+    StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+    StorageFile file{ co_await folder.GetFileAsync(fileName) };
 
-    winrt::hstring base64ContentStr = winrt::to_hstring(base64Content);
-    Streams::IBuffer buffer = CryptographicBuffer::DecodeFromBase64String(base64ContentStr);
-    Streams::IRandomAccessStream stream = co_await file.OpenAsync(FileAccessMode::ReadWrite);
+    winrt::hstring base64ContentStr{ winrt::to_hstring(base64Content) };
+    Streams::IBuffer buffer{ CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
+    Streams::IRandomAccessStream stream{ co_await file.OpenAsync(FileAccessMode::ReadWrite) };
 
     stream.Seek(UINT64_MAX); // Writes to end of file
     co_await stream.WriteAsync(buffer);
@@ -473,20 +470,20 @@ try
 }
 catch (...) 
 {
-    promise.Reject("Failed to append to file");
+    promise.Reject("Failed to append to file.");
 }
 
-winrt::fire_and_forget RNFSManager::write(std::string filePath, std::string base64Content, int position, ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::write(std::string filepath, std::string base64Content, int position, ReactPromise<void> promise) noexcept
 try {
     winrt::hstring directoryPath, fileName;
-    splitPath(filePath, directoryPath, fileName);
+    splitPath(filepath, directoryPath, fileName);
 
-    StorageFolder folder = co_await StorageFolder::GetFolderFromPathAsync(directoryPath);
-    StorageFile file = co_await folder.GetFileAsync(fileName);
+    StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+    StorageFile file{ co_await folder.GetFileAsync(fileName) };
 
-    winrt::hstring base64ContentStr = winrt::to_hstring(base64Content);
-    Streams::IBuffer buffer = CryptographicBuffer::DecodeFromBase64String(base64ContentStr);
-    Streams::IRandomAccessStream stream = co_await file.OpenAsync(FileAccessMode::ReadWrite);
+    winrt::hstring base64ContentStr{ winrt::to_hstring(base64Content) };
+    Streams::IBuffer buffer{ CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
+    Streams::IRandomAccessStream stream{ co_await file.OpenAsync(FileAccessMode::ReadWrite) };
 
     if (position < 0) {
         stream.Seek(UINT64_MAX); // Writes to end of file
@@ -516,38 +513,38 @@ try
         promise.Reject("Failed to determine filename in path");
         co_return;
     }
-    auto filepath = winrt::to_hstring(path.c_str());
+    auto filepath{ winrt::to_hstring(path.c_str()) };
 
     //URL
-    std::string fromURLString = options["fromURL"].AsString();
+    std::string fromURLString{ options["fromURL"].AsString() };
     std::wstring URLForURI(fromURLString.begin(), fromURLString.end());
     Uri uri{ URLForURI };
 
     // These might be null though
 
     //JobID
-    auto jobId = options["jobId"].AsInt32();
+    auto jobId{ options["jobId"].AsInt32() };
 
     //Headers
-    auto const& headers = options["headers"].AsObject();
+    auto const& headers{ options["headers"].AsObject() };
 
     //Progress Interval
-    auto progressInterval = options["progressInterval"].AsInt64();
+    auto progressInterval{ options["progressInterval"].AsInt64() };
 
     //Progress Divider
-    auto progressDivider = options["progressDivider"].AsInt64();
+    auto progressDivider{ options["progressDivider"].AsInt64() };
     
     //readTimeout
-    auto readTimeout = options["readTimeout"].AsInt64();
+    auto readTimeout{ options["readTimeout"].AsInt64() };
 
     //connectionTimeout
-    auto connectionTimeout = options["connectionTimeout"].AsInt64();
+    auto connectionTimeout{ options["connectionTimeout"].AsInt64() };
 
     //hasBeginCallback
-    auto hasBeginCallback = options["hasBeginCallback"].AsBoolean();
+    auto hasBeginCallback{ options["hasBeginCallback"].AsBoolean() };
 
     //hasBeginCallback
-    auto hasProgressCallback = options["hasProgressCallback"].AsBoolean();
+    auto hasProgressCallback{ options["hasProgressCallback"].AsBoolean() };
 
     winrt::Windows::Web::Http::HttpRequestMessage request(winrt::Windows::Web::Http::HttpMethod::Get(), uri);
     for (const auto& header : headers)
@@ -569,16 +566,16 @@ void RNFSManager::uploadFiles(
 }
 
 // TODO: Modify FS.Common.js to detect Windows (or at least if the platform isn't Android to modify the creation time)
-void RNFSManager::touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<void> promise) noexcept
+void RNFSManager::touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<std::string> promise) noexcept
 try
 {
     std::filesystem::path path(filepath);
     path.make_preferred();
-    auto s_path = path.c_str();
-    LPCWSTR actual_path = s_path;
-    DWORD accessMode = GENERIC_READ | GENERIC_WRITE;
-    DWORD shareMode = FILE_SHARE_WRITE;
-    DWORD creationMode = OPEN_EXISTING;
+    auto s_path{ path.c_str() };
+    LPCWSTR actual_path{ s_path };
+    DWORD accessMode{ GENERIC_READ | GENERIC_WRITE };
+    DWORD shareMode{ FILE_SHARE_WRITE };
+    DWORD creationMode{ OPEN_EXISTING };
 
     std::unique_ptr<void, handle_closer> handle(safe_handle(CreateFile2(actual_path, accessMode, shareMode, creationMode, nullptr)));
     if (!handle)
@@ -587,25 +584,25 @@ try
         return;
     }
 
-    int64_t mtime_64 = static_cast<int64_t>(mtime * 10000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000;
-    //int64_t ctime_64 = static_cast<int64_t>(ctime * 10000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000;
+    int64_t mtime_64{ static_cast<int64_t>(mtime * 10000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000 };
+    int64_t ctime_64{ static_cast<int64_t>(ctime * 10000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000 };
 
     FILETIME cFileTime, mFileTime;
-    //cFileTime.dwLowDateTime = static_cast<DWORD>(ctime_64);
-    //ctime_64 >>= 32;
-    //cFileTime.dwHighDateTime = static_cast<DWORD>(ctime_64);
+    cFileTime.dwLowDateTime = static_cast<DWORD>(ctime_64);
+    ctime_64 >>= 32;
+    cFileTime.dwHighDateTime = static_cast<DWORD>(ctime_64);
 
     mFileTime.dwLowDateTime = static_cast<DWORD>(mtime_64);
     mtime_64 >>= 32;
     mFileTime.dwHighDateTime = static_cast<DWORD>(mtime_64);
 
-    if (SetFileTime(handle.get(), nullptr/*&cFileTime*/, nullptr, &mFileTime) == 0)
+    if (SetFileTime(handle.get(), &cFileTime, nullptr, &mFileTime) == 0)
     {
         promise.Reject("Failed to set new creation time and modified time of file.");
     }
     else
     {
-        promise.Resolve();
+        promise.Resolve(winrt::to_string(s_path));
     }
 }
 catch (...)
