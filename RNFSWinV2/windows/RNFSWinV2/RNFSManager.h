@@ -44,7 +44,7 @@ struct TaskCancellationManager
     TaskCancellationManager(TaskCancellationManager const&) = delete;
     TaskCancellationManager& operator=(TaskCancellationManager const&) = delete;
 
-    void Add(JobId jobId, winrt::Windows::Foundation::IAsyncInfo const& async) noexcept;
+    winrt::Windows::Foundation::IAsyncAction Add(JobId jobId, winrt::Windows::Foundation::IAsyncAction const& asyncAction) noexcept;
     void Cancel(JobId jobId) noexcept;
 
 private:
@@ -148,13 +148,15 @@ struct RNFSManager
     REACT_METHOD(touch); // Implemented
     void touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<std::string> promise) noexcept;
 
-private:
-    void splitPath(const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept;
+    REACT_EVENT(TimedEvent, L"TimedEventCpp");
+    std::function<void(int)> TimedEvent;
 
 private:
-    TaskCancellationManager m_tasks;
-    
-    const int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
+    void splitPath(const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept;
+    winrt::Windows::Foundation::IAsyncAction ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
+        winrt::Windows::Web::Http::HttpRequestMessage request, std::wstring_view filePath, int jobId, int progressIncrement, bool hasBeginCallback, bool hasProgressCallback);
+
+    constexpr static int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
 
     const std::map<std::string, std::function<HashAlgorithmProvider()>> availableHashes{
         {"md5", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Md5()); } },
@@ -164,10 +166,7 @@ private:
         {"sha512", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha512()); } }
     };
 
-    winrt::Windows::Web::Http::HttpClient _httpClient;
-
-    ReactContext _reactContext;
-
-    REACT_EVENT(TimedEvent, L"TimedEventCpp");
-    std::function<void(int)> TimedEvent;
+    ReactContext m_reactContext;
+    winrt::Windows::Web::Http::HttpClient m_httpClient;
+    TaskCancellationManager m_tasks;
 };

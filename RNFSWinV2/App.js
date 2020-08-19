@@ -17,8 +17,9 @@ import {
   TextInput,
   Button,
   Alert,
-  Picker
+  Picker,
 } from 'react-native';
+
 
 import RNFS from 'react-native-fs';
 //import {Picker} from '@react-native-community/picker';
@@ -68,6 +69,8 @@ const App: () => React$Node = () => {
   const [touchFilePathParam, setTouchFilePathParam] = useState('');
   const [touchMTime, setTouchMTime] = useState('');
   const [touchCTime, setTouchCTime] = useState('');
+
+  const [downloadFilePathParam, setDownloadFilePathParam] = useState('');
 
   const mkdirExample = () => {
     if(mkdirParam.length > 0) {
@@ -275,6 +278,19 @@ const App: () => React$Node = () => {
               Alert.alert(err.message)
             })
     }
+  }
+
+  const downloadFileExample = () => {
+    RNFS.downloadFile({
+      fromUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Ronnie_O%E2%80%99Sullivan_at_Snooker_German_Masters_%28DerHexer%29_2015-02-06_07.jpg',
+      toFile: RNFS.DocumentDirectoryPath + '/' + downloadFilePathParam +'/working_example2.jpg',
+      begin: () => {console.log('It has begun!');},
+    }).promise.then((r) => {
+      Alert.alert('Successfully Downloaded File', r.jobId + ' ' + r.statusCode + ' ' + r.bytesWritten)
+    })
+    .catch((err) => {
+      Alert.alert(err.message)
+    });
   }
 
   return (
@@ -678,13 +694,15 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "Destination Path"
+                onChangeText={touchCTime => setTouchCTime(touchCTime)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               </View>
             <Button
-              title="Download File to Destination [Currently Unavailable]"
-              color="#999999"
+              title="Download File to Destination"
+              onPress={downloadFileExample}
+              color="#9a73ef"
             />
             </View>
           </View>
