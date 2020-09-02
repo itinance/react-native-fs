@@ -71,6 +71,8 @@ const App: () => React$Node = () => {
   const [touchCTime, setTouchCTime] = useState('');
 
   const [downloadFilePathParam, setDownloadFilePathParam] = useState('');
+  const [downloadFileSource, setDownloadFileSource] = useState('');
+  const [downloadFileName, setDownloadFileName] = useState('');
 
   const mkdirExample = () => {
     if(mkdirParam.length > 0) {
@@ -282,9 +284,10 @@ const App: () => React$Node = () => {
 
   const downloadFileExample = () => {
     RNFS.downloadFile({
-      fromUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Ronnie_O%E2%80%99Sullivan_at_Snooker_German_Masters_%28DerHexer%29_2015-02-06_07.jpg',
-      toFile: RNFS.DocumentDirectoryPath + '/' + downloadFilePathParam +'/working_example2.jpg',
+      fromUrl: downloadFileSource,
+      toFile: RNFS.DocumentDirectoryPath + '/' + downloadFilePathParam +'/' + downloadFileName,
       begin: () => {console.log('It has begun!');},
+      progress: () => {console.log('It is going!');},
     }).promise.then((r) => {
       Alert.alert('Successfully Downloaded File', r.jobId + ' ' + r.statusCode + ' ' + r.bytesWritten)
     })
@@ -693,14 +696,59 @@ const App: () => React$Node = () => {
             </Text>
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
+                placeholder = "Source URL"
+                onChangeText={downloadFileSource => setDownloadFileSource(downloadFileSource)}
+                placeholderTextColor = "#9a73ef"
+                autoCapitalize = "none"
+              />
+              <TextInput style = {styles.input}
+                placeholder = "Filename"
+                onChangeText={downloadFileName => setDownloadFileName(downloadFileName)}
+                placeholderTextColor = "#9a73ef"
+                autoCapitalize = "none"
+              />
+              <TextInput style = {styles.input}
                 placeholder = "Destination Path"
-                onChangeText={touchCTime => setTouchCTime(touchCTime)}
+                onChangeText={downloadFilePathParam => setDownloadFilePathParam(downloadFilePathParam)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               </View>
             <Button
               title="Download File to Destination"
+              onPress={downloadFileExample}
+              color="#9a73ef"
+            />
+            </View>
+          </View>
+
+          <View style={styles.body}>
+            <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>
+              {"uploadFiles"}
+            </Text>
+              <View style={styles.sectionDescription}>
+              <TextInput style = {styles.input}
+                placeholder = "Source Path 1"
+                onChangeText={downloadFilePathParam => setDownloadFilePathParam(downloadFilePathParam)}
+                placeholderTextColor = "#9a73ef"
+                autoCapitalize = "none"
+              />
+              <TextInput style = {styles.input}
+                placeholder = "Source Path 2"
+                onChangeText={downloadFilePathParam => setDownloadFilePathParam(downloadFilePathParam)}
+                placeholderTextColor = "#9a73ef"
+                autoCapitalize = "none"
+              />
+              <TextInput style = {styles.input}
+                placeholder = "Destination"
+                onChangeText={downloadFilePathParam => setDownloadFilePathParam(downloadFilePathParam)}
+                placeholderTextColor = "#9a73ef"
+                autoCapitalize = "none"
+              />
+              </View>
+            <Button
+              title="Upload Files to Destination"
               onPress={downloadFileExample}
               color="#9a73ef"
             />
