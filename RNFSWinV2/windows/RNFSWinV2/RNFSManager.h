@@ -55,7 +55,6 @@ private:
 REACT_MODULE(RNFSManager, L"RNFSManager");
 struct RNFSManager
 {
-
     REACT_INIT(Initialize)
         void Initialize(ReactContext const& reactContext) noexcept;
 
@@ -143,7 +142,7 @@ struct RNFSManager
     winrt::fire_and_forget downloadFile(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
     REACT_METHOD(uploadFiles); // DOWNLOADER
-    void uploadFiles(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
+    winrt::fire_and_forget uploadFiles(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
     REACT_METHOD(touch); // Implemented
     void touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<std::string> promise) noexcept;
@@ -154,7 +153,11 @@ struct RNFSManager
 private:
     void splitPath(const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept;
     winrt::Windows::Foundation::IAsyncAction ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
-        winrt::Windows::Web::Http::HttpRequestMessage request, std::wstring_view filePath, int jobId, int progressIncrement, bool hasBeginCallback, bool hasProgressCallback);
+        winrt::Windows::Web::Http::HttpRequestMessage request, std::wstring_view filePath, int jobId, int progressIncrement);
+
+    winrt::Windows::Foundation::IAsyncAction ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise, RN::JSValueObject& options,
+        winrt::Windows::Web::Http::HttpMethod httpMethod, RN::JSValueObject const& files, int jobId);
+
 
     constexpr static int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
 
