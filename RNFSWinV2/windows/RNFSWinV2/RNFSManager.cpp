@@ -789,12 +789,12 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
             auto filepath{ fileObj["filepath"].AsString() }; // accessing the file
             auto filetype{ fileObj["filetype"].AsString() }; // content type to be sent via http request
 
-            winrt::Windows::Web::Http::HttpRequestMessage request(httpMethod, uri);
-
-            for (auto const& entry : headers)
-            {
-                request.Headers().Insert(winrt::to_hstring(entry.first), winrt::to_hstring(entry.second.AsString()));
-            }
+            //winrt::Windows::Web::Http::HttpRequestMessage request(httpMethod, uri);
+            //
+            //for (auto const& entry : headers)
+            //{
+            //    request.Headers().Insert(winrt::to_hstring(entry.first), winrt::to_hstring(entry.second.AsString()));
+            //}
 
             //request.Headers().Insert(L"Name", winrt::to_hstring(name));
             //request.Headers().Insert(L"Content-Type", winrt::to_hstring(filetype));
@@ -808,20 +808,24 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
             //}
 
             winrt::hstring directoryPath, fileName;
-            std::filesystem::path path(filepath);
-            path.make_preferred();
-
-            directoryPath = path.has_parent_path() ? winrt::to_hstring(path.parent_path().c_str()) : L"";
-            fileName = path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"";
+            splitPath(filepath, directoryPath, fileName);
 
             StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
             StorageFile file{ co_await folder.GetFileAsync(fileName) };
 
-            Windows::Web::Http::HttpBufferContent content{ co_await FileIO::ReadBufferAsync(file) };
-            //content.Headers().ContentDisposition()
-            request.Content(content);
+            Windows::Web::Http::HttpBufferContent binaryContent{ co_await FileIO::ReadBufferAsync(file) };
+            binaryContent.Headers().Append(L"Content-Type", winrt::to_hstring(filetype));
+            Windows::Web::Http::Headers::HttpContentDispositionHeaderValue disposition{ L"form-data" };
+            binaryContent.Headers().ContentDisposition(disposition);
+            disposition.Name(winrt::to_hstring(name));
+            disposition.FileName(winrt::to_hstring(filename));
+            
+            Windows::Web::Http::HttpMultipartFormDataContent postContent;
+            postContent.Add(binaryContent);
 
-            HttpResponseMessage response = co_await m_httpClient.SendRequestAsync(request, HttpCompletionOption::ResponseHeadersRead);
+            //request.Content(content)
+            HttpResponseMessage response = co_await m_httpClient.PostAsync(uri, binaryContent);
+            
             if (isFirst)
             {
                 m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"UploadBegin",
