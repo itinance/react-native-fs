@@ -156,7 +156,7 @@ private:
         winrt::Windows::Web::Http::HttpRequestMessage request, std::wstring_view filePath, int jobId, int progressIncrement);
 
     winrt::Windows::Foundation::IAsyncAction ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise, RN::JSValueObject& options,
-        winrt::Windows::Web::Http::HttpMethod httpMethod, RN::JSValueObject const& files, int jobId, uint64_t totalUploadSize);
+        winrt::Windows::Web::Http::HttpMethod httpMethod, RN::JSValueArray const& files, int jobId, uint64_t totalUploadSize);
 
 
     constexpr static int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;

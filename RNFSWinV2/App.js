@@ -74,6 +74,10 @@ const App: () => React$Node = () => {
   const [downloadFileSource, setDownloadFileSource] = useState('');
   const [downloadFileName, setDownloadFileName] = useState('');
 
+  const [uploadFileSource1, setUploadFileSource1] = useState('');
+  const [uploadFileSource2, setUploadFileSource2] = useState('');
+  const [uploadFileDestination, setUploadFileDestination] = useState('');
+
   const mkdirExample = () => {
     if(mkdirParam.length > 0) {
       RNFS.mkdir(RNFS.DocumentDirectoryPath + '/' + mkdirParam)
@@ -294,6 +298,60 @@ const App: () => React$Node = () => {
     .catch((err) => {
       Alert.alert(err.message)
     });
+  }
+
+  const uploadFileExample = () => {
+    if(uploadFileSource1.length > 0 && uploadFileSource2.length > 0) {
+      //var uploadUrl = uploadFileDestination;  // For testing purposes, go to http://requestb.in/ and create your own link
+      // create an array of objects of the files you want to upload
+      var files = [
+        {
+          name: 'test1',
+          filename: 'test1.png',
+          filepath: RNFS.DocumentDirectoryPath + '/' + uploadFileSource1,
+          filetype: 'image/png'
+        }, {
+          name: 'test2',
+          filename: 'test2.png',
+          filepath: RNFS.DocumentDirectoryPath +  '/' + uploadFileSource2,
+          filetype: 'image/png'
+        }
+      ];
+
+      var uploadBegin = (response) => {
+        var jobId = response.jobId;
+        console.log('UPLOAD HAS BEGUN! JobId: ' + jobId);
+      };
+
+      //var uploadProgress = (response) => {
+      //  var percentage = Math.floor((response.totalBytesSent/response.totalBytesExpectedToSend) * 100);
+      //  console.log('UPLOAD IS ' + percentage + '% DONE!');
+      //};
+
+      // upload files
+      RNFS.uploadFiles({
+        toUrl: uploadFileDestination,
+        files: files,
+        method: 'POST',
+        fields: {
+          'hello': 'world',
+        },
+        begin: uploadBegin,
+      }).promise.then((response) => {
+          if (response.statusCode == 200) {
+            console.log('FILES UPLOADED!'); // response.statusCode, response.headers, response.body
+          } else {
+            console.log('SERVER ERROR');
+          }
+        })
+        .catch((err) => {
+          if(err.description === "cancelled") {
+            // cancelled by user
+          }
+          console.log(err);
+        });
+
+    }
   }
 
   return (
@@ -730,26 +788,26 @@ const App: () => React$Node = () => {
               <View style={styles.sectionDescription}>
               <TextInput style = {styles.input}
                 placeholder = "Source Path 1"
-                onChangeText={downloadFilePathParam => setDownloadFilePathParam(downloadFilePathParam)}
+                onChangeText={uploadFileSource1 => setUploadFileSource1(uploadFileSource1)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
                 placeholder = "Source Path 2"
-                onChangeText={downloadFilePathParam => setDownloadFilePathParam(downloadFilePathParam)}
+                onChangeText={uploadFileSource2 => setUploadFileSource2(uploadFileSource2)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               <TextInput style = {styles.input}
                 placeholder = "Destination"
-                onChangeText={downloadFilePathParam => setDownloadFilePathParam(downloadFilePathParam)}
+                onChangeText={uploadFileDestination => setUploadFileDestination(uploadFileDestination)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
               </View>
             <Button
               title="Upload Files to Destination"
-              onPress={downloadFileExample}
+              onPress={uploadFileExample}
               color="#9a73ef"
             />
             </View>
