@@ -14,6 +14,6 @@ typedef void (^CompletionHandler)(void);
 
 @interface RNFSManager : RCTEventEmitter <RCTBridgeModule>
 
-+(void)setCompletionHandlerForIdentifier: (NSString *)identifier completionHandler: (CompletionHandler)completionHandler;
++ (void)setCompletionHandlerForIdentifier:(NSString *)identifier completionHandler:(CompletionHandler)completionHandler;
 
 @end
