@@ -599,6 +599,7 @@ try
         else
         {
             promise.Reject("Invalid HTTP request: neither a POST nor a PUT request.");
+            co_return;
         }
     }
    
@@ -612,15 +613,25 @@ try
         winrt::hstring directoryPath, fileName;
         splitPath(filepath, directoryPath, fileName);
     
-        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-        StorageFile file{ co_await folder.GetFileAsync(fileName) };
-        auto fileInfo{ co_await file.GetBasicPropertiesAsync() };
-    
-        totalUploadSize += fileInfo.Size();
+        try
+        {
+            StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+            StorageFile file{ co_await folder.GetFileAsync(fileName) };
+            auto fileProperties{ co_await file.GetBasicPropertiesAsync() };
+            totalUploadSize += fileProperties.Size();
+        }
+        catch (...)
+        {
+            continue;
+        }
+    }
+    if (totalUploadSize <= 0)
+    {
+        promise.Reject("No files to upload");
+        co_return;
     }
 
     co_await m_tasks.Add(jobId, ProcessUploadRequestAsync(promise, options, httpMethod, files, jobId, totalUploadSize));
-    //co_return;
 }
 catch (...)
 {
@@ -769,97 +780,108 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
 {
     try
     {
+        winrt::hstring crlf = L"\r\n";
+        winrt::hstring twoHyphens = L"--";
+        winrt::hstring boundary = L"-----";
+        //std::string tail = crlf + twoHyphens + boundary + twoHyphens + crlf;
+
         std::string toUrl{ options["toUrl"].AsString() };
         std::wstring URLForURI(toUrl.begin(), toUrl.end());
         Uri uri{ URLForURI };
 
+        winrt::Windows::Web::Http::HttpMultipartFormDataContent request(boundary);
+
         //type Headers = { [name: string]: string };
         auto const& headers{ options["headers"].AsObject() };
+        
+        for (auto const& entry : headers)
+        {
+            request.Headers().Insert(winrt::to_hstring(entry.first), winrt::to_hstring(entry.second.AsString()));
+        }
 
         //type Fields = { [name: string]: string };
         auto const& fields{ options["fields"].AsObject() }; // placed in the header
+        //Content - Disposition: form - data;
 
-        bool isFirst{ true }; // When to start the request
-        int64_t totalSent{ 0 };
+        std::stringstream attempt;
+        attempt << "form-data;";
+        //request.Headers().Insert(L"Content-Disposition", L"form-data");
+        
+        for (auto const& field : fields)
+        {
+            auto temp1{ field.first };
+            auto temp2{ field.second.AsString() };
+            attempt << " " << "name" << "=\"" << field.second.AsString() << "\";";
+            //request.Headers().Append(winrt::to_hstring(temp1), winrt::to_hstring(temp2));
+        }
+
+        request.Headers().ContentDisposition(Headers::HttpContentDispositionHeaderValue::Parse(L"form-data; hello=world"));
+
+        //int64_t totalSent{ 0 };
+        //std::stringstream content;
+        //HttpMultipartContent multipart(L"form-data", boundary);
+        //HttpMultipartFormDataContent multipart{ boundary };
         for (const auto& fileInfo : files)
         {
             auto const& fileObj{ fileInfo.AsObject() };
-            auto name{ fileObj["name"].AsString() }; // name to be sent via http request
-            auto filename{ fileObj["filename"].AsString() }; // filename to be sent via http request
-            auto filepath{ fileObj["filepath"].AsString() }; // accessing the file
-            auto filetype{ fileObj["filetype"].AsString() }; // content type to be sent via http request
+            auto name{ winrt::to_hstring(fileObj["name"].AsString()) }; // name to be sent via http request
+            auto filename{ winrt::to_hstring(fileObj["filename"].AsString()) }; // filename to be sent via http request
+            auto filepath{ fileObj["filepath"].AsString()}; // accessing the file
 
-            //winrt::Windows::Web::Http::HttpRequestMessage request(httpMethod, uri);
-            //
-            //for (auto const& entry : headers)
-            //{
-            //    request.Headers().Insert(winrt::to_hstring(entry.first), winrt::to_hstring(entry.second.AsString()));
-            //}
-
-            //request.Headers().Insert(L"Name", winrt::to_hstring(name));
-            //request.Headers().Insert(L"Content-Type", winrt::to_hstring(filetype));
-            //request.Headers().Insert(L"Filename", winrt::to_hstring(filename));
-            
-
-            //for (auto const& field : fields)
-            //{
-            //    //request.
-            //    request.Headers().Insert(winrt::to_hstring(field.first), winrt::to_hstring(field.second.AsString()));
-            //}
-
-            winrt::hstring directoryPath, fileName;
-            splitPath(filepath, directoryPath, fileName);
-
-            StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-            StorageFile file{ co_await folder.GetFileAsync(fileName) };
-
-            Windows::Web::Http::HttpBufferContent binaryContent{ co_await FileIO::ReadBufferAsync(file) };
-            binaryContent.Headers().Append(L"Content-Type", winrt::to_hstring(filetype));
-            Windows::Web::Http::Headers::HttpContentDispositionHeaderValue disposition{ L"form-data" };
-            binaryContent.Headers().ContentDisposition(disposition);
-            disposition.Name(winrt::to_hstring(name));
-            disposition.FileName(winrt::to_hstring(filename));
-            
-            Windows::Web::Http::HttpMultipartFormDataContent postContent;
-            postContent.Add(binaryContent);
-
-            //request.Content(content)
-            HttpResponseMessage response = co_await m_httpClient.PostAsync(uri, binaryContent);
-            
-            if (isFirst)
+            winrt::hstring filetype; // content type to be sent via http request
+            try
             {
-                m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"UploadBegin",
-                    JSValueObject{
-                        { "jobId", jobId },
-                    });
-                isFirst = false;
+                auto toCheck{ fileObj["filetype"].AsString() };
+                if (toCheck.compare("null") != 0)
+                {
+                    filetype = winrt::to_hstring(fileObj["filetype"].AsString());
+                }
+            }
+            catch (...)
+            {
+                continue;
             }
 
-            //HttpStatusCode resultStatusCode = response.StatusCode();
-            //Headers::HttpResponseHeaderCollection resultHeaders = response.Headers();
-            //IHttpContent resultBody = response.Content();
+            try
+            {
+                winrt::hstring directoryPath, fileName;
+                splitPath(filepath, directoryPath, fileName);
+                StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+                StorageFile file{ co_await folder.GetFileAsync(fileName) };
 
+                if (filetype.empty())
+                {
+                    filetype = file.ContentType();
+                }
+
+                //Windows::Web::Http::HttpBufferContent binaryContent{ co_await FileIO::ReadBufferAsync(file) };
+                //binaryContent.Headers().Insert(L"Name", name);
+                //binaryContent.Headers().Insert(L"Content-Type", filetype);
+                //binaryContent.Headers().Insert(L"Filename", filename);
+                HttpBufferContent temp{ co_await FileIO::ReadBufferAsync(file) };
+                temp.Headers().Append(L"Content-Type", filetype);
+
+                request.Add(temp, name, filename);
+                //content << winrt::to_string(binaryContent.ToString()) << crlf;
+
+            }
+            catch (...)
+            {
+                continue;
+            }
         }
+        HttpResponseMessage response = co_await m_httpClient.PostAsync(uri, request);
 
-        //HttpResponseMessage response = co_await m_httpClient.SendRequestAsync(request, HttpCompletionOption::ResponseHeadersRead);
-        //IReference<uint64_t> contentLength{ response.Content().Headers().ContentLength() };
-        {
-           // JSValueObject headersMap;
-            //for (auto const& header : response.Headers())
-            //{
-            //    headersMap[to_string(header.Key())] = to_string(header.Value());
-            //}
-            
-        }
-
-        
+        auto statusCode{ std::to_string(int(response.StatusCode())) };
+        auto resultHeaders{ winrt::to_string(response.Headers().ToString()) };
+        auto resultContent{ winrt::to_string(co_await response.Content().ReadAsStringAsync()) };
 
         promise.Resolve(JSValueObject
             {
                 { "jobId", jobId },
-                { "statusCode", 200},
-                { "headers", "asdf" },
-                { "body", "asdf" },
+                { "statusCode", statusCode},
+                { "headers", resultHeaders},
+                { "body", resultContent},
             });
     }
     catch (winrt::hresult_canceled const& ex)
@@ -869,3 +891,4 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
         promise.Reject(ReactError{ std::to_string(ex.code()), ss.str(), JSValueObject{} });
     }
 }
+

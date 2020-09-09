@@ -309,12 +309,10 @@ const App: () => React$Node = () => {
           name: 'test1',
           filename: 'test1.png',
           filepath: RNFS.DocumentDirectoryPath + '/' + uploadFileSource1,
-          filetype: 'image/png'
         }, {
           name: 'test2',
           filename: 'test2.png',
           filepath: RNFS.DocumentDirectoryPath +  '/' + uploadFileSource2,
-          filetype: 'image/png'
         }
       ];
 
