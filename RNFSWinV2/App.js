@@ -331,8 +331,8 @@ const App: () => React$Node = () => {
         toUrl: uploadFileDestination,
         files: files,
         method: 'POST',
-        fields: {
-          'hello': 'world',
+        headers: {
+          'content-language': 'en-US',
         },
         begin: uploadBegin,
       }).promise.then((response) => {

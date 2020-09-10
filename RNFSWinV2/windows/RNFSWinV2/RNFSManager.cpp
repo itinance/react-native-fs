@@ -794,33 +794,26 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
         //type Headers = { [name: string]: string };
         auto const& headers{ options["headers"].AsObject() };
         
+        // Available headers: https://docs.microsoft.com/en-us/uwp/api/windows.web.http.headers.httpcontentheadercollection?view=winrt-19041
         for (auto const& entry : headers)
         {
-            request.Headers().Insert(winrt::to_hstring(entry.first), winrt::to_hstring(entry.second.AsString()));
+            request.Headers().TryAppendWithoutValidation(winrt::to_hstring(entry.first), winrt::to_hstring(entry.second.AsString()));
         }
 
-        //type Fields = { [name: string]: string };
         auto const& fields{ options["fields"].AsObject() }; // placed in the header
-        //Content - Disposition: form - data;
-
         std::stringstream attempt;
-        attempt << "form-data;";
-        //request.Headers().Insert(L"Content-Disposition", L"form-data");
-        
+        attempt << "form-data";
+        bool first{ true };
         for (auto const& field : fields)
         {
-            auto temp1{ field.first };
-            auto temp2{ field.second.AsString() };
-            attempt << " " << "name" << "=\"" << field.second.AsString() << "\";";
-            //request.Headers().Append(winrt::to_hstring(temp1), winrt::to_hstring(temp2));
+            attempt << "; " << field.first << "=" << field.second.AsString();
         }
-
-        request.Headers().ContentDisposition(Headers::HttpContentDispositionHeaderValue::Parse(L"form-data; hello=world"));
+        
+        std::string temp{attempt.str()};
+        //auto temp2{ winrt::to_hstring(temp) };
+        request.Headers().ContentDisposition(Headers::HttpContentDispositionHeaderValue::Parse(winrt::to_hstring(attempt.str())));
 
         //int64_t totalSent{ 0 };
-        //std::stringstream content;
-        //HttpMultipartContent multipart(L"form-data", boundary);
-        //HttpMultipartFormDataContent multipart{ boundary };
         for (const auto& fileInfo : files)
         {
             auto const& fileObj{ fileInfo.AsObject() };
@@ -854,15 +847,9 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
                     filetype = file.ContentType();
                 }
 
-                //Windows::Web::Http::HttpBufferContent binaryContent{ co_await FileIO::ReadBufferAsync(file) };
-                //binaryContent.Headers().Insert(L"Name", name);
-                //binaryContent.Headers().Insert(L"Content-Type", filetype);
-                //binaryContent.Headers().Insert(L"Filename", filename);
-                HttpBufferContent temp{ co_await FileIO::ReadBufferAsync(file) };
-                temp.Headers().Append(L"Content-Type", filetype);
-
-                request.Add(temp, name, filename);
-                //content << winrt::to_string(binaryContent.ToString()) << crlf;
+                HttpBufferContent entry{ co_await FileIO::ReadBufferAsync(file) };
+                entry.Headers().Append(L"Content-Type", filetype);
+                request.Add(entry, name, filename);
 
             }
             catch (...)
