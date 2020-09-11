@@ -167,14 +167,15 @@ catch (...)
 winrt::fire_and_forget RNFSManager::moveFile(std::string filepath, std::string destPath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
-    winrt::hstring directoryPath, fileName;
-    splitPath(filepath, directoryPath, fileName);
+    winrt::hstring srcDirectoryPath, fileName;
+    splitPath(filepath, srcDirectoryPath, fileName);
 
     std::filesystem::path dest(destPath);
     dest.make_preferred();
+    winrt::hstring destDirectoryPath{ dest.c_str() };
 
-    StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-    StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(dest.c_str()) };
+    StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(srcDirectoryPath) };
+    StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(destDirectoryPath) };
     StorageFile file{ co_await srcFolder.GetFileAsync(fileName) };
 
     co_await file.MoveAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
@@ -190,14 +191,15 @@ catch (...)
 winrt::fire_and_forget RNFSManager::copyFile(std::string filepath, std::string destPath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
-    winrt::hstring directoryPath, fileName;
-    splitPath(filepath, directoryPath, fileName);
+    winrt::hstring srcDirectoryPath, fileName;
+    splitPath(filepath, srcDirectoryPath, fileName);
 
     std::filesystem::path dest(destPath);
     dest.make_preferred();
+    winrt::hstring destDirectoryPath{ dest.c_str() };
 
-    StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-    StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(dest.c_str()) };
+    StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(srcDirectoryPath) };
+    StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(destDirectoryPath) };
     StorageFile file{ co_await srcFolder.GetFileAsync(fileName) };
 
     co_await file.CopyAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
