@@ -185,7 +185,7 @@ const App: () => React$Node = () => {
     if(readFileParam.length > 0) {
       RNFS.readFile(RNFS.DocumentDirectoryPath + '/' + readFileParam)
             .then((result) => {
-              Alert.alert('File Contents:', result)
+              Alert.alert('File Contents:', result.substr(0,50))
             })
             .catch((err) => {
               Alert.alert(err.message)
@@ -321,10 +321,10 @@ const App: () => React$Node = () => {
         console.log('UPLOAD HAS BEGUN! JobId: ' + jobId);
       };
 
-      //var uploadProgress = (response) => {
-      //  var percentage = Math.floor((response.totalBytesSent/response.totalBytesExpectedToSend) * 100);
-      //  console.log('UPLOAD IS ' + percentage + '% DONE!');
-      //};
+      var uploadProgress = (response) => {
+        var percentage = Math.floor((response.totalBytesSent/response.totalBytesExpectedToSend) * 100);
+        console.log('UPLOAD IS ' + percentage + '% DONE!');
+      };
 
       // upload files
       RNFS.uploadFiles({
@@ -335,6 +335,7 @@ const App: () => React$Node = () => {
           'content-language': 'en-US',
         },
         begin: uploadBegin,
+        progress: uploadProgress,
       }).promise.then((response) => {
           if (response.statusCode == 200) {
             console.log('FILES UPLOADED!'); // response.statusCode, response.headers, response.body

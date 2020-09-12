@@ -282,7 +282,6 @@ try
 
     Streams::IBuffer buffer{ co_await FileIO::ReadBufferAsync(file) };
     winrt::hstring base64Content{ CryptographicBuffer::EncodeToBase64String(buffer) };
-
     promise.Resolve(winrt::to_string(base64Content));
 }
 catch (...)
@@ -520,12 +519,10 @@ catch (...)
     promise.Reject("Failed to write to file.");
 }
 
-// TODO: Downloader
+
 winrt::fire_and_forget RNFSManager::downloadFile(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept
 try
 {
-    // All of these are definitely not null
-
     //Filepath
     std::filesystem::path path(options["toFile"].AsString());
     path.make_preferred();
@@ -550,22 +547,10 @@ try
     auto const& headers{ options["headers"].AsObject() };
 
     //Progress Interval
-    //auto progressInterval{ options["progressInterval"].AsInt64() };
+    auto progressInterval{ options["progressInterval"].AsInt64() };
 
     //Progress Divider
     auto progressDivider{ options["progressDivider"].AsInt64() };
-
-    //readTimeout
-    //auto readTimeout{ options["readTimeout"].AsInt64() };
-
-    //connectionTimeout ?
-    //auto connectionTimeout{ options["connectionTimeout"].AsInt64() };
-
-    //hasBeginCallback ?
-    //auto hasBeginCallback{ options["hasBeginCallback"].AsBoolean() };
-
-    //hasProgressCallback ?
-    //auto hasProgressCallback{ options["hasProgressCallback"].AsBoolean() };
 
     winrt::Windows::Web::Http::HttpRequestMessage request(winrt::Windows::Web::Http::HttpMethod::Get(), uri);
     for (const auto& header : headers)
@@ -573,14 +558,14 @@ try
         request.Headers().Insert(winrt::to_hstring(header.first), winrt::to_hstring(header.second.AsString()));
     }
 
-    co_await m_tasks.Add(jobId, ProcessRequestAsync(promise, request, filePath, jobId, progressDivider));
+    co_await m_tasks.Add(jobId, ProcessRequestAsync(promise, request, filePath, jobId, progressInterval, progressDivider));
 }
 catch (...)
 {
     promise.Reject("Failed to download file.");
 }
 
-// TODO: Unfinished method
+
 winrt::fire_and_forget RNFSManager::uploadFiles(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept
 try
 {
@@ -685,6 +670,7 @@ catch (...)
     promise.Reject("Failed to touch file.");
 }
 
+
 void RNFSManager::splitPath(const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept
 {
     std::filesystem::path path(fullPath);
@@ -694,8 +680,9 @@ void RNFSManager::splitPath(const std::string& fullPath, winrt::hstring& directo
     fileName = path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"";
 }
 
+
 IAsyncAction RNFSManager::ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
-    HttpRequestMessage request, std::wstring_view filePath, int jobId, int progressIncrement)
+    HttpRequestMessage request, std::wstring_view filePath, int jobId, uint64_t progressInterval, uint64_t progressDivider)
 {
     try
     {
@@ -717,7 +704,7 @@ IAsyncAction RNFSManager::ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject
                 });
         }
 
-        int64_t totalRead{ 0 };
+        uint64_t totalRead{ 0 };
 
         std::filesystem::path fsFilePath{ filePath };
 
@@ -728,7 +715,7 @@ IAsyncAction RNFSManager::ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject
 
         auto contentStream = co_await response.Content().ReadAsInputStreamAsync();
         auto contentLengthForProgress = contentLength.Type() == PropertyType::UInt64 ? contentLength.Value() : -1;
-        auto nextProgressIncrement = progressIncrement;
+        auto nextProgressIncrement{ progressInterval };
         Buffer buffer{ 8 * 1024 };
         uint32_t read = 0;
 
@@ -757,7 +744,7 @@ IAsyncAction RNFSManager::ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject
                             { "bytesWritten", totalRead },
                         });
 
-                    nextProgressIncrement += progressIncrement;
+                    nextProgressIncrement += progressInterval;
                 }
             }
         }
@@ -777,15 +764,13 @@ IAsyncAction RNFSManager::ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject
     }
 }
 
+
 IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise, RN::JSValueObject& options,
-    winrt::Windows::Web::Http::HttpMethod httpMethod, RN::JSValueArray const& files, int jobId, uint64_t totalUploadSize)
+    winrt::Windows::Web::Http::HttpMethod httpMethod, RN::JSValueArray const& files, int32_t jobId, uint64_t totalUploadSize)
 {
     try
     {
-        winrt::hstring crlf = L"\r\n";
-        winrt::hstring twoHyphens = L"--";
         winrt::hstring boundary = L"-----";
-        //std::string tail = crlf + twoHyphens + boundary + twoHyphens + crlf;
 
         std::string toUrl{ options["toUrl"].AsString() };
         std::wstring URLForURI(toUrl.begin(), toUrl.end());
@@ -805,7 +790,6 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
         auto const& fields{ options["fields"].AsObject() }; // placed in the header
         std::stringstream attempt;
         attempt << "form-data";
-        bool first{ true };
         for (auto const& field : fields)
         {
             attempt << "; " << field.first << "=" << field.second.AsString();
@@ -815,7 +799,14 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
         //auto temp2{ winrt::to_hstring(temp) };
         request.Headers().ContentDisposition(Headers::HttpContentDispositionHeaderValue::Parse(winrt::to_hstring(attempt.str())));
 
-        //int64_t totalSent{ 0 };
+        m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"UploadBegin",
+            JSValueObject{
+                { "jobId", jobId },
+            });
+
+        Buffer buffer{ 8 * 1024 };
+        uint32_t read{ 0 };
+
         for (const auto& fileInfo : files)
         {
             auto const& fileObj{ fileInfo.AsObject() };
@@ -850,9 +841,26 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
                 }
 
                 HttpBufferContent entry{ co_await FileIO::ReadBufferAsync(file) };
+                IInputStream progress{ co_await entry.ReadAsInputStreamAsync() };
+                for (;;)
+                {
+                    buffer.Length(0);
+                    auto readBuffer = co_await progress.ReadAsync(buffer, buffer.Capacity(), InputStreamOptions::None);
+                    read += readBuffer.Length();
+                    if (readBuffer.Length() == 0)
+                    {
+                        break;
+                    }
+
+                    m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"UploadProgress",
+                        JSValueObject{
+                            { "jobId", jobId },
+                            { "totalBytesExpectedToSend", totalUploadSize },   // The total number of bytes that will be sent to the server
+                            { "totalBytesSent", read },
+                        });
+                }
                 entry.Headers().Append(L"Content-Type", filetype);
                 request.Add(entry, name, filename);
-
             }
             catch (...)
             {
