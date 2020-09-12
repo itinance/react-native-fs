@@ -675,7 +675,7 @@ type FSInfoResult = {
 
 Scan the file using [Media Scanner](https://developer.android.com/reference/android/media/MediaScannerConnection).
 
-### (Android only) `symlink(taget: string, path: string): Promise<string>`
+### `symlink(taget: string, path: string): Promise<string>`
 
 Creates a symbolic link to a target
 

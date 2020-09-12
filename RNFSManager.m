@@ -110,6 +110,30 @@ RCT_EXPORT_METHOD(stat:(NSString *)filepath
   resolve(attributes);
 }
 
+RCT_EXPORT_METHOD(symlink:(NSString *)path
+                  contents:(NSString *)destPath
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NSError *error = nil;
+
+  NSURL *pathUrl = [NSURL fileURLWithPath:path];
+
+  NSURL *destPathUrl = [NSURL fileURLWithPath:destPath];
+
+  BOOL success = [[NSFileManager defaultManager] createSymbolicLinkAtURL:pathUrl withDestinationURL:destPathUrl error:&error];
+
+  if (error) {
+    return [self reject:reject withError:error];
+  }
+
+  if (!success) {
+    return reject(@"EEXIST", [NSString stringWithFormat:@"EEXIST: file already exists '%@'", path], nil);
+  }
+
+  resolve(path);
+}
+
 RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
                   contents:(NSString *)base64Content
                   options:(NSDictionary *)options
