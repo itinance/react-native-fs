@@ -8,7 +8,7 @@
 
 namespace ReactNativeTests {
 
-    std::string testLocation = "C:/react-native-fs-tests\\";
+    std::string testLocation = "C:/react-native-fs-test-folder\\";
 
     TEST_CLASS(RNFSManagerTest) {
         React::ReactModuleBuilderMock m_builderMock{};
@@ -22,6 +22,103 @@ namespace ReactNativeTests {
             m_moduleObject = m_builderMock.CreateModule(provider, m_moduleBuilder);
             m_module = React::ReactNonAbiValue<RNFSManager>::GetPtrUnsafe(m_moduleObject);
         }
+
+        /*
+            Create folders for test
+        */
+        TEST_METHOD(TestMethodCall_mkdirCreate1) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"mkdir",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to create directory."); }),
+                testLocation, React::JSValueObject{}));
+        }
+
+        TEST_METHOD(TestMethodCall_mkdirCreate2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"mkdir",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to create directory."); }),
+                testLocation + "temp", React::JSValueObject{}));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_mkdirCreate3) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"mkdir",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to create directory."); }),
+                testLocation + "wait", React::JSValueObject{}));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_mkdirCreate4) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"mkdir",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to create directory."); }),
+                testLocation + "wait/what", React::JSValueObject{}));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+
+        /*
+            Create files for test
+        */
+        TEST_METHOD(TestMethodCall_writefileCreate1) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"writeFile",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to write to file."); }),
+                testLocation + "toHash.txt", "c3F1aXJyZWxz", React::JSValueObject{}));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_writefileCreate2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"writeFile",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to write to file."); }),
+                testLocation + "toMove.rtf", "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=", React::JSValueObject{}));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_writefileCreate3) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"writeFile",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to write to file."); }),
+                testLocation + "toRead", "MmIgfHwgITJiIGJ5IEJpbGwgU2hha2V5CgoKYWFh", React::JSValueObject{}));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_writefileCreate4) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"writeFile",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to write to file."); }),
+                testLocation + "toRead.txt", "MmIgfHwgITJiIGJ5IEJpbGwgU2hha2V5CgoKYWFh", React::JSValueObject{}));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_writefileCreate5) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"writeFile",
+                std::function<void()>([]() noexcept { TestCheck(true); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to write to file."); }),
+                testLocation + "toWriteTo.txt", "QSBOb3RlcGFkIGJ1ZyB0aGF0IGxldHMgbWUgd3JpdGUgdW5pbnRlbmRlZCBjaGFyYWN0ZXJz", React::JSValueObject{}));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
 
         /*
             mkdir() tests
@@ -76,7 +173,7 @@ namespace ReactNativeTests {
         TEST_METHOD(TestMethodCall_readfileSuccessful1) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"readFile",
-                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(value == "MmIgfHwgITJiIGJ5IEJpbGwgU2hha2V5DQoNCg0KYWFh"
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(value == "MmIgfHwgITJiIGJ5IEJpbGwgU2hha2V5CgoKYWFh"
                 ); }),
                 std::function<void(React::JSValue const&)>(
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read file."); }),
@@ -87,7 +184,7 @@ namespace ReactNativeTests {
         TEST_METHOD(TestMethodCall_readfileSuccessful2) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"readFile",
-                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(value == "MmIgfHwgITJiIGJ5IEJpbGwgU2hha2V5DQoNCg0KYWFh"
+                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(value == "MmIgfHwgITJiIGJ5IEJpbGwgU2hha2V5CgoKYWFh"
                 ); }),
                 std::function<void(React::JSValue const&)>(
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to read file."); }),
@@ -541,6 +638,5 @@ namespace ReactNativeTests {
                 testLocation + "Hello"));
             TestCheck(m_builderMock.IsRejectCallbackCalled());
         }
-
     };
 }

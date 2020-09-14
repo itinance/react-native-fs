@@ -9,10 +9,8 @@
 #include <winrt/Windows.Security.Cryptography.Core.h>
 #include <winrt/Windows.Web.Http.h>
 
-using namespace winrt::Windows::Security::Cryptography;
-using namespace winrt::Windows::Security::Cryptography::Core;
-using namespace winrt::Microsoft::ReactNative;
-
+namespace Cryptography = winrt::Windows::Security::Cryptography;
+namespace CryptographyCore = winrt::Windows::Security::Cryptography::Core;
 namespace RN = winrt::Microsoft::ReactNative;
 
 struct CancellationDisposable
@@ -56,7 +54,7 @@ REACT_MODULE(RNFSManager, L"RNFSManager");
 struct RNFSManager
 {
     REACT_INIT(Initialize)
-        void Initialize(ReactContext const& reactContext) noexcept;
+        void Initialize(RN::ReactContext const& reactContext) noexcept;
 
     REACT_CONSTANT_PROVIDER(ConstantsViaConstantsProvider) // Implemented, but unsure how this works
         void ConstantsViaConstantsProvider(RN::ReactConstantProvider& constants) noexcept;
@@ -80,9 +78,6 @@ struct RNFSManager
 
     REACT_METHOD(getFSInfo); // Implemented, no unit tests but cannot be tested
     winrt::fire_and_forget getFSInfo(RN::ReactPromise<RN::JSValueObject> promise) noexcept;
-
-    //REACT_METHOD(getAllExternalFilesDirs); // TODO: Check to see what design consensus would be. Unlikely that we need it
-    //void getAllExternalFilesDirs(RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_METHOD(unlink); // Implemented
     winrt::fire_and_forget unlink(std::string filePath, RN::ReactPromise<void> promise) noexcept;
@@ -152,7 +147,7 @@ struct RNFSManager
 
 private:
     void splitPath(const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept;
-    winrt::Windows::Foundation::IAsyncAction ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
+    winrt::Windows::Foundation::IAsyncAction ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
         winrt::Windows::Web::Http::HttpRequestMessage request, std::wstring_view filePath, int32_t jobId, uint64_t progressInterval, uint64_t progressDivider);
 
     winrt::Windows::Foundation::IAsyncAction ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise, RN::JSValueObject& options,
@@ -161,15 +156,15 @@ private:
 
     constexpr static int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
 
-    const std::map<std::string, std::function<HashAlgorithmProvider()>> availableHashes{
-        {"md5", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Md5()); } },
-        {"sha1", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha1()); } },
-        {"sha256", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha256()); } },
-        {"sha384", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha384()); } },
-        {"sha512", []() { return HashAlgorithmProvider::OpenAlgorithm(HashAlgorithmNames::Sha512()); } }
+    const std::map<std::string, std::function<CryptographyCore::HashAlgorithmProvider()>> availableHashes{
+        {"md5", []() { return CryptographyCore::HashAlgorithmProvider::OpenAlgorithm(CryptographyCore::HashAlgorithmNames::Md5()); } },
+        {"sha1", []() { return CryptographyCore::HashAlgorithmProvider::OpenAlgorithm(CryptographyCore::HashAlgorithmNames::Sha1()); } },
+        {"sha256", []() { return CryptographyCore::HashAlgorithmProvider::OpenAlgorithm(CryptographyCore::HashAlgorithmNames::Sha256()); } },
+        {"sha384", []() { return CryptographyCore::HashAlgorithmProvider::OpenAlgorithm(CryptographyCore::HashAlgorithmNames::Sha384()); } },
+        {"sha512", []() { return CryptographyCore::HashAlgorithmProvider::OpenAlgorithm(CryptographyCore::HashAlgorithmNames::Sha512()); } }
     };
 
-    ReactContext m_reactContext;
+    RN::ReactContext m_reactContext;
     winrt::Windows::Web::Http::HttpClient m_httpClient;
     TaskCancellationManager m_tasks;
 };

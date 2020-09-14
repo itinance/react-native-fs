@@ -13,7 +13,6 @@
 
 #include <winrt/Windows.Web.Http.h>
 #include <winrt/Windows.Web.Http.Headers.h>
-
 #include <winrt/Windows.ApplicationModel.h>
 #include <winrt/Windows.Foundation.h>
 
@@ -24,6 +23,9 @@ using namespace winrt::Windows::Storage::Streams;
 using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Web::Http;
 
+//
+// For downloads and uploads
+//
 CancellationDisposable::CancellationDisposable(IAsyncInfo const& async, std::function<void()>&& onCancel) noexcept
     : m_async{ async }
     , m_onCancel{ std::move(onCancel) }
@@ -110,6 +112,9 @@ void TaskCancellationManager::Cancel(JobId jobId) noexcept
     }
 }
 
+//
+// For stat implementation
+//
 struct handle_closer
 {
     void operator()(HANDLE h) noexcept
@@ -123,12 +128,16 @@ static inline HANDLE safe_handle(HANDLE h) noexcept
     return (h == INVALID_HANDLE_VALUE) ? nullptr : h;
 }
 
-void RNFSManager::Initialize(ReactContext const& reactContext) noexcept
+void RNFSManager::Initialize(RN::ReactContext const& reactContext) noexcept
 {
     m_reactContext = reactContext;
 }
 
-void RNFSManager::ConstantsViaConstantsProvider(ReactConstantProvider& constants) noexcept
+
+//
+// RNFS implementations
+//
+void RNFSManager::ConstantsViaConstantsProvider(RN::ReactConstantProvider& constants) noexcept
 {
     constants.Add(L"RNFSMainBundlePath", to_string(Package::Current().InstalledLocation().Path()));
     constants.Add(L"RNFSCachesDirectoryPath", to_string(ApplicationData::Current().LocalCacheFolder().Path()));
@@ -218,7 +227,7 @@ try
     auto localFolder{ Windows::Storage::ApplicationData::Current().LocalFolder() };
     auto properties{ co_await localFolder.Properties().RetrievePropertiesAsync({L"System.FreeSpace", L"System.Capacity"}) };
 
-    JSValueObject result;
+    RN::JSValueObject result;
     result["freeSpace"] = unbox_value<uint64_t>(properties.Lookup(L"System.FreeSpace"));
     result["totalSpace"] = unbox_value<uint64_t>(properties.Lookup(L"System.Capacity"));
 
@@ -229,7 +238,7 @@ catch (...)
     promise.Reject("Failed to retrieve file system info.");
 }
 
-winrt::fire_and_forget RNFSManager::unlink(std::string filepath, ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::unlink(std::string filepath, RN::ReactPromise<void> promise) noexcept
 try
 {
     winrt::hstring directoryPath, fileName;
@@ -248,7 +257,7 @@ catch (...)
 }
 
 
-void RNFSManager::exists(std::string filepath, ReactPromise<bool> promise) noexcept
+void RNFSManager::exists(std::string filepath, RN::ReactPromise<bool> promise) noexcept
 try
 {
     std::filesystem::path path(filepath);
@@ -271,7 +280,7 @@ void RNFSManager::stopUpload(int32_t jobID) noexcept
     m_tasks.Cancel(jobID);
 }
 
-winrt::fire_and_forget RNFSManager::readFile(std::string filepath, ReactPromise<std::string> promise) noexcept
+winrt::fire_and_forget RNFSManager::readFile(std::string filepath, RN::ReactPromise<std::string> promise) noexcept
 try
 {
     winrt::hstring directoryPath, fileName;
@@ -281,7 +290,7 @@ try
     StorageFile file{ co_await folder.GetFileAsync(fileName) };
 
     Streams::IBuffer buffer{ co_await FileIO::ReadBufferAsync(file) };
-    winrt::hstring base64Content{ CryptographicBuffer::EncodeToBase64String(buffer) };
+    winrt::hstring base64Content{ Cryptography::CryptographicBuffer::EncodeToBase64String(buffer) };
     promise.Resolve(winrt::to_string(base64Content));
 }
 catch (...)
@@ -335,7 +344,7 @@ try
         size = winrt::unbox_value<uint64_t>(propertyMap.Lookup(L"System.Size"));
     }
 
-    JSValueObject fileInfo;
+    RN::JSValueObject fileInfo;
     fileInfo["ctime"] = ctime;
     fileInfo["mtime"] = mtime;
     fileInfo["size"] = std::to_string(size);
@@ -348,21 +357,21 @@ catch (...)
     promise.Reject("Failed to retrieve file info.");
 }
 
-winrt::fire_and_forget RNFSManager::readDir(std::string directory, ReactPromise<JSValueArray> promise) noexcept
+winrt::fire_and_forget RNFSManager::readDir(std::string directory, RN::ReactPromise<RN::JSValueArray> promise) noexcept
 try
 {
     std::filesystem::path path(directory);
     path.make_preferred();
     StorageFolder targetDirectory{ co_await StorageFolder::GetFolderFromPathAsync(path.c_str()) };
 
-    JSValueArray resultsArray;
+    RN::JSValueArray resultsArray;
 
     auto items{ co_await targetDirectory.GetItemsAsync() };
     for (auto item : items)
     {
         auto properties{ co_await item.GetBasicPropertiesAsync() };
 
-        JSValueObject itemInfo;
+        RN::JSValueObject itemInfo;
         itemInfo["ctime"] = targetDirectory.DateCreated().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
         itemInfo["mtime"] = properties.DateModified().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
         itemInfo["name"] = to_string(item.Name());
@@ -396,7 +405,7 @@ try
     stream.Seek(position);
 
     stream.ReadAsync(buffer, length, Streams::InputStreamOptions::None);
-    std::string result{ winrt::to_string(CryptographicBuffer::EncodeToBase64String(buffer)) };
+    std::string result{ winrt::to_string(Cryptography::CryptographicBuffer::EncodeToBase64String(buffer)) };
 
     promise.Resolve(result);
 }
@@ -430,11 +439,11 @@ try
         co_return;
     }
 
-    HashAlgorithmProvider provider{ search->second() };
+    CryptographyCore::HashAlgorithmProvider provider{ search->second() };
     Streams::IBuffer buffer{ co_await FileIO::ReadBufferAsync(file) };
 
     auto hashedBuffer{ provider.HashData(buffer) };
-    auto result{ winrt::to_string(CryptographicBuffer::EncodeToHexString(hashedBuffer)) };
+    auto result{ winrt::to_string(Cryptography::CryptographicBuffer::EncodeToHexString(hashedBuffer)) };
 
     promise.Resolve(result);
 }
@@ -444,11 +453,11 @@ catch (...)
 }
 
 
-winrt::fire_and_forget RNFSManager::writeFile(std::string filepath, std::string base64Content, JSValueObject options, ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::writeFile(std::string filepath, std::string base64Content, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
     winrt::hstring base64ContentStr{ winrt::to_hstring(base64Content) };
-    Streams::IBuffer buffer{ CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
+    Streams::IBuffer buffer{ Cryptography::CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
 
     winrt::hstring directoryPath, fileName;
     splitPath(filepath, directoryPath, fileName);
@@ -477,7 +486,7 @@ try
     StorageFile file{ co_await folder.GetFileAsync(fileName) };
 
     winrt::hstring base64ContentStr{ winrt::to_hstring(base64Content) };
-    Streams::IBuffer buffer{ CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
+    Streams::IBuffer buffer{ Cryptography::CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
     Streams::IRandomAccessStream stream{ co_await file.OpenAsync(FileAccessMode::ReadWrite) };
 
     stream.Seek(UINT64_MAX); // Writes to end of file
@@ -490,7 +499,7 @@ catch (...)
     promise.Reject("Failed to append to file.");
 }
 
-winrt::fire_and_forget RNFSManager::write(std::string filepath, std::string base64Content, int position, ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::write(std::string filepath, std::string base64Content, int position, RN::ReactPromise<void> promise) noexcept
 try
 {
     winrt::hstring directoryPath, fileName;
@@ -500,7 +509,7 @@ try
     StorageFile file{ co_await folder.GetFileAsync(fileName) };
 
     winrt::hstring base64ContentStr{ winrt::to_hstring(base64Content) };
-    Streams::IBuffer buffer{ CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
+    Streams::IBuffer buffer{ Cryptography::CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
     Streams::IRandomAccessStream stream{ co_await file.OpenAsync(FileAccessMode::ReadWrite) };
 
     if (position < 0)
@@ -555,10 +564,10 @@ try
     winrt::Windows::Web::Http::HttpRequestMessage request(winrt::Windows::Web::Http::HttpMethod::Get(), uri);
     for (const auto& header : headers)
     {
-        request.Headers().Insert(winrt::to_hstring(header.first), winrt::to_hstring(header.second.AsString()));
+        request.Headers().TryAppendWithoutValidation(winrt::to_hstring(header.first), winrt::to_hstring(header.second.AsString()));
     }
 
-    co_await m_tasks.Add(jobId, ProcessRequestAsync(promise, request, filePath, jobId, progressInterval, progressDivider));
+    co_await m_tasks.Add(jobId, ProcessDownloadRequestAsync(promise, request, filePath, jobId, progressInterval, progressDivider));
 }
 catch (...)
 {
@@ -681,7 +690,7 @@ void RNFSManager::splitPath(const std::string& fullPath, winrt::hstring& directo
 }
 
 
-IAsyncAction RNFSManager::ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
+IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
     HttpRequestMessage request, std::wstring_view filePath, int jobId, uint64_t progressInterval, uint64_t progressDivider)
 {
     try
@@ -689,17 +698,17 @@ IAsyncAction RNFSManager::ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject
         HttpResponseMessage response = co_await m_httpClient.SendRequestAsync(request, HttpCompletionOption::ResponseHeadersRead);
         IReference<uint64_t> contentLength{ response.Content().Headers().ContentLength() };
         {
-            JSValueObject headersMap;
+            RN::JSValueObject headersMap;
             for (auto const& header : response.Headers())
             {
                 headersMap[to_string(header.Key())] = to_string(header.Value());
             }
 
             m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"DownloadBegin",
-                JSValueObject{
+                RN::JSValueObject{
                     { "jobId", jobId },
                     { "statusCode", (int)response.StatusCode() },
-                    { "contentLength", contentLength.Type() == PropertyType::UInt64 ? JSValue(contentLength.Value()) : JSValue{nullptr} },
+                    { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
                     { "headers", std::move(headersMap) },
                 });
         }
@@ -715,7 +724,16 @@ IAsyncAction RNFSManager::ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject
 
         auto contentStream = co_await response.Content().ReadAsInputStreamAsync();
         auto contentLengthForProgress = contentLength.Type() == PropertyType::UInt64 ? contentLength.Value() : -1;
-        auto nextProgressIncrement{ progressInterval };
+        uint64_t nextProgressIncrement { 0 };
+        if (progressInterval >= 0)
+        {
+            nextProgressIncrement = progressInterval;
+        }
+        else if (progressDivider >= 0)
+        {
+            nextProgressIncrement = contentLengthForProgress / progressDivider;
+        }
+        
         Buffer buffer{ 8 * 1024 };
         uint32_t read = 0;
 
@@ -738,9 +756,9 @@ IAsyncAction RNFSManager::ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject
                     totalRead == contentLengthForProgress)
                 {
                     m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"DownloadProgress",
-                        JSValueObject{
+                        RN::JSValueObject{
                             { "jobId", jobId },
-                            { "contentLength", contentLength.Type() == PropertyType::UInt64 ? JSValue(contentLength.Value()) : JSValue{nullptr} },
+                            { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
                             { "bytesWritten", totalRead },
                         });
 
@@ -749,7 +767,7 @@ IAsyncAction RNFSManager::ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject
             }
         }
 
-        promise.Resolve(JSValueObject
+        promise.Resolve(RN::JSValueObject
             {
                 { "jobId", jobId },
                 { "statusCode", (int)response.StatusCode() },
@@ -760,7 +778,7 @@ IAsyncAction RNFSManager::ProcessRequestAsync(RN::ReactPromise<RN::JSValueObject
     {
         std::stringstream ss;
         ss << "CANCELLED: job '" << jobId << "' to file '" << to_string(filePath) << "'";
-        promise.Reject(ReactError{ std::to_string(ex.code()), ss.str(), JSValueObject{} });
+        promise.Reject(RN::ReactError{ std::to_string(ex.code()), ss.str(), RN::JSValueObject{} });
     }
 }
 
@@ -770,7 +788,7 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
 {
     try
     {
-        winrt::hstring boundary = L"-----";
+        winrt::hstring boundary{ L"-----" };
 
         std::string toUrl{ options["toUrl"].AsString() };
         std::wstring URLForURI(toUrl.begin(), toUrl.end());
@@ -800,7 +818,7 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
         request.Headers().ContentDisposition(Headers::HttpContentDispositionHeaderValue::Parse(winrt::to_hstring(attempt.str())));
 
         m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"UploadBegin",
-            JSValueObject{
+            RN::JSValueObject{
                 { "jobId", jobId },
             });
 
@@ -853,7 +871,7 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
                     }
 
                     m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"UploadProgress",
-                        JSValueObject{
+                        RN::JSValueObject{
                             { "jobId", jobId },
                             { "totalBytesExpectedToSend", totalUploadSize },   // The total number of bytes that will be sent to the server
                             { "totalBytesSent", read },
@@ -873,7 +891,7 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
         auto resultHeaders{ winrt::to_string(response.Headers().ToString()) };
         auto resultContent{ winrt::to_string(co_await response.Content().ReadAsStringAsync()) };
 
-        promise.Resolve(JSValueObject
+        promise.Resolve(RN::JSValueObject
             {
                 { "jobId", jobId },
                 { "statusCode", statusCode},
@@ -885,7 +903,7 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
     {
         std::stringstream ss;
         ss << "CANCELLED: job '" << jobId << "' to file '" << "'";
-        promise.Reject(ReactError{ std::to_string(ex.code()), ss.str(), JSValueObject{} });
+        promise.Reject(RN::ReactError{ std::to_string(ex.code()), ss.str(), RN::JSValueObject{} });
     }
 }
 
