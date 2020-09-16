@@ -291,7 +291,8 @@ try
 
     Streams::IBuffer buffer{ co_await FileIO::ReadBufferAsync(file) };
     winrt::hstring base64Content{ Cryptography::CryptographicBuffer::EncodeToBase64String(buffer) };
-    promise.Resolve(winrt::to_string(base64Content));
+    auto temp{ winrt::to_string(base64Content) };
+    promise.Resolve(temp);
 }
 catch (...)
 {
@@ -814,7 +815,6 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
         }
         
         std::string temp{attempt.str()};
-        //auto temp2{ winrt::to_hstring(temp) };
         request.Headers().ContentDisposition(Headers::HttpContentDispositionHeaderValue::Parse(winrt::to_hstring(attempt.str())));
 
         m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"UploadBegin",

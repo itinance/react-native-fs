@@ -292,6 +292,7 @@ const App: () => React$Node = () => {
       toFile: RNFS.DocumentDirectoryPath + '/' + downloadFilePathParam +'/' + downloadFileName,
       begin: () => {console.log('It has begun!');},
       progress: () => {console.log('It is going!');},
+      progressInterval: 100,
     }).promise.then((r) => {
       Alert.alert('Successfully Downloaded File', r.jobId + ' ' + r.statusCode + ' ' + r.bytesWritten)
     })
@@ -345,7 +346,7 @@ const App: () => React$Node = () => {
         })
         .catch((err) => {
           if(err.description === "cancelled") {
-            // cancelled by user
+            console.log('User cancelled');
           }
           console.log(err);
         });
