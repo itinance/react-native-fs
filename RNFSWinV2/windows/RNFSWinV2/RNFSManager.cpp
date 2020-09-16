@@ -692,7 +692,7 @@ void RNFSManager::splitPath(const std::string& fullPath, winrt::hstring& directo
 
 
 IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
-    HttpRequestMessage request, std::wstring_view filePath, int jobId, uint64_t progressInterval, uint64_t progressDivider)
+    HttpRequestMessage request, std::wstring_view filePath, int jobId, int64_t progressInterval, int64_t progressDivider)
 {
     try
     {
@@ -725,18 +725,12 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
 
         auto contentStream = co_await response.Content().ReadAsInputStreamAsync();
         auto contentLengthForProgress = contentLength.Type() == PropertyType::UInt64 ? contentLength.Value() : -1;
-        uint64_t nextProgressIncrement { 0 };
-        if (progressInterval >= 0)
-        {
-            nextProgressIncrement = progressInterval;
-        }
-        else if (progressDivider >= 0)
-        {
-            nextProgressIncrement = contentLengthForProgress / progressDivider;
-        }
         
         Buffer buffer{ 8 * 1024 };
         uint32_t read = 0;
+        int64_t initialProgressTime{ winrt::clock::now().time_since_epoch().count() / 10000 };
+        int64_t currentProgressTime;
+        uint64_t progressDividerUnsigned{ uint64_t(progressDivider) };
 
         for (;;)
         {
@@ -749,12 +743,12 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
             }
 
             co_await outputStream.WriteAsync(readBuffer);
+            totalRead += read;
 
-            if (contentLengthForProgress >= 0)
+            if (progressInterval > 0)
             {
-                totalRead += read;
-                if (totalRead * 100 / contentLengthForProgress >= nextProgressIncrement ||
-                    totalRead == contentLengthForProgress)
+                currentProgressTime = winrt::clock::now().time_since_epoch().count() / 10000;
+                if(currentProgressTime - initialProgressTime >= progressInterval)
                 {
                     m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"DownloadProgress",
                         RN::JSValueObject{
@@ -762,8 +756,28 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
                             { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
                             { "bytesWritten", totalRead },
                         });
-
-                    nextProgressIncrement += progressInterval;
+                    initialProgressTime = winrt::clock::now().time_since_epoch().count() / 10000;
+                }
+            }
+            else if (progressDivider <= 0)
+            {
+                m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"DownloadProgress",
+                    RN::JSValueObject{
+                        { "jobId", jobId },
+                        { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
+                        { "bytesWritten", totalRead },
+                    });
+            }
+            else
+            {
+                if (totalRead * 100 / contentLengthForProgress >= progressDividerUnsigned ||
+                    totalRead == contentLengthForProgress) {
+                    m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"DownloadProgress",
+                        RN::JSValueObject{
+                            { "jobId", jobId },
+                            { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
+                            { "bytesWritten", totalRead },
+                        });
                 }
             }
         }
