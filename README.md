@@ -509,7 +509,53 @@ Create a directory at `filepath`. Automatically creates parents and does not thr
 
 (IOS only): The `NSURLIsExcludedFromBackupKey` property can be provided to set this attribute on iOS platforms. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
-### `downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> }`
+### `downloadFile(...)`
+
+#### `downloadFile(options: DownloadFileOptions & { signal: AbortSignal }): Promise<DownloadResult>`
+
+This method will return  `Promise<DownloadResult>` when pass `signal` prop in options
+
+`options.signal` - isn't required prop, need to cancel download request, (more info: [AbortController](https://developer.mozilla.org/docs/Web/API/AbortController), [AbortSignal](https://developer.mozilla.org/docs/Web/API/AbortSignal)) 
+
+**NOTE:** Support for [cancelling requests with AbortController](https://github.com/react-native-community/releases/blob/master/CHANGELOG.md#v0600) was added in **React Native 0.60.0**
+
+```js
+const controller = new AbortController();
+
+downloadFile({
+  fromUrl,
+  toFile,
+  signal: controller.signal
+}).then(...).catch(error => {
+  if (error.name !== 'AbortError'){
+    // Handle error
+  }
+});
+
+// ...
+// Abort download request
+controller.abort();
+```
+
+---
+
+#### `downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> }`
+
+When signal is falsy value, this method will return object `{ jobId: number, promise: Promise<DownloadResult> }` and
+ using a `jobId` you can cancel Download request `stopDownload(jobId)`
+ 
+```js
+const {promise, jobId} = downloadFile({
+  fromUrl,
+  toFile,
+});
+
+promise.then(...);
+
+// ...
+// Abort download request
+stopDownload(jobId);
+```
 
 ```js
 type DownloadFileOptions = {
@@ -527,6 +573,7 @@ type DownloadFileOptions = {
   connectionTimeout?: number // only supported on Android yet
   readTimeout?: number       // supported on Android and iOS
   backgroundTimeout?: number // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
+  signal?: AbortSignal;       // An AbortSignal instance of AbortController.signal (for promise canceling)
 };
 ```
 ```js
@@ -600,9 +647,53 @@ For use when using background downloads, tell iOS you are done handling a comple
 
 Read more about background downloads in the [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios) section.
 
-### `uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> }`
+### `uploadFiles(...)`
 
-`options` (`Object`) - An object containing named parameters
+#### `uploadFiles(options: UploadFileOptions & { signal: AbortSignal }): Promise<UploadResult>`
+
+This method will return  `Promise<UploadResult>` when pass `signal` prop in options
+
+`options.signal` - isn't required prop, need to cancel upload request, (more info: [AbortController](https://developer.mozilla.org/docs/Web/API/AbortController), [AbortSignal](https://developer.mozilla.org/docs/Web/API/AbortSignal)) 
+
+**NOTE:** Support for [cancelling requests with AbortController](https://github.com/react-native-community/releases/blob/master/CHANGELOG.md#v0600) was added in **React Native 0.60.0**
+
+```js
+const controller = new AbortController();
+
+uploadFiles({
+  toUrl,
+  files,
+  signal: controller.signal
+}).then(...).catch(error => {
+  if (error.name !== 'AbortError'){
+    // Handle error
+  }
+});
+
+// ...
+// Abort upload request
+controller.abort();
+```
+
+---
+
+#### `uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> }`
+
+When signal is falsy value, this method will return object `{ jobId: number, promise: Promise<DownloadResult> }` and
+ using a `jobId` you can cancel upload request `stopUpload(jobId)`
+ 
+```js
+const {promise, jobId} = uploadFiles({
+  toUrl,
+  files,
+});
+
+promise.then(...);
+
+// ...
+// Abort upload request
+stopUpload(jobId);
+```
 
 ```js
 type UploadFileOptions = {
@@ -612,11 +703,12 @@ type UploadFileOptions = {
   headers?: Headers;        // An object of headers to be passed to the server
   fields?: Fields;          // An object of fields to be passed to the server
   method?: string;          // Default is 'POST', supports 'POST' and 'PUT'
+  signal?: AbortSignal;     // An AbortSignal instance of AbortController.signal (for promise canceling)
   begin?: (res: UploadBeginCallbackResult) => void;
   progress?: (res: UploadProgressCallbackResult) => void;
 };
-
 ```
+
 ```js
 type UploadResult = {
   jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.

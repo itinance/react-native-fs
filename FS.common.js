@@ -78,6 +78,7 @@ type DownloadFileOptions = {
   connectionTimeout?: number; // only supported on Android yet
   readTimeout?: number;       // supported on Android and iOS
   backgroundTimeout?: number; // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
+  signal?: AbortSignal;       // An AbortSignal instance of AbortController.signal (for promise canceling)
 };
 
 type DownloadBeginCallbackResult = {
@@ -106,6 +107,7 @@ type UploadFileOptions = {
   headers?: Headers;        // An object of headers to be passed to the server
   fields?: Fields;          // An object of fields to be passed to the server
   method?: string;          // Default is 'POST', supports 'POST' and 'PUT'
+  signal?: AbortSignal;     // An AbortSignal instance of AbortController.signal (for promise canceling)
   beginCallback?: (res: UploadBeginCallbackResult) => void; // deprecated
   progressCallback?: (res: UploadProgressCallbackResult) => void; // deprecated
   begin?: (res: UploadBeginCallbackResult) => void;
@@ -189,6 +191,13 @@ function readDirGeneric(dirpath: string, command: Function) {
       isDirectory: () => file.type === RNFSFileTypeDirectory,
     }));
   });
+}
+
+function isNativeAbortDownloadError(error) {
+    // iOS: https://github.com/itinance/react-native-fs/blob/ed2f1b7555ee6da585535f1d9e659ca9c581aedb/Downloader.m#L161
+    // Android : https://github.com/itinance/react-native-fs/blob/ed2f1b7555ee6da585535f1d9e659ca9c581aedb/android/src/main/java/com/rnfs/Downloader.java#L115
+
+    return error && error.message === "Download has been aborted";
 }
 
 var RNFS = {
@@ -533,6 +542,31 @@ var RNFS = {
       hasResumableCallback: options.resumable instanceof Function,
     };
 
+    if (options.signal) {
+      var onAbort = () => RNFS.stopDownload(jobId);
+      var abortError = new Error("Download has been aborted");
+
+      abortError.name = "AbortError";
+
+      if (options.signal.aborted) {
+        return Promise.reject(abortError);
+      }
+
+      options.signal.addEventListener("abort", onAbort);
+
+      return RNFSManager.downloadFile(bridgeOptions)
+        .then(res => {
+          subscriptions.forEach(sub => sub.remove());
+          return res;
+        })
+        .catch(error =>
+          Promise.reject(isNativeAbortDownloadError(error) ? abortError : error)
+        )
+        .finally(() => {
+          options.signal.removeEventListener("abort", onAbort);
+        });
+    }
+
     return {
       jobId,
       promise: RNFSManager.downloadFile(bridgeOptions).then(res => {
@@ -588,6 +622,34 @@ var RNFS = {
       hasBeginCallback: options.begin instanceof Function || options.beginCallback instanceof Function,
       hasProgressCallback: options.progress instanceof Function || options.progressCallback instanceof Function,
     };
+
+
+    if (options.signal) {
+      var onAbort = () => RNFS.stopUpload(jobId);
+      var abortError = new Error("Upload has been aborted");
+
+      abortError.name = "AbortError";
+
+      if (options.signal.aborted) {
+        return Promise.reject(abortError);
+      }
+
+      options.signal.addEventListener("abort", onAbort);
+
+      return RNFSManager.uploadFiles(bridgeOptions)
+        .then(res => {
+          subscriptions.forEach(sub => sub.remove());
+
+          // When invoke `RNFS.stopUpload(jobId)` promise will resolve with empty { body: "" }
+          if (res.body === "" && options.signal.aborted) {
+            return Promise.reject(abortError);
+          }
+
+          return res;
+        })
+        .catch(error => Promise.reject(error))
+        .finally(() => options.signal.removeEventListener("abort", onAbort));
+    }
 
     return {
       jobId,

@@ -271,9 +271,17 @@ export function downloadFile(
 	options: DownloadFileOptions
 ): { jobId: number; promise: Promise<DownloadResult> }
 
+export function downloadFile(
+	options: DownloadFileOptions & { signal: AbortSignal }
+): Promise<DownloadResult>
+
 export function uploadFiles(
 	options: UploadFileOptions
 ): { jobId: number; promise: Promise<UploadResult> }
+
+export function uploadFiles(
+    options: UploadFileOptions & { signal: AbortSignal }
+): Promise<UploadResult>
 
 export function touch(
 	filepath: string,
