@@ -173,21 +173,20 @@ catch (...)
     promise.Reject("Unexpected error while making directory.");
 }
 
-winrt::fire_and_forget RNFSManager::moveFile(std::string filepath, std::string destPath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::moveFile(std::string filepath, std::string destpath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
-    winrt::hstring srcDirectoryPath, fileName;
-    splitPath(filepath, srcDirectoryPath, fileName);
+    winrt::hstring srcDirectoryPath, srcFileName;
+    splitPath(filepath, srcDirectoryPath, srcFileName);
 
-    std::filesystem::path dest(destPath);
-    dest.make_preferred();
-    winrt::hstring destDirectoryPath{ dest.c_str() };
+    winrt::hstring destDirectoryPath, destFileName;
+    splitPath(destpath, destDirectoryPath, destFileName);
 
     StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(srcDirectoryPath) };
     StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(destDirectoryPath) };
-    StorageFile file{ co_await srcFolder.GetFileAsync(fileName) };
+    StorageFile file{ co_await srcFolder.GetFileAsync(srcFileName) };
 
-    co_await file.MoveAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
+    co_await file.MoveAsync(destFolder, destFileName, NameCollisionOption::ReplaceExisting);
 
     promise.Resolve();
 }
@@ -197,21 +196,20 @@ catch (...)
 }
 
 
-winrt::fire_and_forget RNFSManager::copyFile(std::string filepath, std::string destPath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::copyFile(std::string filepath, std::string destpath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
-    winrt::hstring srcDirectoryPath, fileName;
-    splitPath(filepath, srcDirectoryPath, fileName);
+    winrt::hstring srcDirectoryPath, srcFileName;
+    splitPath(filepath, srcDirectoryPath, srcFileName);
 
-    std::filesystem::path dest(destPath);
-    dest.make_preferred();
-    winrt::hstring destDirectoryPath{ dest.c_str() };
+    winrt::hstring destDirectoryPath, destFileName;
+    splitPath(destpath, destDirectoryPath, destFileName);
 
     StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(srcDirectoryPath) };
     StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(destDirectoryPath) };
-    StorageFile file{ co_await srcFolder.GetFileAsync(fileName) };
+    StorageFile file{ co_await srcFolder.GetFileAsync(srcFileName) };
 
-    co_await file.CopyAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
+    co_await file.CopyAsync(destFolder, destFileName, NameCollisionOption::ReplaceExisting);
 
     promise.Resolve();
 }

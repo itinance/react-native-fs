@@ -292,7 +292,7 @@ const App: () => React$Node = () => {
       toFile: RNFS.DocumentDirectoryPath + '/' + downloadFilePathParam +'/' + downloadFileName,
       begin: () => {console.log('It has begun!');},
       progress: () => {console.log('It is going!');},
-      progressInterval: 100,
+      progressDivider: 7,
     }).promise.then((r) => {
       Alert.alert('Successfully Downloaded File', r.jobId + ' ' + r.statusCode + ' ' + r.bytesWritten)
     })
