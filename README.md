@@ -249,7 +249,7 @@ return RNFS.unlink(path)
 // require the module
 var RNFS = require('react-native-fs');
 
-var uploadUrl = 'http://requestb.in/XXXXXXX';  // For testing purposes, go to http://requestb.in/ and create your own link
+var uploadUrl = 'https://hookbin.com/XXXXXXXX';  // For testing purposes, go to https://hookbin.com/ and create your own link
 // create an array of objects of the files you want to upload
 var files = [
   {
