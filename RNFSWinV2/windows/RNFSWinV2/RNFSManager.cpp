@@ -255,7 +255,7 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == 0x80070002) // FileNotFoundException
     {
-        promise.Reject("ENOENT: no such file or directory");
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
     else
     {
@@ -306,11 +306,11 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == 0x80070002) // FileNotFoundException
     {
-        promise.Reject("ENOENT: no such file or directory.");
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
     else if (result == 0x80070005) // UnauthorizedAccessException
     {
-        promise.Reject("EISDIR: illegal operation on a directory.");
+        promise.Reject(RN::ReactError{ "EISDIR", "EISDIR: illegal operation on a directory, read" });
     }
     else
     {
@@ -375,7 +375,7 @@ try
 }
 catch (...)
 {
-    promise.Reject("ENOENT: no such file or directory.");
+    promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
 }
 
 
@@ -436,11 +436,11 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == 0x80070002) // FileNotFoundException
     {
-        promise.Reject("ENOENT: no such file or directory.");
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
     else if (result == 0x80070005) // UnauthorizedAccessException
     {
-        promise.Reject("EISDIR: illegal operation on a directory.");
+        promise.Reject(RN::ReactError{"EISDIR", "EISDIR: Could not open file for reading" });
     }
     else 
     {
@@ -456,7 +456,7 @@ try
     // Note: SHA224 is not part of winrt 
     if (algorithm.compare("sha224") == 0)
     {
-        promise.Reject("WinRT does not offer sha224 encryption.");
+        promise.Reject(RN::ReactError{ "Error", "WinRT does not offer sha224 encryption." });
         co_return;
     }
 
@@ -469,7 +469,7 @@ try
     auto search{ availableHashes.find(algorithm) };
     if (search == availableHashes.end())
     {
-        promise.Reject("Failed to find hash algorithm.");
+        promise.Reject(RN::ReactError{ "Error", "Invalid hash algorithm " + algorithm});
         co_return;
     }
 
@@ -486,11 +486,11 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == 0x80070002) // FileNotFoundException
     {
-        promise.Reject("ENOENT: no such file or directory.");
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
     else if (result == 0x80070005) // UnauthorizedAccessException
     {
-        promise.Reject("EISDIR: illegal operation on a directory.");
+        promise.Reject(RN::ReactError{ "EISDIR", "EISDIR: illegal operation on a directory, read" });
     }
     else
     {
@@ -521,7 +521,7 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == 0x80070002) // FileNotFoundException
     {
-        promise.Reject("ENOENT: no such file or directory.");
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
     else
     {
@@ -553,7 +553,7 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == 0x80070002) // FileNotFoundException
     {
-        promise.Reject("ENOENT: no such file or directory.");
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
     else
     {
@@ -589,7 +589,7 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == 0x80070002) // FileNotFoundException
     {
-        promise.Reject("ENOENT: no such file or directory.");
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
     else
     {
