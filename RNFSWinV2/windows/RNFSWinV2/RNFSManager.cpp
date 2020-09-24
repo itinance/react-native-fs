@@ -139,15 +139,40 @@ void RNFSManager::Initialize(RN::ReactContext const& reactContext) noexcept
 //
 void RNFSManager::ConstantsViaConstantsProvider(RN::ReactConstantProvider& constants) noexcept
 {
+    // RNFS.MainBundlePath
     constants.Add(L"RNFSMainBundlePath", to_string(Package::Current().InstalledLocation().Path()));
+
+    // RNFS.CachesDirectoryPath
     constants.Add(L"RNFSCachesDirectoryPath", to_string(ApplicationData::Current().LocalCacheFolder().Path()));
 
-    constants.Add(L"RNFSRoamingDirectoryPath", to_string(ApplicationData::Current().RoamingFolder().Path()));
+    // RNFS.ExternalCachesDirectoryPath - NULL in iOS (No equivalent in Windows)
+
+    // RNFS.DocumentDirectoryPath
     constants.Add(L"RNFSDocumentDirectoryPath", to_string(ApplicationData::Current().LocalFolder().Path()));
 
-    constants.Add(L"RNFSTemporaryDirectoryPath", to_string(ApplicationData::Current().TemporaryFolder().Path()));
-    constants.Add(L"RNFSExternalDirectoryPath", to_string(ApplicationData::Current().LocalFolder().Path()));
+    // RNFS.DownloadDirectoryPath - IMPLEMENT for convenience? (absent in iOS and deprecated in Android)
+    constants.Add(L"RNFSDownloadDirectoryPath", UserDataPaths::GetDefault().Downloads());
 
+    // RNFS.ExternalDirectoryPath - NULL in iOS (Pending use case in Windows and deprecated in Android)
+    constants.Add(L"RNFSExternalDirectoryPath", UserDataPaths::GetDefault().Documents());
+
+    // RNFS.ExternalStorageDirectoryPath - NULL in iOS (Pending use case in Windows and deprecated in Android)
+
+    // RNFS.TemporaryDirectoryPath
+    constants.Add(L"RNFSTemporaryDirectoryPath", to_string(ApplicationData::Current().TemporaryFolder().Path()));
+
+    // RNFS.LibraryDirectoryPath - NULL in Android (No equivalent in Windows)
+
+    // RNFS.PicturesDirectoryPath - IMPLEMENT for convenience? (absent in iOS though and deprecated in Android)
+    constants.Add(L"RNFSPicturesDirectoryPath", UserDataPaths::GetDefault().Pictures());
+
+    // RNFS.FileProtectionKeys - NULL in Android (No equivalent in Windows)
+
+    // TODO: Check to see if these can be accessed after package created
+    // Needed for synchronization across Windows devices
+    constants.Add(L"RNFSRoamingDirectoryPath", to_string(ApplicationData::Current().RoamingFolder().Path()));
+
+    // Filetypes
     constants.Add(L"RNFSFileTypeRegular", 0);
     constants.Add(L"RNFSFileTypeDirectory", 1);
 }

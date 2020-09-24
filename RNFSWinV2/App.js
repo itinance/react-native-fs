@@ -374,12 +374,17 @@ const App: () => React$Node = () => {
             <View style={styles.sectionContainer}>
               <View style={styles.sectionDescription}>
                 <Text>
-                  {"RNFS.MainBundlePath: " + RNFS.MainBundlePath + "\n"}
-                  {"RNFS.CachesDirectoryPath: " + RNFS.CachesDirectoryPath + "\n"}
-                  {"RNFS.RoamingDirectoryPath: " + RNFS.RoamingDirectoryPath  + "\n"}
-                  {"RNFS.DocumentDirectoryPath: " + RNFS.DocumentDirectoryPath  + "\n"}
-                  {"RNFS.TemporaryDirectoryPath: " + RNFS.TemporaryDirectoryPath  + "\n"}
-                  {"RNFS.ExternalDirectoryPath: " + RNFS.ExternalDirectoryPath}
+                  {"RNFS.MainBundlePath: " + RNFS.MainBundlePath + '\n'}
+                  {"RNFS.CachesDirectoryPath: " + RNFS.CachesDirectoryPath + '\n'}
+                  {"RNFS.ExternalCachesDirectoryPath: " + RNFS.ExternalCachesDirectoryPath + '\n'}
+                  {"RNFS.DocumentDirectoryPath: " + RNFS.DocumentDirectoryPath  + '\n'}
+                  {"RNFS.DownloadDirectoryPath: " + RNFS.DownloadDirectoryPath  + '\n'}
+                  {"RNFS.ExternalDirectoryPath: " + RNFS.ExternalDirectoryPath  + '\n'}
+                  {"RNFS.ExternalStorageDirectoryPath: " + RNFS.ExternalStorageDirectoryPath + '\n'}
+                  {"RNFS.TemporaryDirectoryPath: " + RNFS.TemporaryDirectoryPath + '\n'}
+                  {"RNFS.LibraryDirectoryPath: " + RNFS.LibraryDirectoryPath + '\n'}
+                  {"RNFS.PicturesDirectoryPath: " + RNFS.PicturesDirectoryPath + '\n'}
+                  {"RNFS.FileProtectionKeys: " + RNFS.FileProtectionKeys + '\n'}
                 </Text>
               </View>
             </View>
