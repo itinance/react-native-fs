@@ -139,40 +139,15 @@ void RNFSManager::Initialize(RN::ReactContext const& reactContext) noexcept
 //
 void RNFSManager::ConstantsViaConstantsProvider(RN::ReactConstantProvider& constants) noexcept
 {
-    // RNFS.MainBundlePath
     constants.Add(L"RNFSMainBundlePath", to_string(Package::Current().InstalledLocation().Path()));
-
-    // RNFS.CachesDirectoryPath
     constants.Add(L"RNFSCachesDirectoryPath", to_string(ApplicationData::Current().LocalCacheFolder().Path()));
 
-    // RNFS.ExternalCachesDirectoryPath - NULL in iOS (No equivalent in Windows)
-
-    // RNFS.DocumentDirectoryPath
+    constants.Add(L"RNFSRoamingDirectoryPath", to_string(ApplicationData::Current().RoamingFolder().Path()));
     constants.Add(L"RNFSDocumentDirectoryPath", to_string(ApplicationData::Current().LocalFolder().Path()));
 
-    // RNFS.DownloadDirectoryPath - IMPLEMENT for convenience? (absent in iOS and deprecated in Android)
-    constants.Add(L"RNFSDownloadDirectoryPath", UserDataPaths::GetDefault().Downloads());
-
-    // RNFS.ExternalDirectoryPath - NULL in iOS (Pending use case in Windows and deprecated in Android)
-    constants.Add(L"RNFSExternalDirectoryPath", UserDataPaths::GetDefault().Documents());
-
-    // RNFS.ExternalStorageDirectoryPath - NULL in iOS (Pending use case in Windows and deprecated in Android)
-
-    // RNFS.TemporaryDirectoryPath
     constants.Add(L"RNFSTemporaryDirectoryPath", to_string(ApplicationData::Current().TemporaryFolder().Path()));
+    constants.Add(L"RNFSExternalDirectoryPath", to_string(ApplicationData::Current().LocalFolder().Path()));
 
-    // RNFS.LibraryDirectoryPath - NULL in Android (No equivalent in Windows)
-
-    // RNFS.PicturesDirectoryPath - IMPLEMENT for convenience? (absent in iOS though and deprecated in Android)
-    constants.Add(L"RNFSPicturesDirectoryPath", UserDataPaths::GetDefault().Pictures());
-
-    // RNFS.FileProtectionKeys - NULL in Android (No equivalent in Windows)
-
-    // TODO: Check to see if these can be accessed after package created
-    // Needed for synchronization across Windows devices
-    constants.Add(L"RNFSRoamingDirectoryPath", to_string(ApplicationData::Current().RoamingFolder().Path()));
-
-    // Filetypes
     constants.Add(L"RNFSFileTypeRegular", 0);
     constants.Add(L"RNFSFileTypeDirectory", 1);
 }
@@ -193,61 +168,59 @@ try
         promise.Resolve();
     }
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    // "Unexpected error while making directory."
-    promise.Reject( winrt::to_string(ex.message()).c_str() );
+    promise.Reject("Unexpected error while making directory.");
 }
 
-
-winrt::fire_and_forget RNFSManager::moveFile(std::string filepath, std::string destpath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::moveFile(std::string filepath, std::string destPath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
-    winrt::hstring srcDirectoryPath, srcFileName;
-    splitPath(filepath, srcDirectoryPath, srcFileName);
+    winrt::hstring srcDirectoryPath, fileName;
+    splitPath(filepath, srcDirectoryPath, fileName);
 
-    winrt::hstring destDirectoryPath, destFileName;
-    splitPath(destpath, destDirectoryPath, destFileName);
+    std::filesystem::path dest(destPath);
+    dest.make_preferred();
+    winrt::hstring destDirectoryPath{ dest.c_str() };
 
     StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(srcDirectoryPath) };
     StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(destDirectoryPath) };
-    StorageFile file{ co_await srcFolder.GetFileAsync(srcFileName) };
+    StorageFile file{ co_await srcFolder.GetFileAsync(fileName) };
 
-    co_await file.MoveAsync(destFolder, destFileName, NameCollisionOption::ReplaceExisting);
+    co_await file.MoveAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
 
     promise.Resolve();
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    // "Failed to move file."
-    promise.Reject(winrt::to_string(ex.message()).c_str());
+    promise.Reject("Failed to move file");
 }
 
 
-winrt::fire_and_forget RNFSManager::copyFile(std::string filepath, std::string destpath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::copyFile(std::string filepath, std::string destPath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
-    winrt::hstring srcDirectoryPath, srcFileName;
-    splitPath(filepath, srcDirectoryPath, srcFileName);
+    winrt::hstring srcDirectoryPath, fileName;
+    splitPath(filepath, srcDirectoryPath, fileName);
 
-    winrt::hstring destDirectoryPath, destFileName;
-    splitPath(destpath, destDirectoryPath, destFileName);
+    std::filesystem::path dest(destPath);
+    dest.make_preferred();
+    winrt::hstring destDirectoryPath{ dest.c_str() };
 
     StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(srcDirectoryPath) };
     StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(destDirectoryPath) };
-    StorageFile file{ co_await srcFolder.GetFileAsync(srcFileName) };
+    StorageFile file{ co_await srcFolder.GetFileAsync(fileName) };
 
-    co_await file.CopyAsync(destFolder, destFileName, NameCollisionOption::ReplaceExisting);
+    co_await file.CopyAsync(destFolder, fileName, NameCollisionOption::ReplaceExisting);
 
     promise.Resolve();
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    // "Failed to copy file."
-    promise.Reject(winrt::to_string(ex.message()).c_str());
+    promise.Reject("Failed to copy file.");
 }
 
-
+// TODO: Find a way to test this. May need a demo app because the program crashes when testing for some reason
 winrt::fire_and_forget RNFSManager::getFSInfo(RN::ReactPromise<RN::JSValueObject> promise) noexcept
 try
 {
@@ -260,12 +233,10 @@ try
 
     promise.Resolve(result);
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    // "Failed to retrieve file system info."
-    promise.Reject(winrt::to_string(ex.message()).c_str());
+    promise.Reject("Failed to retrieve file system info.");
 }
-
 
 winrt::fire_and_forget RNFSManager::unlink(std::string filepath, RN::ReactPromise<void> promise) noexcept
 try
@@ -274,23 +245,15 @@ try
     splitPath(filepath, directoryPath, fileName);
 
     StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+
     auto target{ co_await folder.GetItemAsync(fileName) };
     co_await target.DeleteAsync();
 
     promise.Resolve();
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
-    {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
-    }
-    else
-    {
-        // "Failed to unlink file" 
-        promise.Reject( winrt::to_string(ex.message()).c_str() );
-    }
+    promise.Reject("Failed to unlink.");
 }
 
 
@@ -300,24 +263,22 @@ try
     std::filesystem::path path(filepath);
     promise.Resolve(std::filesystem::exists(path));
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    // "Failed to check if file or directory exists.
-    promise.Reject(winrt::to_string(ex.message()).c_str());
+    promise.Reject("Failed to check if file or directory exists.");
 }
 
-
+// TODO: Downloader
 void RNFSManager::stopDownload(int32_t jobID) noexcept
 {
     m_tasks.Cancel(jobID);
 }
 
-
+// TODO: Downloader
 void RNFSManager::stopUpload(int32_t jobID) noexcept
 {
     m_tasks.Cancel(jobID);
 }
-
 
 winrt::fire_and_forget RNFSManager::readFile(std::string filepath, RN::ReactPromise<std::string> promise) noexcept
 try
@@ -332,24 +293,10 @@ try
     winrt::hstring base64Content{ Cryptography::CryptographicBuffer::EncodeToBase64String(buffer) };
     promise.Resolve(winrt::to_string(base64Content));
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
-    {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
-    }
-    else if (result == 0x80070005) // UnauthorizedAccessException
-    {
-        promise.Reject(RN::ReactError{ "EISDIR", "EISDIR: illegal operation on a directory, read" });
-    }
-    else
-    {
-        // "Failed to read file."
-        promise.Reject(winrt::to_string(ex.message()).c_str());
-    }
+    promise.Reject("Failed to read file.");
 }
-
 
 winrt::fire_and_forget RNFSManager::stat(std::string filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept
 try
@@ -407,9 +354,8 @@ try
 }
 catch (...)
 {
-    promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
+    promise.Reject("Failed to retrieve file info.");
 }
-
 
 winrt::fire_and_forget RNFSManager::readDir(std::string directory, RN::ReactPromise<RN::JSValueArray> promise) noexcept
 try
@@ -438,10 +384,9 @@ try
 
     promise.Resolve(resultsArray);
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    // "Failed to read directory."
-    promise.Reject(winrt::to_string(ex.message()).c_str());
+    promise.Reject("Failed to read directory.");
 }
 
 
@@ -464,22 +409,9 @@ try
 
     promise.Resolve(result);
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
-    {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
-    }
-    else if (result == 0x80070005) // UnauthorizedAccessException
-    {
-        promise.Reject(RN::ReactError{"EISDIR", "EISDIR: Could not open file for reading" });
-    }
-    else 
-    {
-        // "Failed to read from file."
-        promise.Reject(winrt::to_string(ex.message()).c_str());
-    }
+    promise.Reject("Failed to read from file.");
 }
 
 
@@ -490,7 +422,7 @@ try
     // Note: SHA224 is not part of winrt 
     if (algorithm.compare("sha224") == 0)
     {
-        promise.Reject(RN::ReactError{ "Error", "WinRT does not offer sha224 encryption." });
+        promise.Reject("WinRT does not offer sha224 encryption.");
         co_return;
     }
 
@@ -503,7 +435,7 @@ try
     auto search{ availableHashes.find(algorithm) };
     if (search == availableHashes.end())
     {
-        promise.Reject(RN::ReactError{ "Error", "Invalid hash algorithm " + algorithm});
+        promise.Reject("Failed to find hash algorithm.");
         co_return;
     }
 
@@ -515,22 +447,9 @@ try
 
     promise.Resolve(result);
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
-    {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
-    }
-    else if (result == 0x80070005) // UnauthorizedAccessException
-    {
-        promise.Reject(RN::ReactError{ "EISDIR", "EISDIR: illegal operation on a directory, read" });
-    }
-    else
-    {
-        // "Failed to get checksum from file."
-        promise.Reject(winrt::to_string(ex.message()).c_str());
-    }
+    promise.Reject("Failed to get checksum from file.");
 }
 
 
@@ -551,18 +470,9 @@ try
 
     promise.Resolve();
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
-    {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
-    }
-    else
-    {
-        // Failed to write to file."
-        promise.Reject(winrt::to_string(ex.message()).c_str());
-    }
+    promise.Reject("Failed to write to file.");
 }
 
 
@@ -584,19 +494,11 @@ try
 
     promise.Resolve();
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
-    {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
-    }
-    else
-    {
-        // "Failed to append to file."
-        promise.Reject(winrt::to_string(ex.message()).c_str());
-    }
+    promise.Reject("Failed to append to file.");
 }
+
 winrt::fire_and_forget RNFSManager::write(std::string filepath, std::string base64Content, int position, RN::ReactPromise<void> promise) noexcept
 try
 {
@@ -621,18 +523,9 @@ try
     co_await stream.WriteAsync(buffer);
     promise.Resolve();
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
-    {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
-    }
-    else
-    {
-        // Failed to write to file."
-        promise.Reject(winrt::to_string(ex.message()).c_str());
-    }
+    promise.Reject("Failed to write to file.");
 }
 
 
@@ -676,10 +569,9 @@ try
 
     co_await m_tasks.Add(jobId, ProcessDownloadRequestAsync(promise, request, filePath, jobId, progressInterval, progressDivider));
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    // "Failed to download file." 
-    promise.Reject(winrt::to_string(ex.message()).c_str());
+    promise.Reject("Failed to download file.");
 }
 
 
@@ -737,13 +629,12 @@ try
 
     co_await m_tasks.Add(jobId, ProcessUploadRequestAsync(promise, options, httpMethod, files, jobId, totalUploadSize));
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    // "Failed to upload file."
-    promise.Reject(winrt::to_string(ex.message()).c_str());
+    promise.Reject("Failed to upload file.");
 }
 
-
+// TODO: Modify FS.Common.js to detect Windows (or at least if the platform isn't Android to modify the creation time)
 void RNFSManager::touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<std::string> promise) noexcept
 try
 {
@@ -783,18 +674,9 @@ try
         promise.Resolve(winrt::to_string(s_path));
     }
 }
-catch (const hresult_error& ex)
+catch (...)
 {
-    hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
-    {
-        promise.Reject("ENOENT: no such file.");
-    }
-    else
-    {
-        // "Failed to touch file."
-        promise.Reject(winrt::to_string(ex.message()).c_str());
-    }
+    promise.Reject("Failed to touch file.");
 }
 
 
@@ -809,7 +691,7 @@ void RNFSManager::splitPath(const std::string& fullPath, winrt::hstring& directo
 
 
 IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
-    HttpRequestMessage request, std::wstring_view filePath, int jobId, int64_t progressInterval, int64_t progressDivider)
+    HttpRequestMessage request, std::wstring_view filePath, int jobId, uint64_t progressInterval, uint64_t progressDivider)
 {
     try
     {
@@ -842,12 +724,18 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
 
         auto contentStream = co_await response.Content().ReadAsInputStreamAsync();
         auto contentLengthForProgress = contentLength.Type() == PropertyType::UInt64 ? contentLength.Value() : -1;
+        uint64_t nextProgressIncrement { 0 };
+        if (progressInterval >= 0)
+        {
+            nextProgressIncrement = progressInterval;
+        }
+        else if (progressDivider >= 0)
+        {
+            nextProgressIncrement = contentLengthForProgress / progressDivider;
+        }
         
         Buffer buffer{ 8 * 1024 };
         uint32_t read = 0;
-        int64_t initialProgressTime{ winrt::clock::now().time_since_epoch().count() / 10000 };
-        int64_t currentProgressTime;
-        uint64_t progressDividerUnsigned{ uint64_t(progressDivider) };
 
         for (;;)
         {
@@ -860,12 +748,12 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
             }
 
             co_await outputStream.WriteAsync(readBuffer);
-            totalRead += read;
 
-            if (progressInterval > 0)
+            if (contentLengthForProgress >= 0)
             {
-                currentProgressTime = winrt::clock::now().time_since_epoch().count() / 10000;
-                if(currentProgressTime - initialProgressTime >= progressInterval)
+                totalRead += read;
+                if (totalRead * 100 / contentLengthForProgress >= nextProgressIncrement ||
+                    totalRead == contentLengthForProgress)
                 {
                     m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"DownloadProgress",
                         RN::JSValueObject{
@@ -873,28 +761,8 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
                             { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
                             { "bytesWritten", totalRead },
                         });
-                    initialProgressTime = winrt::clock::now().time_since_epoch().count() / 10000;
-                }
-            }
-            else if (progressDivider <= 0)
-            {
-                m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"DownloadProgress",
-                    RN::JSValueObject{
-                        { "jobId", jobId },
-                        { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
-                        { "bytesWritten", totalRead },
-                    });
-            }
-            else
-            {
-                if (totalRead * 100 / contentLengthForProgress >= progressDividerUnsigned ||
-                    totalRead == contentLengthForProgress) {
-                    m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"DownloadProgress",
-                        RN::JSValueObject{
-                            { "jobId", jobId },
-                            { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
-                            { "bytesWritten", totalRead },
-                        });
+
+                    nextProgressIncrement += progressInterval;
                 }
             }
         }
@@ -946,6 +814,7 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
         }
         
         std::string temp{attempt.str()};
+        //auto temp2{ winrt::to_hstring(temp) };
         request.Headers().ContentDisposition(Headers::HttpContentDispositionHeaderValue::Parse(winrt::to_hstring(attempt.str())));
 
         m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"UploadBegin",
