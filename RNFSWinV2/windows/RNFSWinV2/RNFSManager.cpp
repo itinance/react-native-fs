@@ -912,6 +912,10 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
         ss << "CANCELLED: job '" << jobId << "' to file '" << to_string(filePath) << "'";
         promise.Reject(RN::ReactError{ std::to_string(ex.code()), ss.str(), RN::JSValueObject{} });
     }
+    catch (const hresult_error& ex)
+    {
+        promise.Reject(winrt::to_string(ex.message()).c_str());
+    }
 }
 
 
@@ -1035,6 +1039,10 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
         std::stringstream ss;
         ss << "CANCELLED: job '" << jobId << "' to file '" << "'";
         promise.Reject(RN::ReactError{ std::to_string(ex.code()), ss.str(), RN::JSValueObject{} });
+    }
+    catch (const hresult_error& ex)
+    {
+        promise.Reject(winrt::to_string(ex.message()).c_str());
     }
 }
 
