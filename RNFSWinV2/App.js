@@ -78,6 +78,8 @@ const App: () => React$Node = () => {
   const [uploadFileSource2, setUploadFileSource2] = useState('');
   const [uploadFileDestination, setUploadFileDestination] = useState('');
 
+  const [existsSource, setExistsSource] = useState('');
+
   const mkdirExample = () => {
     if(mkdirParam.length > 0) {
       RNFS.mkdir(RNFS.DocumentDirectoryPath + '/' + mkdirParam)
@@ -105,7 +107,7 @@ const App: () => React$Node = () => {
 
   const copyFileExample = () => {
     if(copyFileSource.length > 0) {
-      RNFS.copyFile(RNFS.DocumentDirectoryPath + '/' + copyFileSource, 
+      RNFS.copyFile(RNFS.MainBundlePath + '/' + copyFileSource, 
                     RNFS.DocumentDirectoryPath + '/' + copyFileDest)
             .then((result) => {
               Alert.alert('Successfully put copy of file to specified destination.')
@@ -139,7 +141,7 @@ const App: () => React$Node = () => {
   }
 
   const readDirExample = () => {
-    RNFS.readDir(RNFS.DocumentDirectoryPath + '/' + readDirParam)
+    RNFS.readDir(RNFS.MainBundlePath + '/' + readDirParam)
           .then((result) => {
             if(result.length == 0) {
               Alert.alert('Directory is empty')
@@ -354,6 +356,16 @@ const App: () => React$Node = () => {
     }
   }
 
+  const existsExample = () => {
+    RNFS.exists(RNFS.DocumentDirectoryPath + '/' + existsSource)
+          .then((result) => {
+            Alert.alert('Exists: ' + result)
+          })
+          .catch((err) => {
+            Alert.alert(err.message)
+          })
+  }
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
@@ -407,6 +419,27 @@ const App: () => React$Node = () => {
               title="Create Directory"
               color="#9a73ef"
               onPress={mkdirExample}
+            />
+            </View>
+          </View>
+
+          <View style={styles.body}>
+            <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>
+              {"exists"}
+            </Text>
+              <View style={styles.sectionDescription}>
+              <TextInput style = {styles.input}
+                placeholder = "Source Path"
+                onChangeText={existsSource => setExistsSource(existsSource)}
+                placeholderTextColor = "#9a73ef"
+                autoCapitalize = "none"
+              />
+              </View>
+            <Button
+              title="Check Existance"
+              onPress={existsExample}
+              color="#9a73ef"
             />
             </View>
           </View>

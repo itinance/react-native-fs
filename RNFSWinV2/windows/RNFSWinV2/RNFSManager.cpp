@@ -186,7 +186,7 @@ try
     // Consistent with Apple's createDirectoryAtPath method and result, but not with Android's
     if (std::filesystem::create_directories(path) == false)
     {
-        promise.Reject("Failed to create directory.");
+        promise.Reject("Failed to create directory. Directory may already exist.");
     }
     else
     {
@@ -270,13 +270,21 @@ catch (const hresult_error& ex)
 winrt::fire_and_forget RNFSManager::unlink(std::string filepath, RN::ReactPromise<void> promise) noexcept
 try
 {
-    winrt::hstring directoryPath, fileName;
-    splitPath(filepath, directoryPath, fileName);
-
-    StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-    auto target{ co_await folder.GetItemAsync(fileName) };
-    co_await target.DeleteAsync();
-
+    if (std::filesystem::is_directory(filepath))
+    {
+        std::filesystem::path path(filepath);
+        path.make_preferred();
+        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(winrt::to_hstring(path.c_str())) };
+        co_await folder.DeleteAsync();
+    }
+    else
+    {
+        winrt::hstring directoryPath, fileName;
+        splitPath(filepath, directoryPath, fileName);
+        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+        auto target{ co_await folder.GetItemAsync(fileName) };
+        co_await target.DeleteAsync();
+    }
     promise.Resolve();
 }
 catch (const hresult_error& ex)
