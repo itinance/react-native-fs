@@ -296,10 +296,10 @@ const App: () => React$Node = () => {
       progress: () => {console.log('It is going!');},
       progressDivider: 7,
     }).promise.then((r) => {
-      Alert.alert('Successfully Downloaded File', r.jobId + ' ' + r.statusCode + ' ' + r.bytesWritten)
+      console.log('Successfully Downloaded File', r.jobId + ' ' + r.statusCode + ' ' + r.bytesWritten);
     })
     .catch((err) => {
-      Alert.alert(err.message)
+      console.log(err.message);
     });
   }
 
