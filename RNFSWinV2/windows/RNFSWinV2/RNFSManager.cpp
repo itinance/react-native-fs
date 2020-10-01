@@ -965,8 +965,7 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
                 { "jobId", jobId },
             });
 
-        Buffer buffer{ 8 * 1024 };
-        uint32_t read{ 0 };
+        uint64_t totalUploaded{ 0 };
 
         for (const auto& fileInfo : files)
         {
@@ -995,33 +994,23 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
                 splitPath(filepath, directoryPath, fileName);
                 StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
                 StorageFile file{ co_await folder.GetFileAsync(fileName) };
-
+                auto properties{ co_await file.GetBasicPropertiesAsync() };
                 if (filetype.empty())
                 {
                     filetype = file.ContentType();
                 }
 
                 HttpBufferContent entry{ co_await FileIO::ReadBufferAsync(file) };
-                IInputStream progress{ co_await entry.ReadAsInputStreamAsync() };
-                for (;;)
-                {
-                    buffer.Length(0);
-                    auto readBuffer = co_await progress.ReadAsync(buffer, buffer.Capacity(), InputStreamOptions::None);
-                    read += readBuffer.Length();
-                    if (readBuffer.Length() == 0)
-                    {
-                        break;
-                    }
-
-                    m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"UploadProgress",
-                        RN::JSValueObject{
-                            { "jobId", jobId },
-                            { "totalBytesExpectedToSend", totalUploadSize },   // The total number of bytes that will be sent to the server
-                            { "totalBytesSent", read },
-                        });
-                }
-                entry.Headers().Append(L"Content-Type", filetype);
+                entry.Headers().TryAppendWithoutValidation(L"Content-Type", filetype);
                 request.Add(entry, name, filename);
+
+                totalUploaded += properties.Size();
+                m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"UploadProgress",
+                    RN::JSValueObject{
+                        { "jobId", jobId },
+                        { "totalBytesExpectedToSend", totalUploadSize },   // The total number of bytes that will be sent to the server
+                        { "totalBytesSent", totalUploaded },
+                    });
             }
             catch (...)
             {
