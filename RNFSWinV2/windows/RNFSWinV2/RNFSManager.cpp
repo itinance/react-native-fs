@@ -494,7 +494,6 @@ catch (const hresult_error& ex)
 winrt::fire_and_forget RNFSManager::hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept
 try
 {
-    auto temp = algorithm;
     // Note: SHA224 is not part of winrt 
     if (algorithm.compare("sha224") == 0)
     {

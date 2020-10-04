@@ -56,7 +56,7 @@ struct RNFSManager
     REACT_INIT(Initialize)
         void Initialize(RN::ReactContext const& reactContext) noexcept;
 
-    REACT_CONSTANT_PROVIDER(ConstantsViaConstantsProvider) // Implemented, but unsure how this works
+    REACT_CONSTANT_PROVIDER(ConstantsViaConstantsProvider)
         void ConstantsViaConstantsProvider(RN::ReactConstantProvider& constants) noexcept;
 
     REACT_METHOD(mkdir); // Implemented
