@@ -133,7 +133,9 @@
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
-  if (error && error.code != NSURLErrorCancelled) {
+  if (error) {
+     NSLog(@"RNFS download: didCompleteWithError %@, %@", error, error.userInfo);
+     if(error.code != NSURLErrorCancelled){
       _resumeData = error.userInfo[NSURLSessionDownloadTaskResumeData];
       if (_resumeData != nil) {
         if (_params.resumableCallback) {
@@ -142,6 +144,7 @@
       } else {
           _params.errorCallback(error);
       }
+     }
   }
 }
 
