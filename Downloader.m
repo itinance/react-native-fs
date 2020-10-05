@@ -128,6 +128,14 @@
     NSLog(@"RNFS download: unable to move tempfile to destination. %@, %@", error, error.userInfo);
   }
 
+  // When numerous downloads are called the sessions are not always invalidated and cleared by iOS14. 
+  // This leads to error 28 – no space left on device so we manually flush and invalidate to free up space
+  if(session != nil){
+    [session flushWithCompletitonHandler:^{
+      [session finishTasksAndInvalidate];
+    }];
+  }
+
   return _params.completeCallback(_statusCode, _bytesWritten);
 }
 
