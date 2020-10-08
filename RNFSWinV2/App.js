@@ -335,7 +335,12 @@ const App: () => React$Node = () => {
         files: files,
         method: 'POST',
         headers: {
+          'authorization': 'myOwnToken',
           'content-language': 'en-US',
+        },
+        fields: {
+          'asdasdadfhdvbf': 'asdg',
+          'asd': 'asdgasfdghasd',
         },
         begin: uploadBegin,
         progress: uploadProgress,
@@ -355,6 +360,60 @@ const App: () => React$Node = () => {
 
     }
   }
+
+  const uploadFileExample2 = () => {
+    if(uploadFileSource1.length > 0 && uploadFileSource2.length > 0) {
+      //var uploadUrl = uploadFileDestination;  // For testing purposes, go to http://requestb.in/ and create your own link
+      // create an array of objects of the files you want to upload
+      var files = [
+        {
+          name: 'test1',
+          filename: 'test1.png',
+          filepath: RNFS.DocumentDirectoryPath + '/' + uploadFileSource1,
+        }, {
+          name: 'test2',
+          filename: 'test2.png',
+          filepath: RNFS.DocumentDirectoryPath +  '/' + uploadFileSource2,
+        }
+      ];
+
+      var uploadBegin = (response) => {
+        var jobId = response.jobId;
+        console.log('UPLOAD HAS BEGUN! JobId: ' + jobId);
+      };
+
+      var uploadProgress = (response) => {
+        var percentage = Math.floor((response.totalBytesSent/response.totalBytesExpectedToSend) * 100);
+        console.log('UPLOAD IS ' + percentage + '% DONE!');
+      };
+
+      // upload files
+      RNFS.uploadFiles({
+        toUrl: uploadFileDestination,
+        files: files,
+        method: 'POST',
+        headers: {
+          'referer': 'toast',
+        },
+        begin: uploadBegin,
+        progress: uploadProgress,
+      }).promise.then((response) => {
+          if (response.statusCode == 200) {
+            console.log('FILES UPLOADED!'); // response.statusCode, response.headers, response.body
+          } else {
+            console.log('SERVER ERROR');
+          }
+        })
+        .catch((err) => {
+          if(err.description === "cancelled") {
+            console.log('User cancelled');
+          }
+          console.log(err);
+        });
+
+    }
+  }
+
 
   const existsExample = () => {
     RNFS.exists(RNFS.DocumentDirectoryPath + '/' + existsSource)
@@ -846,6 +905,11 @@ const App: () => React$Node = () => {
             <Button
               title="Upload Files to Destination"
               onPress={uploadFileExample}
+              color="#9a73ef"
+            />
+            <Button
+              title="Upload Files to Destination with Modified Headers"
+              onPress={uploadFileExample2}
               color="#9a73ef"
             />
             </View>
