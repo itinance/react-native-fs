@@ -55,22 +55,27 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
 
   NSArray *contents = [fileManager contentsOfDirectoryAtPath:dirPath error:&error];
 
-  contents = [contents rnfs_mapObjectsUsingBlock:^id(NSString *obj, NSUInteger idx) {
-    NSString *path = [dirPath stringByAppendingPathComponent:obj];
-    NSDictionary *attributes = [fileManager attributesOfItemAtPath:path error:nil];
-    NSNumber *size = [attributes objectForKey:NSFileSize];
-    if (!size) {
-        size = @0;
+    NSMutableArray * resultArr = [NSMutableArray array];
+    for (NSString *obj in contents) {
+        NSString *path = [dirPath stringByAppendingPathComponent:obj];
+        NSDictionary *attributes = [fileManager attributesOfItemAtPath:path error:nil];
+        if (attributes) {
+            NSNumber *size = [attributes objectForKey:NSFileSize];
+            if (!size) {
+                size = @0;
+            }
+            NSDictionary * result = @{
+                     @"ctime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileCreationDate]],
+                     @"mtime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileModificationDate]],
+                     @"name": obj,
+                     @"path": path,
+                     @"size": size,
+                     @"type": [attributes objectForKey:NSFileType]
+                     };
+            [resultArr addObject:result];
+        }
     }
-    return @{
-             @"ctime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileCreationDate]],
-             @"mtime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileModificationDate]],
-             @"name": obj,
-             @"path": path,
-             @"size": size,
-             @"type": [attributes objectForKey:NSFileType]
-             };
-  }];
+    contents = resultArr;
 
   if (error) {
     return [self reject:reject withError:error];
