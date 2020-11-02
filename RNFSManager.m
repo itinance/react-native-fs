@@ -882,19 +882,19 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
     if ([asset isKindOfClass:[AVURLAsset class]]) {
       NSURL *url = [(AVURLAsset *)asset URL];
       NSLog(@"Final URL %@",url);
-      NSData *videoData = [NSData dataWithContentsOfURL:url];
-
-      BOOL writeResult = [videoData writeToFile:destination options:NSDataWritingAtomic error:&error];
-
-      if(writeResult) {
-        NSLog(@"video success");
-      }
-      else {
-        NSLog(@"video failure");
+      NSFileManager *fm = [NSFileManager defaultManager];
+      NSURL *destURL = [NSURL fileURLWithPath:destination];
+      [fm removeItemAtURL:destURL error:nil];
+      [fm copyItemAtURL:url toURL:destURL error:&error];
+      if (error) {
+        NSLog(@"RNFS copyAssetsVideoIOS: unable to move video asset to destination. %@, %@", error, error.userInfo);
+      } else {
+        NSLog(@"RNFS copyAssetsVideoIOS: successfully copied file");
       }
       dispatch_group_leave(group);
     }
   }];
+
   dispatch_group_wait(group,  DISPATCH_TIME_FOREVER);
 
   if (error) {
