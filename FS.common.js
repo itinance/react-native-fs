@@ -206,6 +206,13 @@ var RNFS = {
     return RNFSManager.copyFile(normalizeFilePath(filepath), normalizeFilePath(destPath), options).then(() => void 0);
   },
 
+  // Windows workaround for slow copying of large folders of files
+  copyFolder(filepath: string, destPath: string): Promise<void> {
+    if(isWindows) {
+      return RNFSManager.copyFolder(normalizeFilePath(filepath), normalizeFilePath(destPath));
+    }
+  },
+
   pathForBundle(bundleNamed: string): Promise<string> {
     return RNFSManager.pathForBundle(bundleNamed);
   },

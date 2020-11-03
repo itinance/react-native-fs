@@ -121,6 +121,10 @@ export function copyFile(
 	destPath: string,
 	options?: FileOptions
 ): Promise<void>
+export function copyFolder(
+	srcPath: string,
+	destPath: string,
+): Promise<void>
 export function pathForBundle(bundleNamed: string): Promise<string>
 export function pathForGroup(groupName: string): Promise<string>
 export function getFSInfo(): Promise<FSInfoResult>
