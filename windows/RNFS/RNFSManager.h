@@ -76,6 +76,12 @@ struct RNFSManager
         RN::JSValueObject options,
         RN::ReactPromise<void> promise) noexcept;
 
+    REACT_METHOD(copyFolder); // Implemented
+    winrt::fire_and_forget copyFolder(
+        std::string src,
+        std::string dest,
+        RN::ReactPromise<void> promise) noexcept;
+
     REACT_METHOD(getFSInfo); // Implemented, no unit tests but cannot be tested
     winrt::fire_and_forget getFSInfo(RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
@@ -103,8 +109,8 @@ struct RNFSManager
     REACT_METHOD(read); // Implemented
     winrt::fire_and_forget read(
         std::string filePath,
-        int length,
-        int position,
+        uint32_t length,
+        uint64_t position,
         RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_METHOD(hash); // Implemented
@@ -140,7 +146,7 @@ struct RNFSManager
     winrt::fire_and_forget uploadFiles(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
     REACT_METHOD(touch); // Implemented
-    void touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<std::string> promise) noexcept;
+    void touch(std::string filepath, int64_t mtime, int64_t ctime, RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_EVENT(TimedEvent, L"TimedEventCpp");
     std::function<void(int)> TimedEvent;
@@ -154,8 +160,11 @@ private:
     winrt::Windows::Foundation::IAsyncAction ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise, RN::JSValueObject& options,
         winrt::Windows::Web::Http::HttpMethod httpMethod, RN::JSValueArray const& files, int32_t jobId, uint64_t totalUploadSize);
 
+    winrt::fire_and_forget copyFolderHelper(
+        winrt::Windows::Storage::StorageFolder src,
+        winrt::Windows::Storage::StorageFolder dest) noexcept;
 
-    constexpr static int64_t UNIX_EPOCH_IN_WINRT_SECONDS = 11644473600;
+    constexpr static int64_t UNIX_EPOCH_IN_WINRT_INTERVAL = 11644473600 * 10000000;
 
     const std::map<std::string, std::function<CryptographyCore::HashAlgorithmProvider()>> availableHashes{
         {"md5", []() { return CryptographyCore::HashAlgorithmProvider::OpenAlgorithm(CryptographyCore::HashAlgorithmNames::Md5()); } },

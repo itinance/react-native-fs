@@ -23,6 +23,12 @@ using namespace winrt::Windows::Storage::Streams;
 using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Web::Http;
 
+
+union touchTime {
+    int64_t initialTime;
+    DWORD splitTime[2];
+};
+
 //
 // For downloads and uploads
 //
@@ -248,6 +254,72 @@ catch (const hresult_error& ex)
 }
 
 
+winrt::fire_and_forget RNFSManager::copyFolder(
+    std::string srcFolderPath,
+    std::string destFolderPath,
+    RN::ReactPromise<void> promise) noexcept
+try
+{
+    std::filesystem::path srcPath{srcFolderPath};
+    srcPath.make_preferred();
+    std::filesystem::path destPath{ destFolderPath };
+    destPath.make_preferred();
+
+    StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(winrt::to_hstring(srcPath.c_str())) };
+    StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(winrt::to_hstring(destPath.c_str())) };
+
+    auto items{ co_await srcFolder.GetItemsAsync() };
+    for (auto item : items)
+    {
+        if (item.IsOfType(StorageItemTypes::File))
+        {
+            StorageFile file{ co_await StorageFile::GetFileFromPathAsync(item.Path()) };
+            co_await file.CopyAsync(destFolder, file.Name(), NameCollisionOption::ReplaceExisting);
+        }
+        else if (item.IsOfType(StorageItemTypes::Folder))
+        {
+            StorageFolder src{ co_await StorageFolder::GetFolderFromPathAsync(item.Path()) };
+            StorageFolder dest{ co_await destFolder.CreateFolderAsync(item.Name(), CreationCollisionOption::OpenIfExists) };
+            copyFolderHelper(src, dest);
+        }
+    }
+
+    promise.Resolve();
+    co_return;
+}
+catch (const hresult_error& ex)
+{
+    // "Failed to copy file."
+    promise.Reject(winrt::to_string(ex.message()).c_str());
+}
+
+winrt::fire_and_forget RNFSManager::copyFolderHelper(
+    winrt::Windows::Storage::StorageFolder src,
+    winrt::Windows::Storage::StorageFolder dest) noexcept
+try
+{
+    auto items{ co_await src.GetItemsAsync() };
+    for (auto item : items)
+    {
+        if (item.IsOfType(StorageItemTypes::File))
+        {
+            StorageFile file{ co_await StorageFile::GetFileFromPathAsync(item.Path()) };
+            co_await file.CopyAsync(dest, file.Name(), NameCollisionOption::ReplaceExisting);
+        }
+        else if (item.IsOfType(StorageItemTypes::Folder))
+        {
+            StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(item.Path()) };
+            StorageFolder destFolder{ co_await dest.CreateFolderAsync(item.Name(), CreationCollisionOption::OpenIfExists) };
+            copyFolderHelper(srcFolder, destFolder);
+        }
+    }
+}
+catch (...)
+{
+    co_return;
+}
+
+
 winrt::fire_and_forget RNFSManager::getFSInfo(RN::ReactPromise<RN::JSValueObject> promise) noexcept
 try
 {
@@ -365,51 +437,24 @@ try
     std::filesystem::path path(filepath);
     path.make_preferred();
 
-    std::string resultPath{ winrt::to_string(path.c_str()) };
-    auto potentialPath{ winrt::to_hstring(resultPath) };
-    bool isFile{ false };
-    uint64_t ctime{ 0 };
-    uint64_t mtime{ 0 };
-    uint64_t size{ 0 };
+    std::string preliminaryPath{ winrt::to_string(path.c_str()) };
+    bool isDirectory{ std::filesystem::is_directory(preliminaryPath) };
+    auto resultPath{ winrt::to_hstring(preliminaryPath) };
 
-    // Try to open as folder
-    try
-    {
-        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(potentialPath) };
-        auto properties{ co_await folder.GetBasicPropertiesAsync() };
-        ctime = folder.DateCreated().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
-        mtime = properties.DateModified().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
-        size = properties.Size();
+    IStorageItem item;
+    if (isDirectory) {
+        item = co_await StorageFolder::GetFolderFromPathAsync(resultPath);
     }
-    catch (...)
-    {
-        isFile = true;
-        auto lastCharIndex{ filepath.length() - 1 };
-        if (resultPath[lastCharIndex] == '\\')
-        {
-            path = std::filesystem::path(resultPath.substr(0, lastCharIndex));
-        }
+    else {
+        item = co_await StorageFile::GetFileFromPathAsync(resultPath);
     }
 
-    // Try to open as file
-    if (isFile)
-    {
-        auto directoryPath{ path.has_parent_path() ? winrt::to_hstring(path.parent_path().c_str()) : L"" };
-        auto fileName{ path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"" };
-
-        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-        auto properties{ (co_await folder.GetFileAsync(fileName)).Properties() };
-        auto propertyMap{ co_await properties.RetrievePropertiesAsync({ L"System.DateCreated", L"System.DateModified", L"System.Size" }) };
-        ctime = winrt::unbox_value<DateTime>(propertyMap.Lookup(L"System.DateCreated")).time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
-        mtime = winrt::unbox_value<DateTime>(propertyMap.Lookup(L"System.DateModified")).time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
-        size = winrt::unbox_value<uint64_t>(propertyMap.Lookup(L"System.Size"));
-    }
-
+    auto properties{ co_await item.GetBasicPropertiesAsync() };
     RN::JSValueObject fileInfo;
-    fileInfo["ctime"] = ctime;
-    fileInfo["mtime"] = mtime;
-    fileInfo["size"] = std::to_string(size);
-    fileInfo["type"] = isFile ? 0 : 1;
+    fileInfo["ctime"] = winrt::clock::to_time_t(item.DateCreated());
+    fileInfo["mtime"] = winrt::clock::to_time_t(properties.DateModified());
+    fileInfo["size"] = std::to_string(properties.Size());
+    fileInfo["type"] = isDirectory ? 1 : 0;
 
     promise.Resolve(fileInfo);
 }
@@ -434,8 +479,8 @@ try
         auto properties{ co_await item.GetBasicPropertiesAsync() };
 
         RN::JSValueObject itemInfo;
-        itemInfo["ctime"] = targetDirectory.DateCreated().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
-        itemInfo["mtime"] = properties.DateModified().time_since_epoch() / std::chrono::seconds(1) - UNIX_EPOCH_IN_WINRT_SECONDS;
+        itemInfo["ctime"] = winrt::clock::to_time_t(targetDirectory.DateCreated());
+        itemInfo["mtime"] = winrt::clock::to_time_t(properties.DateModified());
         itemInfo["name"] = to_string(item.Name());
         itemInfo["path"] = to_string(item.Path());
         itemInfo["size"] = properties.Size();
@@ -453,7 +498,7 @@ catch (const hresult_error& ex)
 }
 
 
-winrt::fire_and_forget RNFSManager::read(std::string filepath, int length, int position, RN::ReactPromise<std::string> promise) noexcept
+winrt::fire_and_forget RNFSManager::read(std::string filepath, uint32_t length, uint64_t position, RN::ReactPromise<std::string> promise) noexcept
 try
 {
     winrt::hstring directoryPath, fileName;
@@ -462,7 +507,7 @@ try
     StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
     StorageFile file{ co_await folder.GetFileAsync(fileName) };
 
-    Streams::IBuffer buffer{ co_await FileIO::ReadBufferAsync(file) };
+    Streams::Buffer buffer{ length };
 
     Streams::IRandomAccessStream stream{ co_await file.OpenReadAsync() };
     stream.Seek(position);
@@ -586,7 +631,7 @@ try
     Streams::IBuffer buffer{ Cryptography::CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
     Streams::IRandomAccessStream stream{ co_await file.OpenAsync(FileAccessMode::ReadWrite) };
 
-    stream.Seek(UINT64_MAX); // Writes to end of file
+    stream.Seek(stream.Size()); // Writes to end of file
     co_await stream.WriteAsync(buffer);
 
     promise.Resolve();
@@ -619,7 +664,7 @@ try
 
     if (position < 0)
     {
-        stream.Seek(UINT64_MAX); // Writes to end of file
+        stream.Seek(stream.Size()); // Writes to end of file
     }
     else
     {
@@ -754,7 +799,7 @@ catch (const hresult_error& ex)
 }
 
 
-void RNFSManager::touch(std::string filepath, double mtime, double ctime, RN::ReactPromise<std::string> promise) noexcept
+void RNFSManager::touch(std::string filepath, int64_t mtime, int64_t ctime, RN::ReactPromise<std::string> promise) noexcept
 try
 {
     std::filesystem::path path(filepath);
@@ -772,17 +817,15 @@ try
         return;
     }
 
-    int64_t mtime_64{ static_cast<int64_t>(mtime * 10000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000 };
-    int64_t ctime_64{ static_cast<int64_t>(ctime * 10000.0) + UNIX_EPOCH_IN_WINRT_SECONDS * 10000000 };
+    touchTime ctime_64{ ctime * 10000 + UNIX_EPOCH_IN_WINRT_INTERVAL };
+    touchTime mtime_64{ mtime * 10000 + UNIX_EPOCH_IN_WINRT_INTERVAL };
+    
 
     FILETIME cFileTime, mFileTime;
-    cFileTime.dwLowDateTime = static_cast<DWORD>(ctime_64);
-    ctime_64 >>= 32;
-    cFileTime.dwHighDateTime = static_cast<DWORD>(ctime_64);
-
-    mFileTime.dwLowDateTime = static_cast<DWORD>(mtime_64);
-    mtime_64 >>= 32;
-    mFileTime.dwHighDateTime = static_cast<DWORD>(mtime_64);
+    cFileTime.dwLowDateTime = ctime_64.splitTime[0];
+    cFileTime.dwHighDateTime = ctime_64.splitTime[1];
+    mFileTime.dwLowDateTime = mtime_64.splitTime[0];
+    mFileTime.dwHighDateTime = mtime_64.splitTime[1];
 
     if (SetFileTime(handle.get(), &cFileTime, nullptr, &mFileTime) == 0)
     {

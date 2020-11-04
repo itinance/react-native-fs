@@ -69,8 +69,6 @@ const App: () => React$Node = () => {
   const [writePositionValue, setWritePositionValue] = useState('');
 
   const [touchFilePathParam, setTouchFilePathParam] = useState('');
-  const [touchMTime, setTouchMTime] = useState('');
-  const [touchCTime, setTouchCTime] = useState('');
 
   const [downloadFilePathParam, setDownloadFilePathParam] = useState('');
   const [downloadFileSource, setDownloadFileSource] = useState('');
@@ -894,18 +892,6 @@ const App: () => React$Node = () => {
               <TextInput style = {styles.input}
                 placeholder = "File Path"
                 onChangeText={touchFilePathParam => setTouchFilePathParam(touchFilePathParam)}
-                placeholderTextColor = "#9a73ef"
-                autoCapitalize = "none"
-              />
-              <TextInput style = {styles.input}
-                placeholder = "Modified UNIX Time"
-                onChangeText={touchMTime => setTouchMTime(touchMTime)}
-                placeholderTextColor = "#9a73ef"
-                autoCapitalize = "none"
-              />
-              <TextInput style = {styles.input}
-                placeholder = "Created UNIX Time"
-                onChangeText={touchCTime => setTouchCTime(touchCTime)}
                 placeholderTextColor = "#9a73ef"
                 autoCapitalize = "none"
               />
