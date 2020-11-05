@@ -799,9 +799,10 @@ catch (const hresult_error& ex)
 }
 
 
-void RNFSManager::touch(std::string filepath, int64_t mtime, int64_t ctime, RN::ReactPromise<std::string> promise) noexcept
+void RNFSManager::touch(std::string filepath, int64_t mtime, int64_t ctime, bool modifyCreationTime, RN::ReactPromise<std::string> promise) noexcept
 try
 {
+
     std::filesystem::path path(filepath);
     path.make_preferred();
     auto s_path{ path.c_str() };
@@ -817,23 +818,37 @@ try
         return;
     }
 
-    touchTime ctime_64{ ctime * 10000 + UNIX_EPOCH_IN_WINRT_INTERVAL };
     touchTime mtime_64{ mtime * 10000 + UNIX_EPOCH_IN_WINRT_INTERVAL };
-    
-
-    FILETIME cFileTime, mFileTime;
-    cFileTime.dwLowDateTime = ctime_64.splitTime[0];
-    cFileTime.dwHighDateTime = ctime_64.splitTime[1];
+    FILETIME mFileTime;
     mFileTime.dwLowDateTime = mtime_64.splitTime[0];
     mFileTime.dwHighDateTime = mtime_64.splitTime[1];
 
-    if (SetFileTime(handle.get(), &cFileTime, nullptr, &mFileTime) == 0)
+    if (modifyCreationTime)
     {
-        promise.Reject("Failed to set new creation time and modified time of file.");
+        touchTime ctime_64{ ctime * 10000 + UNIX_EPOCH_IN_WINRT_INTERVAL };
+        FILETIME cFileTime;
+        cFileTime.dwLowDateTime = ctime_64.splitTime[0];
+        cFileTime.dwHighDateTime = ctime_64.splitTime[1];
+
+        if (SetFileTime(handle.get(), &cFileTime, nullptr, &mFileTime) == 0)
+        {
+            promise.Reject("Failed to set new creation time and modified time of file.");
+        }
+        else
+        {
+            promise.Resolve(winrt::to_string(s_path));
+        }
     }
     else
     {
-        promise.Resolve(winrt::to_string(s_path));
+        if (SetFileTime(handle.get(), nullptr, nullptr, &mFileTime) == 0)
+        {
+            promise.Reject("Failed to set new creation time and modified time of file.");
+        }
+        else
+        {
+            promise.Resolve(winrt::to_string(s_path));
+        }
     }
 }
 catch (const hresult_error& ex)

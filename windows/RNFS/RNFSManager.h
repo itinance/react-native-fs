@@ -146,7 +146,7 @@ struct RNFSManager
     winrt::fire_and_forget uploadFiles(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
     REACT_METHOD(touch); // Implemented
-    void touch(std::string filepath, int64_t mtime, int64_t ctime, RN::ReactPromise<std::string> promise) noexcept;
+    void touch(std::string filepath, int64_t mtime, int64_t ctime, bool modifyCreationTime, RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_EVENT(TimedEvent, L"TimedEventCpp");
     std::function<void(int)> TimedEvent;

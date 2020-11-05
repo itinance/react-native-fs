@@ -606,18 +606,34 @@ var RNFS = {
     };
   },
 
-  touch(filepath: string, mtime?: Date, ctime?: Date): Promise<void> {
+  touch(filepath: string, mtime?: Date, ctime?: Date, Creation?: boolean): Promise<void> {
     if (ctime && !(ctime instanceof Date)) throw new Error('touch: Invalid value for argument `ctime`');
     if (mtime && !(mtime instanceof Date)) throw new Error('touch: Invalid value for argument `mtime`');
     var ctimeTime = 0;
     if (isIOS || isWindows) { // Modified to accomodate Windows
       ctimeTime = ctime && ctime.getTime();
     }
-    return RNFSManager.touch(
-      normalizeFilePath(filepath),
-      mtime && mtime.getTime(),
-      ctimeTime
-    );
+    if(isWindows) {
+      if(modifyCreationTime == null && ctime != null) {
+        modifyCreationTime = false;
+      }
+      else{
+        modifyCreationTime = true;
+      }
+      return RNFSManager.touch(
+        normalizeFilePath(filepath),
+        mtime && mtime.getTime(),
+        ctimeTime,
+        modifyCreationTime
+      );
+    }
+    else {
+      return RNFSManager.touch(
+        normalizeFilePath(filepath),
+        mtime && mtime.getTime(),
+        ctimeTime
+      );
+    }
   },
 
   scanFile(path: string): Promise<ReadDirItem[]> {

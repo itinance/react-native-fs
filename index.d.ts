@@ -282,7 +282,8 @@ export function uploadFiles(
 export function touch(
 	filepath: string,
 	mtime?: Date,
-	ctime?: Date
+	ctime?: Date,
+	modifyCreationTime?: boolean
 ): Promise<void>
 
 export const MainBundlePath: string
