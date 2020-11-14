@@ -614,12 +614,7 @@ var RNFS = {
       ctimeTime = ctime && ctime.getTime();
     }
     if(isWindows) {
-      if(modifyCreationTime == null && ctime != null) {
-        modifyCreationTime = false;
-      }
-      else{
-        modifyCreationTime = true;
-      }
+      var modifyCreationTime = !ctime ? false: true;
       return RNFSManager.touch(
         normalizeFilePath(filepath),
         mtime && mtime.getTime(),

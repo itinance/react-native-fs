@@ -80,63 +80,6 @@ const App: () => React$Node = () => {
 
   const [existsSource, setExistsSource] = useState('');
 
-
-  let runOnce = true;
-
-  const fs_copyRecursive = async (source : string, destination : string) => {
-    try {
-        console.log(`cp: ${source} => ${destination}`)
-        if (runOnce) {
-            runOnce = false
-            const sourceExist = await RNFS.exists(source)
-            console.log("SOURCE EXISTS", sourceExist)
-            if (!sourceExist) return
-        }
- 
-        const items = await RNFS.readDir(source)
- 
-        const exists = await RNFS.exists(destination)
-        if (!exists) {
-            //console.log(`mkdir ${destination}`)
-            await RNFS.mkdir(destination)
-        }
- 
-        for (const item of items) {
-            try {
-                if (item.isFile()) {
-                    //console.log(`f ${item.path}`)
-                    if(destination[destination.length - 1] !== '/' && destination[destination.length - 1] !== '\'' )
-                    {
-                      destination += '/';
-                    }
-                    const destPath = destination + item.name
-                    const fileExists = await RNFS.exists(destPath)
-                    if (fileExists) {
-                        //console.log(`rm ${destPath}`)
-                        await RNFS.unlink(destPath)
-                    }
-                    //console.log(`cp ${item.path} => ${destPath}`)
-                    await RNFS.copyFile(item.path, destPath)
-                } else {
-                    // Restart with expanded path
-                    // console.log(`d ${item.path}`)
-                    const subDirectory = source + '/' + item.name
-                    if(destination[destination.length - 1] !== '/' && destination[destination.length - 1] !== '\'' )
-                    {
-                      destination += '/';
-                    }
-                    const subDestination = destination + item.name
-                    await fs_copyRecursive(subDirectory, subDestination)
-                }
-            } catch (e) {
-                console.log(e)
-            }
-        }
-    } catch (e) {
-        console.log(e)
-    }
-  }
-
   const mkdirExample = () => {
     if(mkdirParam.length > 0) {
       RNFS.mkdir(RNFS.DocumentDirectoryPath + '/' + mkdirParam)
@@ -368,6 +311,7 @@ const App: () => React$Node = () => {
     .catch((err) => {
       console.log(err.message);
     });
+
   }
 
   const uploadFileExample = () => {
@@ -934,6 +878,7 @@ const App: () => React$Node = () => {
               onPress={downloadFileExample}
               color="#9a73ef"
             />
+            
             </View>
           </View>
 
