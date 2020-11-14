@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project>
-  <PropertyGroup>
-    <ReactNativeWindowsDir>$(MSBuildThisFileDirectory)\node_modules\react-native-windows\</ReactNativeWindowsDir>
-  </PropertyGroup>
-</Project>
