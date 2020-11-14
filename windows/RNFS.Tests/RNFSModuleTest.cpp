@@ -329,46 +329,6 @@ namespace ReactNativeTests {
             TestCheck(m_builderMock.IsResolveCallbackCalled());
         }
 
-        TEST_METHOD(TestMethodCall_readUnsuccessful1) {
-            Mso::FutureWait(m_builderMock.Call2(
-                L"read",
-                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(true); }),
-                std::function<void(React::JSValue const&)>(
-                    [](React::JSValue const& error) noexcept { TestCheck(true); }),
-                testLocation + "toRead.txt", 9999, -1));
-            TestCheck(m_builderMock.IsRejectCallbackCalled());
-        }
-
-        TEST_METHOD(TestMethodCall_readUnsuccessful2) {
-            Mso::FutureWait(m_builderMock.Call2(
-                L"read",
-                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(true); }),
-                std::function<void(React::JSValue const&)>(
-                    [](React::JSValue const& error) noexcept { TestCheck(true); }),
-                testLocation + "toRead.txt", -1, 9999));
-            TestCheck(m_builderMock.IsRejectCallbackCalled());
-        }
-
-        TEST_METHOD(TestMethodCall_readUnsuccessful3) {
-            Mso::FutureWait(m_builderMock.Call2(
-                L"read",
-                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(true); }),
-                std::function<void(React::JSValue const&)>(
-                    [](React::JSValue const& error) noexcept { TestCheck(true); }),
-                testLocation + "toRead.txt", 9999, 9999));
-            TestCheck(m_builderMock.IsRejectCallbackCalled());
-        }
-
-        TEST_METHOD(TestMethodCall_readUnsuccessful4) {
-            Mso::FutureWait(m_builderMock.Call2(
-                L"read",
-                std::function<void(std::string)>([](std::string value) noexcept { TestCheck(true); }),
-                std::function<void(React::JSValue const&)>(
-                    [](React::JSValue const& error) noexcept { TestCheck(true); }),
-                testLocation + "toRead.txt", -9999, -9999));
-            TestCheck(m_builderMock.IsRejectCallbackCalled());
-        }
-
         /*
             moveFile() tests
         */
@@ -456,16 +416,6 @@ namespace ReactNativeTests {
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to touch file."); }),
                 testLocation + "TestWrite.txt", -1593561600, -1593561600));
             TestCheck(m_builderMock.IsResolveCallbackCalled());
-        }
-
-        TEST_METHOD(TestMethodCall_touchUnsuccessfulSetTime) {
-            Mso::FutureWait(m_builderMock.Call2(
-                L"touch",
-                std::function<void()>([]() noexcept { TestCheck(true); }),
-                std::function<void(React::JSValue const&)>(
-                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to set new creation time and modified time of file."); }),
-                testLocation + "TestWrite.txt", 9223372036854775807, 9223372036854775807));
-            TestCheck(m_builderMock.IsRejectCallbackCalled());
         }
 
         TEST_METHOD(TestMethodCall_touchSuccessfulMakeHandle) {
