@@ -613,7 +613,7 @@ var RNFS = {
     if (isIOS || isWindows) { // Modified to accommodate Windows
       ctimeTime = ctime && ctime.getTime();
     }
-    if(isWindows) {
+    if (isWindows) {
       var modifyCreationTime = !ctime ? false: true;
       return RNFSManager.touch(
         normalizeFilePath(filepath),
