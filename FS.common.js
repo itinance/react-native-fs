@@ -16,7 +16,7 @@ var RNFS_NativeEventEmitter = new NativeEventEmitter(RNFSManager);
 var base64 = require('base-64');
 var utf8 = require('utf8');
 var isIOS = require('react-native').Platform.OS === 'ios';
-var isWindows = require('react-native').Platform.OS === 'windows'; // To accomodate Windows
+var isWindows = require('react-native').Platform.OS === 'windows'; // To accommodate Windows
 
 var RNFSFileTypeRegular = RNFSManager.RNFSFileTypeRegular;
 var RNFSFileTypeDirectory = RNFSManager.RNFSFileTypeDirectory;
