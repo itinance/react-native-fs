@@ -610,7 +610,7 @@ var RNFS = {
     if (ctime && !(ctime instanceof Date)) throw new Error('touch: Invalid value for argument `ctime`');
     if (mtime && !(mtime instanceof Date)) throw new Error('touch: Invalid value for argument `mtime`');
     var ctimeTime = 0;
-    if (isIOS || isWindows) { // Modified to accomodate Windows
+    if (isIOS || isWindows) { // Modified to accommodate Windows
       ctimeTime = ctime && ctime.getTime();
     }
     if(isWindows) {
