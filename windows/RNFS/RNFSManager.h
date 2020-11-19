@@ -13,7 +13,7 @@ namespace Cryptography = winrt::Windows::Security::Cryptography;
 namespace CryptographyCore = winrt::Windows::Security::Cryptography::Core;
 namespace RN = winrt::Microsoft::ReactNative;
 
-struct CancellationDisposable
+struct CancellationDisposable final
 {
     CancellationDisposable() = default;
 	CancellationDisposable(winrt::Windows::Foundation::IAsyncInfo const& async, std::function<void()>&& onCancel) noexcept;
@@ -32,7 +32,7 @@ private:
     std::function<void()> m_onCancel;
 };
 
-struct TaskCancellationManager
+struct TaskCancellationManager final
 {
     using JobId = int32_t;
 
@@ -51,7 +51,7 @@ private:
 };
 
 REACT_MODULE(RNFSManager, L"RNFSManager");
-struct RNFSManager
+struct RNFSManager final
 {
     REACT_INIT(Initialize)
         void Initialize(RN::ReactContext const& reactContext) noexcept;

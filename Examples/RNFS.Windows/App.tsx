@@ -878,7 +878,32 @@ const App: () => React$Node = () => {
               onPress={downloadFileExample}
               color="#9a73ef"
             />
-            
+            <Button
+              title="DEBUG RNFS-TOUCH"
+              onPress={async () => {
+                for (let id = 1; id <= 5; id++) {
+                  const path = RNFS.DocumentDirectoryPath + '/' + downloadFilePathParam +'/' + id + downloadFileName
+                
+                  try {
+                    await RNFS.downloadFile({
+                      fromUrl: `https://nsynk.de/store/debug_anno/A000${id}.xfdf`,
+                      toFile: path,
+                      begin: () => {console.log('It has begun!: ' + path);},
+                    }).promise;
+                  
+                    //if (ENABLEWORKAROUND) {
+                    //  setTimeout(async () => {
+                    //    await RNFS.touch(path, new Date(mtime))
+                    //  }, 250)
+                    //} else {
+                    await RNFS.touch(path, new Date('December 17, 1988 03:24:00'));
+                    //}
+                  } catch (e) {
+                    console.log("ERROR", id, e);
+                  }
+                }
+              }}
+            />
             </View>
           </View>
 
