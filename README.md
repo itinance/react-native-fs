@@ -314,11 +314,14 @@ The following constants are available on the `RNFS` export:
 - `CachesDirectoryPath` (`String`) The absolute path to the caches directory
 - `ExternalCachesDirectoryPath` (`String`) The absolute path to the external caches directory (android only)
 - `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
-- `DownloadDirectoryPath` (`String`) The absolute path to the download directory (on android only)
+- `DownloadDirectoryPath` (`String`) The absolute path to the download directory (on android and Windows only)
 - `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (falls back to Caching-Directory on Android)
 - `LibraryDirectoryPath` (`String`) The absolute path to the NSLibraryDirectory (iOS only)
 - `ExternalDirectoryPath` (`String`) The absolute path to the external files, shared directory (android only)
 - `ExternalStorageDirectoryPath` (`String`) The absolute path to the external storage, shared directory (android only)
+- `PicturesDirectoryPath` (`String`) The absolute path to the pictures directory (Windows only)
+- `RoamingDirectoryPath` (`String`) The absolute path to the roaming directory (Windows only)
+
 
 IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request permissions (on Android) to read and write on the external storage, here an example: [React Native Offical Doc](https://facebook.github.io/react-native/docs/permissionsandroid)
 
@@ -425,11 +428,19 @@ Write the `contents` to `filepath` at the given random access position. When `po
 
 Moves the file located at `filepath` to `destPath`. This is more performant than reading and then re-writing the file data because the move is done natively and the data doesn't have to be copied or cross the bridge.
 
+Note: Overwrites existing file in Windows.
+
+### `copyFolder(srcFolderPath: string, destFolderPath: string): Promise<void>`
+
+Copies the contents located at `srcFolderPath` to `destFolderPath`.
+
+Note: Windows only. This method is recommended when directories need to be copied from one place to another.
+
 ### `copyFile(filepath: string, destPath: string): Promise<void>`
 
 Copies the file located at `filepath` to `destPath`.
 
-Note: On Android copyFile will overwrite `destPath` if it already exists. On iOS an error will be thrown if the file already exists.
+Note: On Android and Windows copyFile will overwrite `destPath` if it already exists. On iOS an error will be thrown if the file already exists.
 
 ### `copyFileAssets(filepath: string, destPath: string): Promise<void>`
 
@@ -495,7 +506,7 @@ Reads the file at `path` and returns its checksum as determined by `algorithm`, 
 
 ### `touch(filepath: string, mtime?: Date, ctime?: Date): Promise<string>`
 
-Sets the modification timestamp `mtime` and creation timestamp `ctime` of the file at `filepath`. Setting `ctime` is only supported on iOS, android always sets both timestamps to `mtime`.
+Sets the modification timestamp `mtime` and creation timestamp `ctime` of the file at `filepath`. Setting `ctime` is supported on iOS and Windows, android always sets both timestamps to `mtime`.
 
 ### `mkdir(filepath: string, options?: MkdirOptions): Promise<void>`
 

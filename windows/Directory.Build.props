@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <!-- We use the RNFS.Windows example for module development and testing -->
+    <ReactNativeWindowsDir Condition="'$(SolutionName)' == 'RNFSWin' and Exists('$(SolutionDir)\..\node_modules\react-native-windows\package.json')">$([MSBuild]::NormalizeDirectory('$(SolutionDir)\..\node_modules\react-native-windows\'))</ReactNativeWindowsDir>
+  </PropertyGroup>
+</Project>
+
+
