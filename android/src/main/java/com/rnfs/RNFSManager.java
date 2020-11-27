@@ -5,6 +5,7 @@ import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
 import android.provider.MediaStore;
@@ -620,20 +621,31 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     }
   }
 
+  @android.support.annotation.RequiresApi(api = Build.VERSION_CODES.CUPCAKE)
   @ReactMethod
   public void stat(String filepath, Promise promise) {
     try {
-      String originalFilepath = getOriginalFilepath(filepath, true);
-      File file = new File(originalFilepath);
-
-      if (!file.exists()) throw new Exception("File does not exist");
-
       WritableMap statMap = Arguments.createMap();
-      statMap.putInt("ctime", (int) (file.lastModified() / 1000));
-      statMap.putInt("mtime", (int) (file.lastModified() / 1000));
-      statMap.putDouble("size", (double) file.length());
-      statMap.putInt("type", file.isDirectory() ? 1 : 0);
-      statMap.putString("originalFilepath", originalFilepath);
+
+      if (filepath.startsWith("content://")) {
+        AssetFileDescriptor descriptor = reactContext.getContentResolver().openAssetFileDescriptor(Uri.parse(filepath), "r");
+        statMap.putInt("ctime", 0);
+        statMap.putInt("mtime", 0);
+        statMap.putDouble("size", (double) descriptor.getLength());
+        statMap.putInt("type", 0);
+        statMap.putString("originalFilepath", null);
+      } else {
+        String originalFilepath = getOriginalFilepath(filepath, true);
+        File file = new File(originalFilepath);
+
+        if (!file.exists()) throw new Exception("File does not exist");
+
+        statMap.putInt("ctime", (int) (file.lastModified() / 1000));
+        statMap.putInt("mtime", (int) (file.lastModified() / 1000));
+        statMap.putDouble("size", (double) file.length());
+        statMap.putInt("type", file.isDirectory() ? 1 : 0);
+        statMap.putString("originalFilepath", originalFilepath);
+      }
 
       promise.resolve(statMap);
     } catch (Exception ex) {
