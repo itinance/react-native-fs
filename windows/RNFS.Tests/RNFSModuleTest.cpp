@@ -147,7 +147,7 @@ namespace ReactNativeTests {
         /*
             exists() tests
         */
-        TEST_METHOD(TestMethodCall_existsSuccessful) {
+        TEST_METHOD(TestMethodCall_existsSuccessful1) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"exists",
                 std::function<void(bool)>([](bool result) noexcept { TestCheck(result); }),
@@ -157,7 +157,7 @@ namespace ReactNativeTests {
             TestCheck(m_builderMock.IsResolveCallbackCalled());
         }
 
-        TEST_METHOD(TestMethodCall_existsUnseccessful) {
+        TEST_METHOD(TestMethodCall_existsUnsuccessful) {
             Mso::FutureWait(m_builderMock.Call2(
                 L"exists",
                 std::function<void(bool)>([](bool result) noexcept { TestCheck(!result); }),
@@ -167,6 +167,25 @@ namespace ReactNativeTests {
             TestCheck(m_builderMock.IsResolveCallbackCalled());
         }
 
+        TEST_METHOD(TestMethodCall_existsSuccessful2) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"exists",
+                std::function<void(bool)>([](bool result) noexcept { TestCheck(result); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to check if file or directory exists."); }),
+                testLocation + "Hello\\"));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
+
+        TEST_METHOD(TestMethodCall_existsSuccessful3) {
+            Mso::FutureWait(m_builderMock.Call2(
+                L"exists",
+                std::function<void(bool)>([](bool result) noexcept { TestCheck(result); }),
+                std::function<void(React::JSValue const&)>(
+                    [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to check if file or directory exists."); }),
+                testLocation + "Hello/"));
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
+        }
 
         /*
             readfile() tests

@@ -377,8 +377,16 @@ catch (const hresult_error& ex)
 void RNFSManager::exists(std::string filepath, RN::ReactPromise<bool> promise) noexcept
 try
 {
-    std::filesystem::path path(filepath);
-    promise.Resolve(std::filesystem::exists(path));
+    size_t fileLength{ filepath.length() };
+
+    if (fileLength <= 0) {
+        promise.Resolve(false);
+    }
+    else {
+        bool hasTrailingSlash{ filepath[fileLength - 1] == '\\' || filepath[fileLength - 1] == '/' };
+        std::filesystem::path path(hasTrailingSlash ? filepath.substr(0, fileLength - 1) : filepath);
+        promise.Resolve(std::filesystem::exists(path));
+    }
 }
 catch (const hresult_error& ex)
 {
