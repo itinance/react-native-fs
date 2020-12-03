@@ -33,7 +33,7 @@ namespace ReactNativeTests {
                 std::function<void(React::JSValue const&)>(
                     [](React::JSValue const& error) noexcept { TestCheck(true); }),
                 testLocation, React::JSValueObject{}));
-            TestCheck(m_builderMock.IsRejectCallbackCalled());
+            TestCheck(m_builderMock.IsResolveCallbackCalled());
         }
 
         TEST_METHOD(TestMethodCall_mkdirCreate2) {
@@ -42,7 +42,7 @@ namespace ReactNativeTests {
                 std::function<void()>([]() noexcept { TestCheck(true); }),
                 std::function<void(React::JSValue const&)>(
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to create directory."); }),
-                testLocation + "temp", React::JSValueObject{}));
+                testLocation + "temp/", React::JSValueObject{}));
             TestCheck(m_builderMock.IsResolveCallbackCalled());
         }
 
@@ -62,7 +62,7 @@ namespace ReactNativeTests {
                 std::function<void()>([]() noexcept { TestCheck(true); }),
                 std::function<void(React::JSValue const&)>(
                     [](React::JSValue const& error) noexcept { TestCheck(error["message"] == "Failed to create directory."); }),
-                testLocation + "wait/what", React::JSValueObject{}));
+                testLocation + "wait/what\\", React::JSValueObject{}));
             TestCheck(m_builderMock.IsResolveCallbackCalled());
         }
 
