@@ -186,17 +186,22 @@ void RNFSManager::ConstantsViaConstantsProvider(RN::ReactConstantProvider& const
 void RNFSManager::mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
-    std::filesystem::path path(directory);
-    path.make_preferred();
+    size_t pathLength{ directory.length() };
 
-    // Consistent with Apple's createDirectoryAtPath method and result, but not with Android's
-    if (std::filesystem::create_directories(path) == false)
-    {
-        promise.Reject("Failed to create directory. Directory may already exist.");
+    if (pathLength <= 0) {
+        promise.Reject("Invalid path.");
     }
-    else
-    {
-        promise.Resolve();
+    else {
+        bool hasTrailingSlash{ directory[pathLength - 1] == '\\' || directory[pathLength - 1] == '/' };
+        std::filesystem::path path(hasTrailingSlash ? directory.substr(0, pathLength - 1) : directory);
+        if (std::filesystem::create_directories(path) == false)
+        {
+            promise.Reject("Failed to create directory. Directory may already exist.");
+        }
+        else
+        {
+            promise.Resolve();
+        }
     }
 }
 catch (const hresult_error& ex)
@@ -697,113 +702,115 @@ catch (const hresult_error& ex)
 
 
 winrt::fire_and_forget RNFSManager::downloadFile(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept
-try
 {
-    //Filepath
-    std::filesystem::path path(options["toFile"].AsString());
-    path.make_preferred();
-    if (path.filename().empty())
-    {
-        promise.Reject("Failed to determine filename in path");
-        co_return;
-    }
-    auto filePath{ winrt::to_hstring(path.c_str()) };
-
-    //URL
-    std::string fromURLString{ options["fromUrl"].AsString() };
-    std::wstring URLForURI(fromURLString.begin(), fromURLString.end());
-    Uri uri{ URLForURI };
-
-    // These might be null though
-
     //JobID
     auto jobId{ options["jobId"].AsInt32() };
-
-    //Headers
-    auto const& headers{ options["headers"].AsObject() };
-
-    //Progress Interval
-    auto progressInterval{ options["progressInterval"].AsInt64() };
-
-    //Progress Divider
-    auto progressDivider{ options["progressDivider"].AsInt64() };
-
-    winrt::Windows::Web::Http::HttpRequestMessage request{ winrt::Windows::Web::Http::HttpMethod::Get(), uri };
-    Buffer buffer{ 8 * 1024 };
-    HttpBufferContent content{ buffer };
-    for (const auto& header : headers)
+    try
     {
-        if (!request.Headers().TryAppendWithoutValidation(winrt::to_hstring(header.first), winrt::to_hstring(header.second.AsString())))
+        //Filepath
+        std::filesystem::path path(options["toFile"].AsString());
+        path.make_preferred();
+        if (path.filename().empty())
         {
-            content.Headers().TryAppendWithoutValidation(winrt::to_hstring(header.first), winrt::to_hstring(header.second.AsString()));
+            promise.Reject("Failed to determine filename in path");
+            co_return;
         }
-    }
-    request.Content(content);
+        auto filePath{ winrt::to_hstring(path.c_str()) };
 
-    co_await m_tasks.Add(jobId, ProcessDownloadRequestAsync(promise, request, filePath, jobId, progressInterval, progressDivider));
-}
-catch (const hresult_error& ex)
-{
-    // "Failed to download file." 
-    promise.Reject(winrt::to_string(ex.message()).c_str());
+        //URL
+        std::string fromURLString{ options["fromUrl"].AsString() };
+        std::wstring URLForURI(fromURLString.begin(), fromURLString.end());
+        Uri uri{ URLForURI };
+
+        //Headers
+        auto const& headers{ options["headers"].AsObject() };
+
+        //Progress Interval
+        auto progressInterval{ options["progressInterval"].AsInt64() };
+
+        //Progress Divider
+        auto progressDivider{ options["progressDivider"].AsInt64() };
+
+        winrt::Windows::Web::Http::HttpRequestMessage request{ winrt::Windows::Web::Http::HttpMethod::Get(), uri };
+        Buffer buffer{ 8 * 1024 };
+        HttpBufferContent content{ buffer };
+        for (const auto& header : headers)
+        {
+            if (!request.Headers().TryAppendWithoutValidation(winrt::to_hstring(header.first), winrt::to_hstring(header.second.AsString())))
+            {
+                content.Headers().TryAppendWithoutValidation(winrt::to_hstring(header.first), winrt::to_hstring(header.second.AsString()));
+            }
+        }
+        request.Content(content);
+
+        co_await m_tasks.Add(jobId, ProcessDownloadRequestAsync(promise, request, filePath, jobId, progressInterval, progressDivider));
+    }
+    catch (const hresult_error& ex)
+    {
+        // "Failed to download file." 
+        promise.Reject(winrt::to_string(ex.message()).c_str());
+    }
+    m_tasks.Cancel(jobId);
 }
 
 
 winrt::fire_and_forget RNFSManager::uploadFiles(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept
-try
 {
     auto jobId{ options["jobId"].AsInt32() };
-
-    auto method{ options["method"].AsString() };
-
-    winrt::Windows::Web::Http::HttpMethod httpMethod{ winrt::Windows::Web::Http::HttpMethod::Post() };
-    if(method.compare("POST") != 0)
+    try
     {
-        if (method.compare("PUT") == 0)
+        auto method{ options["method"].AsString() };
+
+        winrt::Windows::Web::Http::HttpMethod httpMethod{ winrt::Windows::Web::Http::HttpMethod::Post() };
+        if (method.compare("POST") != 0)
         {
-            httpMethod = winrt::Windows::Web::Http::HttpMethod::Put();
+            if (method.compare("PUT") == 0)
+            {
+                httpMethod = winrt::Windows::Web::Http::HttpMethod::Put();
+            }
+            else
+            {
+                promise.Reject("Invalid HTTP request: neither a POST nor a PUT request.");
+                co_return;
+            }
         }
-        else
+
+        auto const& files{ options["files"].AsArray() };
+        uint64_t totalUploadSize = 0;
+        for (const auto& fileInfo : files)
         {
-            promise.Reject("Invalid HTTP request: neither a POST nor a PUT request.");
+            auto const& fileObj{ fileInfo.AsObject() };
+            auto filepath{ fileObj["filepath"].AsString() };
+
+            winrt::hstring directoryPath, fileName;
+            splitPath(filepath, directoryPath, fileName);
+
+            try
+            {
+                StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+                StorageFile file{ co_await folder.GetFileAsync(fileName) };
+                auto fileProperties{ co_await file.GetBasicPropertiesAsync() };
+                totalUploadSize += fileProperties.Size();
+            }
+            catch (...)
+            {
+                continue;
+            }
+        }
+        if (totalUploadSize <= 0)
+        {
+            promise.Reject("No files to upload");
             co_return;
         }
-    }
-   
-    auto const& files{ options["files"].AsArray() };
-    uint64_t totalUploadSize = 0;
-    for (const auto& fileInfo : files)
-    {
-        auto const& fileObj{ fileInfo.AsObject() };
-        auto filepath{ fileObj["filepath"].AsString() };
-        
-        winrt::hstring directoryPath, fileName;
-        splitPath(filepath, directoryPath, fileName);
-    
-        try
-        {
-            StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-            StorageFile file{ co_await folder.GetFileAsync(fileName) };
-            auto fileProperties{ co_await file.GetBasicPropertiesAsync() };
-            totalUploadSize += fileProperties.Size();
-        }
-        catch (...)
-        {
-            continue;
-        }
-    }
-    if (totalUploadSize <= 0)
-    {
-        promise.Reject("No files to upload");
-        co_return;
-    }
 
-    co_await m_tasks.Add(jobId, ProcessUploadRequestAsync(promise, options, httpMethod, files, jobId, totalUploadSize));
-}
-catch (const hresult_error& ex)
-{
-    // "Failed to upload file."
-    promise.Reject(winrt::to_string(ex.message()).c_str());
+        co_await m_tasks.Add(jobId, ProcessUploadRequestAsync(promise, options, httpMethod, files, jobId, totalUploadSize));
+    }
+    catch (const hresult_error& ex)
+    {
+        // "Failed to upload file."
+        promise.Reject(winrt::to_string(ex.message()).c_str());
+    }
+    m_tasks.Cancel(jobId);
 }
 
 
