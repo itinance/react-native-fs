@@ -1,6 +1,7 @@
 package com.rnfs;
 
 import android.os.AsyncTask;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import com.facebook.react.bridge.Arguments;
@@ -19,6 +20,7 @@ import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
     private UploadParams mParams;
@@ -29,6 +31,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
     protected UploadResult doInBackground(UploadParams... uploadParams) {
         mParams = uploadParams[0];
         res = new UploadResult();
+        Log.v("LUX UPLOADER", "Uploader started");
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -147,6 +150,15 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 }
                 byte[] buffer = new byte[buffer_size];
                 while ((bytes_read = bufInput.read(buffer)) != -1) {
+
+                    if (mAbort.get() == true) {
+                        // Force to enter 'finally' statement
+                        Log.v("LUX UPLOADER", "Throwing exception on while");
+                        request.flush();
+                        request.close();
+                        throw new Exception();
+                    }
+
                     request.write(buffer, 0, bytes_read);
                     if (mParams.onUploadProgress != null) {
                         byteSentTotal += bytes_read;
@@ -158,6 +170,16 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 }
                 fileCount++;
                 bufInput.close();
+
+                if (mAbort.get() == true) {
+                    Log.v("LUX UPLOADER", "Throwing exception BREAK");
+                    break;
+                }
+            }
+            if (mAbort.get() == true) {
+                // Force to enter 'finally' statement
+                Log.v("LUX UPLOADER", "Throwing exception after LOOP");
+                throw new Exception();
             }
             if (!binaryStreamOnly) {
                 request.writeBytes(tail);
@@ -210,6 +232,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
     }
 
     protected void stop() {
+        Log.v("LUX UPLOADER", "Selected to stop");
         mAbort.set(true);
     }
 }
