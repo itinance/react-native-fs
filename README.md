@@ -443,7 +443,7 @@ Copies the file named `filename` in the Android app's res folder and copies it t
 
 Note: Android only. Will overwrite destPath if it already exists.
 
-### (iOS only) `copyAssetsFileIOS`
+### (iOS only) `copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number, scale?: number, compression?: number, resizeMode?: string): Promise<string>`
 
 *Not available on Mac Catalyst.*
 
