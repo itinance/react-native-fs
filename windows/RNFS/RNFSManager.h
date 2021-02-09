@@ -89,7 +89,7 @@ struct RNFSManager final
     winrt::fire_and_forget unlink(std::string filePath, RN::ReactPromise<void> promise) noexcept;
 
     REACT_METHOD(exists); // Implemented
-    void exists(std::string fullpath, RN::ReactPromise<bool> promise) noexcept;
+    winrt::fire_and_forget exists(std::string fullpath, RN::ReactPromise<bool> promise) noexcept;
 
     REACT_METHOD(stopDownload); // DOWNLOADER
     void stopDownload(int jobID) noexcept;
