@@ -365,7 +365,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
@@ -401,7 +401,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) {
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) {
         promise.Resolve(false);
     }
     // "Failed to check if file or directory exists.
@@ -437,7 +437,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
@@ -541,7 +541,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
@@ -591,7 +591,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
@@ -627,7 +627,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
@@ -664,7 +664,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
@@ -701,7 +701,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
@@ -881,7 +881,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject("ENOENT: no such file.");
     }
