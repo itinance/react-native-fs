@@ -441,7 +441,7 @@ catch (const hresult_error& ex)
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
-    else if (result == 0x80070005) // UnauthorizedAccessException
+    else if (result == HRESULT_FROM_WIN32(E_ACCESSDENIED)) // UnauthorizedAccessException
     {
         promise.Reject(RN::ReactError{ "EISDIR", "EISDIR: illegal operation on a directory, read" });
     }
@@ -545,7 +545,7 @@ catch (const hresult_error& ex)
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
-    else if (result == 0x80070005) // UnauthorizedAccessException
+    else if (result == HRESULT_FROM_WIN32(E_ACCESSDENIED)) // UnauthorizedAccessException
     {
         promise.Reject(RN::ReactError{"EISDIR", "EISDIR: Could not open file for reading" });
     }
@@ -595,7 +595,7 @@ catch (const hresult_error& ex)
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
-    else if (result == 0x80070005) // UnauthorizedAccessException
+    else if (result == HRESULT_FROM_WIN32(E_ACCESSDENIED)) // UnauthorizedAccessException
     {
         promise.Reject(RN::ReactError{ "EISDIR", "EISDIR: illegal operation on a directory, read" });
     }
