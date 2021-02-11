@@ -833,7 +833,7 @@ try
     std::filesystem::path path(filepath);
     path.make_preferred();
     auto s_path{ path.c_str() };
-    LPCWSTR actual_path{ s_path };
+    PCWSTR actual_path{ s_path };
     DWORD accessMode{ GENERIC_READ | GENERIC_WRITE };
     DWORD shareMode{ FILE_SHARE_WRITE };
     DWORD creationMode{ OPEN_EXISTING };
