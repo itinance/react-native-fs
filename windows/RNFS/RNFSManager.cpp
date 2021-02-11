@@ -452,7 +452,7 @@ catch (const hresult_error& ex)
     }
 }
 
-// TODO: remove std::filesystem::is_directory
+
 winrt::fire_and_forget RNFSManager::stat(std::string filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept
 try
 {
@@ -638,11 +638,10 @@ catch (const hresult_error& ex)
     }
 }
 
-// TODO: remove std::filesystem::exists
+
 winrt::fire_and_forget RNFSManager::appendFile(std::string filepath, std::string base64Content, RN::ReactPromise<void> promise) noexcept
 try
 {
-
     size_t fileLength = filepath.length();
     bool hasTrailingSlash{ filepath[fileLength - 1] == '\\' || filepath[fileLength - 1] == '/' };
     std::filesystem::path path(hasTrailingSlash ? filepath.substr(0, fileLength - 1) : filepath);
@@ -650,14 +649,8 @@ try
     winrt::hstring directoryPath, fileName;
     splitPath(filepath, directoryPath, fileName);
 
-    StorageFile file{ nullptr };
     StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-    if (!std::filesystem::exists(path)) {
-        file = co_await folder.CreateFileAsync(fileName);
-    }
-    else {
-        file = co_await folder.GetFileAsync(fileName);
-    }
+    StorageFile file{ co_await folder.CreateFileAsync(fileName, CreationCollisionOption::OpenIfExists) };
 
     winrt::hstring base64ContentStr{ winrt::to_hstring(base64Content) };
     Streams::IBuffer buffer{ Cryptography::CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
