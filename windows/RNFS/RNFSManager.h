@@ -16,13 +16,13 @@ namespace RN = winrt::Microsoft::ReactNative;
 struct CancellationDisposable final
 {
     CancellationDisposable() = default;
-	CancellationDisposable(winrt::Windows::Foundation::IAsyncInfo const& async, std::function<void()>&& onCancel) noexcept;
+    CancellationDisposable(winrt::Windows::Foundation::IAsyncInfo const& async, std::function<void()>&& onCancel) noexcept;
 
-	CancellationDisposable(CancellationDisposable&& other) noexcept;
-	CancellationDisposable& operator=(CancellationDisposable&& other) noexcept;
+    CancellationDisposable(CancellationDisposable&& other) noexcept;
+    CancellationDisposable& operator=(CancellationDisposable&& other) noexcept;
 
-	CancellationDisposable(CancellationDisposable const&) = delete;
-	CancellationDisposable& operator=(CancellationDisposable const&) = delete;
+    CancellationDisposable(CancellationDisposable const&) = delete;
+    CancellationDisposable& operator=(CancellationDisposable const&) = delete;
 
     ~CancellationDisposable() noexcept;
 
