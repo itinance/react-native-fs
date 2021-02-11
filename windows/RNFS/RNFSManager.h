@@ -60,7 +60,7 @@ struct RNFSManager final
         void ConstantsViaConstantsProvider(RN::ReactConstantProvider& constants) noexcept;
 
     REACT_METHOD(mkdir); // Implemented
-    void mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept;
+    winrt::fire_and_forget mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept;
 
     REACT_METHOD(moveFile); // Implemented
     winrt::fire_and_forget moveFile(

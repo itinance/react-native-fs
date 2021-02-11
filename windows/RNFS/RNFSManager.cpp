@@ -184,7 +184,7 @@ void RNFSManager::ConstantsViaConstantsProvider(RN::ReactConstantProvider& const
 }
 
 // TODO: remove std::filesystem::create_directories
-void RNFSManager::mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
     size_t pathLength{ directory.length() };
@@ -195,14 +195,12 @@ try
     else {
         bool hasTrailingSlash{ directory[pathLength - 1] == '\\' || directory[pathLength - 1] == '/' };
         std::filesystem::path path(hasTrailingSlash ? directory.substr(0, pathLength - 1) : directory);
-        if (std::filesystem::create_directories(path) == false)
-        {
-            promise.Reject("Failed to create directory. Directory may already exist.");
-        }
-        else
-        {
-            promise.Resolve();
-        }
+        path.make_preferred();
+
+        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(path.parent_path().wstring()) };
+        co_await folder.CreateFolderAsync(path.filename().wstring(), CreationCollisionOption::FailIfExists);
+
+        promise.Resolve();
     }
 }
 catch (const hresult_error& ex)
@@ -266,7 +264,7 @@ winrt::fire_and_forget RNFSManager::copyFolder(
     RN::ReactPromise<void> promise) noexcept
 try
 {
-    std::filesystem::path srcPath{srcFolderPath};
+    std::filesystem::path srcPath{ srcFolderPath };
     srcPath.make_preferred();
     std::filesystem::path destPath{ destFolderPath };
     destPath.make_preferred();
