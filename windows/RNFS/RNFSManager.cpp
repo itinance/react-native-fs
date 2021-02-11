@@ -183,7 +183,6 @@ void RNFSManager::ConstantsViaConstantsProvider(RN::ReactConstantProvider& const
     constants.Add(L"RNFSFileTypeDirectory", 1);
 }
 
-// TODO: remove std::filesystem::create_directories
 winrt::fire_and_forget RNFSManager::mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
@@ -342,26 +341,26 @@ catch (const hresult_error& ex)
     promise.Reject(winrt::to_string(ex.message()).c_str());
 }
 
-// TODO: Remove std::filesystem::is_directory
+
 winrt::fire_and_forget RNFSManager::unlink(std::string filepath, RN::ReactPromise<void> promise) noexcept
 try
 {
-    if (std::filesystem::is_directory(filepath))
-    {
-        std::filesystem::path path(filepath);
+    size_t pathLength{ filepath.length() };
+
+    if (pathLength <= 0) {
+        promise.Reject("Invalid path.");
+    }
+    else {
+        bool hasTrailingSlash{ filepath[pathLength - 1] == '\\' || filepath[pathLength - 1] == '/' };
+        std::filesystem::path path(hasTrailingSlash ? filepath.substr(0, pathLength - 1) : filepath);
         path.make_preferred();
-        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(winrt::to_hstring(path.c_str())) };
-        co_await folder.DeleteAsync();
-    }
-    else
-    {
-        winrt::hstring directoryPath, fileName;
-        splitPath(filepath, directoryPath, fileName);
-        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-        auto target{ co_await folder.GetItemAsync(fileName) };
+
+        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(path.parent_path().wstring()) };
+        auto target{ co_await folder.GetItemAsync(path.filename().wstring()) };
         co_await target.DeleteAsync();
+
+        promise.Resolve();
     }
-    promise.Resolve();
 }
 catch (const hresult_error& ex)
 {
