@@ -456,29 +456,28 @@ catch (const hresult_error& ex)
 winrt::fire_and_forget RNFSManager::stat(std::string filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept
 try
 {
-    std::filesystem::path path(filepath);
-    path.make_preferred();
 
-    std::string preliminaryPath{ winrt::to_string(path.c_str()) };
-    bool isDirectory{ std::filesystem::is_directory(preliminaryPath) };
-    auto resultPath{ winrt::to_hstring(preliminaryPath) };
+    size_t pathLength{ filepath.length() };
 
-    IStorageItem item;
-    if (isDirectory) {
-        item = co_await StorageFolder::GetFolderFromPathAsync(resultPath);
+    if (pathLength <= 0) {
+        promise.Reject("Invalid path.");
     }
     else {
-        item = co_await StorageFile::GetFileFromPathAsync(resultPath);
+        bool hasTrailingSlash{ filepath[pathLength - 1] == '\\' || filepath[pathLength - 1] == '/' };
+        std::filesystem::path path(hasTrailingSlash ? filepath.substr(0, pathLength - 1) : filepath);
+        path.make_preferred();
+
+        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(path.parent_path().wstring()) };
+        IStorageItem item{ co_await folder.GetItemAsync(path.filename().wstring()) };
+
+        auto properties{ co_await item.GetBasicPropertiesAsync() };
+        RN::JSValueObject fileInfo;
+        fileInfo["ctime"] = winrt::clock::to_time_t(item.DateCreated());
+        fileInfo["mtime"] = winrt::clock::to_time_t(properties.DateModified());
+        fileInfo["size"] = std::to_string(properties.Size());
+        fileInfo["type"] = item.IsOfType(StorageItemTypes::Folder) ? 1 : 0;
+        promise.Resolve(fileInfo);
     }
-
-    auto properties{ co_await item.GetBasicPropertiesAsync() };
-    RN::JSValueObject fileInfo;
-    fileInfo["ctime"] = winrt::clock::to_time_t(item.DateCreated());
-    fileInfo["mtime"] = winrt::clock::to_time_t(properties.DateModified());
-    fileInfo["size"] = std::to_string(properties.Size());
-    fileInfo["type"] = isDirectory ? 1 : 0;
-
-    promise.Resolve(fileInfo);
 }
 catch (...)
 {
