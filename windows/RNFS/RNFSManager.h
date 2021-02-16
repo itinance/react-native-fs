@@ -16,13 +16,13 @@ namespace RN = winrt::Microsoft::ReactNative;
 struct CancellationDisposable final
 {
     CancellationDisposable() = default;
-	CancellationDisposable(winrt::Windows::Foundation::IAsyncInfo const& async, std::function<void()>&& onCancel) noexcept;
+    CancellationDisposable(winrt::Windows::Foundation::IAsyncInfo const& async, std::function<void()>&& onCancel) noexcept;
 
-	CancellationDisposable(CancellationDisposable&& other) noexcept;
-	CancellationDisposable& operator=(CancellationDisposable&& other) noexcept;
+    CancellationDisposable(CancellationDisposable&& other) noexcept;
+    CancellationDisposable& operator=(CancellationDisposable&& other) noexcept;
 
-	CancellationDisposable(CancellationDisposable const&) = delete;
-	CancellationDisposable& operator=(CancellationDisposable const&) = delete;
+    CancellationDisposable(CancellationDisposable const&) = delete;
+    CancellationDisposable& operator=(CancellationDisposable const&) = delete;
 
     ~CancellationDisposable() noexcept;
 
@@ -60,7 +60,7 @@ struct RNFSManager final
         void ConstantsViaConstantsProvider(RN::ReactConstantProvider& constants) noexcept;
 
     REACT_METHOD(mkdir); // Implemented
-    void mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept;
+    winrt::fire_and_forget mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept;
 
     REACT_METHOD(moveFile); // Implemented
     winrt::fire_and_forget moveFile(
@@ -89,7 +89,7 @@ struct RNFSManager final
     winrt::fire_and_forget unlink(std::string filePath, RN::ReactPromise<void> promise) noexcept;
 
     REACT_METHOD(exists); // Implemented
-    void exists(std::string fullpath, RN::ReactPromise<bool> promise) noexcept;
+    winrt::fire_and_forget exists(std::string fullpath, RN::ReactPromise<bool> promise) noexcept;
 
     REACT_METHOD(stopDownload); // DOWNLOADER
     void stopDownload(int jobID) noexcept;

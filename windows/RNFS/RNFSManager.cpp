@@ -183,7 +183,7 @@ void RNFSManager::ConstantsViaConstantsProvider(RN::ReactConstantProvider& const
     constants.Add(L"RNFSFileTypeDirectory", 1);
 }
 
-void RNFSManager::mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
     size_t pathLength{ directory.length() };
@@ -194,14 +194,12 @@ try
     else {
         bool hasTrailingSlash{ directory[pathLength - 1] == '\\' || directory[pathLength - 1] == '/' };
         std::filesystem::path path(hasTrailingSlash ? directory.substr(0, pathLength - 1) : directory);
-        if (std::filesystem::create_directories(path) == false)
-        {
-            promise.Reject("Failed to create directory. Directory may already exist.");
-        }
-        else
-        {
-            promise.Resolve();
-        }
+        path.make_preferred();
+
+        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(path.parent_path().wstring()) };
+        co_await folder.CreateFolderAsync(path.filename().wstring(), CreationCollisionOption::FailIfExists);
+
+        promise.Resolve();
     }
 }
 catch (const hresult_error& ex)
@@ -265,7 +263,7 @@ winrt::fire_and_forget RNFSManager::copyFolder(
     RN::ReactPromise<void> promise) noexcept
 try
 {
-    std::filesystem::path srcPath{srcFolderPath};
+    std::filesystem::path srcPath{ srcFolderPath };
     srcPath.make_preferred();
     std::filesystem::path destPath{ destFolderPath };
     destPath.make_preferred();
@@ -347,27 +345,27 @@ catch (const hresult_error& ex)
 winrt::fire_and_forget RNFSManager::unlink(std::string filepath, RN::ReactPromise<void> promise) noexcept
 try
 {
-    if (std::filesystem::is_directory(filepath))
-    {
-        std::filesystem::path path(filepath);
+    size_t pathLength{ filepath.length() };
+
+    if (pathLength <= 0) {
+        promise.Reject("Invalid path.");
+    }
+    else {
+        bool hasTrailingSlash{ filepath[pathLength - 1] == '\\' || filepath[pathLength - 1] == '/' };
+        std::filesystem::path path(hasTrailingSlash ? filepath.substr(0, pathLength - 1) : filepath);
         path.make_preferred();
-        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(winrt::to_hstring(path.c_str())) };
-        co_await folder.DeleteAsync();
-    }
-    else
-    {
-        winrt::hstring directoryPath, fileName;
-        splitPath(filepath, directoryPath, fileName);
-        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-        auto target{ co_await folder.GetItemAsync(fileName) };
+
+        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(path.parent_path().wstring()) };
+        auto target{ co_await folder.GetItemAsync(path.filename().wstring()) };
         co_await target.DeleteAsync();
+
+        promise.Resolve();
     }
-    promise.Resolve();
 }
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
@@ -379,7 +377,7 @@ catch (const hresult_error& ex)
 }
 
 
-void RNFSManager::exists(std::string filepath, RN::ReactPromise<bool> promise) noexcept
+winrt::fire_and_forget RNFSManager::exists(std::string filepath, RN::ReactPromise<bool> promise) noexcept
 try
 {
     size_t fileLength{ filepath.length() };
@@ -390,11 +388,22 @@ try
     else {
         bool hasTrailingSlash{ filepath[fileLength - 1] == '\\' || filepath[fileLength - 1] == '/' };
         std::filesystem::path path(hasTrailingSlash ? filepath.substr(0, fileLength - 1) : filepath);
-        promise.Resolve(std::filesystem::exists(path));
+
+        winrt::hstring directoryPath, fileName;
+        splitPath(filepath, directoryPath, fileName);
+        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
+        if (fileName.size() > 0) {
+            co_await folder.GetItemAsync(fileName);
+        }
+        promise.Resolve(true);
     }
 }
 catch (const hresult_error& ex)
 {
+    hresult result{ ex.code() };
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) {
+        promise.Resolve(false);
+    }
     // "Failed to check if file or directory exists.
     promise.Reject(winrt::to_string(ex.message()).c_str());
 }
@@ -428,11 +437,11 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
-    else if (result == 0x80070005) // UnauthorizedAccessException
+    else if (result == HRESULT_FROM_WIN32(E_ACCESSDENIED)) // UnauthorizedAccessException
     {
         promise.Reject(RN::ReactError{ "EISDIR", "EISDIR: illegal operation on a directory, read" });
     }
@@ -447,29 +456,27 @@ catch (const hresult_error& ex)
 winrt::fire_and_forget RNFSManager::stat(std::string filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept
 try
 {
-    std::filesystem::path path(filepath);
-    path.make_preferred();
+    size_t pathLength{ filepath.length() };
 
-    std::string preliminaryPath{ winrt::to_string(path.c_str()) };
-    bool isDirectory{ std::filesystem::is_directory(preliminaryPath) };
-    auto resultPath{ winrt::to_hstring(preliminaryPath) };
-
-    IStorageItem item;
-    if (isDirectory) {
-        item = co_await StorageFolder::GetFolderFromPathAsync(resultPath);
+    if (pathLength <= 0) {
+        promise.Reject("Invalid path.");
     }
     else {
-        item = co_await StorageFile::GetFileFromPathAsync(resultPath);
+        bool hasTrailingSlash{ filepath[pathLength - 1] == '\\' || filepath[pathLength - 1] == '/' };
+        std::filesystem::path path(hasTrailingSlash ? filepath.substr(0, pathLength - 1) : filepath);
+        path.make_preferred();
+
+        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(path.parent_path().wstring()) };
+        IStorageItem item{ co_await folder.GetItemAsync(path.filename().wstring()) };
+
+        auto properties{ co_await item.GetBasicPropertiesAsync() };
+        RN::JSValueObject fileInfo;
+        fileInfo["ctime"] = winrt::clock::to_time_t(item.DateCreated());
+        fileInfo["mtime"] = winrt::clock::to_time_t(properties.DateModified());
+        fileInfo["size"] = std::to_string(properties.Size());
+        fileInfo["type"] = item.IsOfType(StorageItemTypes::Folder) ? 1 : 0;
+        promise.Resolve(fileInfo);
     }
-
-    auto properties{ co_await item.GetBasicPropertiesAsync() };
-    RN::JSValueObject fileInfo;
-    fileInfo["ctime"] = winrt::clock::to_time_t(item.DateCreated());
-    fileInfo["mtime"] = winrt::clock::to_time_t(properties.DateModified());
-    fileInfo["size"] = std::to_string(properties.Size());
-    fileInfo["type"] = isDirectory ? 1 : 0;
-
-    promise.Resolve(fileInfo);
 }
 catch (...)
 {
@@ -533,11 +540,11 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
-    else if (result == 0x80070005) // UnauthorizedAccessException
+    else if (result == HRESULT_FROM_WIN32(E_ACCESSDENIED)) // UnauthorizedAccessException
     {
         promise.Reject(RN::ReactError{"EISDIR", "EISDIR: Could not open file for reading" });
     }
@@ -583,11 +590,11 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
-    else if (result == 0x80070005) // UnauthorizedAccessException
+    else if (result == HRESULT_FROM_WIN32(E_ACCESSDENIED)) // UnauthorizedAccessException
     {
         promise.Reject(RN::ReactError{ "EISDIR", "EISDIR: illegal operation on a directory, read" });
     }
@@ -619,7 +626,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
@@ -634,11 +641,15 @@ catch (const hresult_error& ex)
 winrt::fire_and_forget RNFSManager::appendFile(std::string filepath, std::string base64Content, RN::ReactPromise<void> promise) noexcept
 try
 {
+    size_t fileLength = filepath.length();
+    bool hasTrailingSlash{ filepath[fileLength - 1] == '\\' || filepath[fileLength - 1] == '/' };
+    std::filesystem::path path(hasTrailingSlash ? filepath.substr(0, fileLength - 1) : filepath);
+
     winrt::hstring directoryPath, fileName;
     splitPath(filepath, directoryPath, fileName);
 
     StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
-    StorageFile file{ co_await folder.GetFileAsync(fileName) };
+    StorageFile file{ co_await folder.CreateFileAsync(fileName, CreationCollisionOption::OpenIfExists) };
 
     winrt::hstring base64ContentStr{ winrt::to_hstring(base64Content) };
     Streams::IBuffer buffer{ Cryptography::CryptographicBuffer::DecodeFromBase64String(base64ContentStr) };
@@ -652,7 +663,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
@@ -689,7 +700,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
     }
@@ -821,7 +832,7 @@ try
     std::filesystem::path path(filepath);
     path.make_preferred();
     auto s_path{ path.c_str() };
-    LPCWSTR actual_path{ s_path };
+    PCWSTR actual_path{ s_path };
     DWORD accessMode{ GENERIC_READ | GENERIC_WRITE };
     DWORD shareMode{ FILE_SHARE_WRITE };
     DWORD creationMode{ OPEN_EXISTING };
@@ -869,7 +880,7 @@ try
 catch (const hresult_error& ex)
 {
     hresult result{ ex.code() };
-    if (result == 0x80070002) // FileNotFoundException
+    if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
         promise.Reject("ENOENT: no such file.");
     }
@@ -918,7 +929,7 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
 
         std::filesystem::path fsFilePath{ filePath };
 
-		StorageFolder storageFolder{ co_await StorageFolder::GetFolderFromPathAsync(fsFilePath.parent_path().wstring()) };
+        StorageFolder storageFolder{ co_await StorageFolder::GetFolderFromPathAsync(fsFilePath.parent_path().wstring()) };
         StorageFile storageFile{ co_await storageFolder.CreateFileAsync(fsFilePath.filename().wstring(), CreationCollisionOption::ReplaceExisting) };
         IRandomAccessStream  stream{ co_await storageFile.OpenAsync(FileAccessMode::ReadWrite) };
         IOutputStream outputStream{ stream.GetOutputStreamAt(0) };
