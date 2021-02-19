@@ -6,6 +6,7 @@
 
 #include <filesystem>
 #include <sstream>
+#include <stack>
 #include <windows.h>
 #include <winrt/Windows.Storage.FileProperties.h>
 #include <winrt/Windows.Storage.Streams.h>
@@ -189,16 +190,39 @@ try
     size_t pathLength{ directory.length() };
 
     if (pathLength <= 0) {
-        promise.Reject("Invalid path.");
+        promise.Reject("Invalid path length");
     }
     else {
         bool hasTrailingSlash{ directory[pathLength - 1] == '\\' || directory[pathLength - 1] == '/' };
         std::filesystem::path path(hasTrailingSlash ? directory.substr(0, pathLength - 1) : directory);
         path.make_preferred();
 
-        StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(path.parent_path().wstring()) };
-        co_await folder.CreateFolderAsync(path.filename().wstring(), CreationCollisionOption::FailIfExists);
+        auto parentPath{ path.parent_path().wstring() };
+        std::stack<std::wstring> directoriesToMake;
+        directoriesToMake.push(path.filename().wstring());
 
+        StorageFolder folder{ nullptr };
+        while (folder == nullptr) {
+            try {
+                folder = co_await StorageFolder::GetFolderFromPathAsync(parentPath);
+            }
+            catch (const hresult_error& ex) {
+                hresult result{ ex.code() };
+                if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) {
+                    auto index{ parentPath.find_last_of('\\') };
+                    directoriesToMake.push(parentPath.substr(index + 1));
+                    parentPath = parentPath.substr(0, index);
+                }
+                else {
+                    promise.Reject(winrt::to_string(ex.message()).c_str());
+                }
+            }
+        }
+
+        while (!directoriesToMake.empty()) {
+            folder = co_await folder.CreateFolderAsync(directoriesToMake.top(), CreationCollisionOption::OpenIfExists);
+            directoriesToMake.pop();
+        }
         promise.Resolve();
     }
 }
