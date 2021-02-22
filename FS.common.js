@@ -203,6 +203,10 @@ var RNFS = {
     return readFileGeneric(filepath, encodingOrOptions, RNFSManager.readFile);
   },
 
+  readUtf8(filepath: string): Promise<string> {
+    return RNFSManager.readUtf8(normalizeFilePath(filepath));
+  },
+
   read(filepath: string, length: number = 0, position: number = 0, encodingOrOptions?: any): Promise<string> {
     var options = {
       encoding: 'utf8'
@@ -315,6 +319,10 @@ var RNFS = {
     }
 
     return RNFSManager.writeFile(normalizeFilePath(filepath), b64, options).then(() => void 0);
+  },
+
+  writeUtf8(filepath: string, contents: string): Promise<string> {
+    return RNFSManager.writeUtf8(normalizeFilePath(filepath), contents).then(() => void 0);
   },
 
   appendFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {

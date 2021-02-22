@@ -37,6 +37,8 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 @ReactModule(name = RNFSManager.MODULE_NAME)
 public class RNFSManager extends ReactContextBaseJavaModule {
@@ -160,6 +162,21 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void writeUtf8(String filepath, String utf8Content, Promise promise) {
+    try {
+      byte[] bytes = utf8Content.getBytes(Charset.forName("UTF-8"));
+      OutputStream outputStream = getOutputStream(filepath, false);
+      outputStream.write(bytes);
+      outputStream.close();
+
+      promise.resolve(null);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
   public void appendFile(String filepath, String base64Content, Promise promise) {
     try {
       byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
@@ -217,6 +234,20 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       String base64Content = Base64.encodeToString(inputData, Base64.NO_WRAP);
 
       promise.resolve(base64Content);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
+  public void readUtf8(String filepath, Promise promise) {
+    try {
+      InputStream inputStream = getInputStream(filepath);
+      byte[] inputData = getInputStreamBytes(inputStream);
+      String content = new String(inputData, StandardCharsets.UTF_8);
+
+      promise.resolve(content);
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);
