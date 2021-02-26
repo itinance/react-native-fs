@@ -405,7 +405,7 @@ Note: Android only.
 
 ### `readFileRes(filename:string, encoding?: string): Promise<string>`
 
-Reads the file named `filename` in the Android app's res folder and return contents. `res/drawable` is used as the parent folder for image files, `res/raw` for everything else. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+Reads the file named `filename` in the Android app's `res` folder and return contents. Only the file name (not folder) needs to be specified. The file type will be detected from the extension and automatically located within `res/drawable` (for image files) or `res/raw` (for everything else). `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
 Note: Android only.
 
