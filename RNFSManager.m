@@ -882,10 +882,16 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
     if ([asset isKindOfClass:[AVURLAsset class]]) {
       NSURL *url = [(AVURLAsset *)asset URL];
       NSLog(@"Final URL %@",url);
-      NSData *videoData = [NSData dataWithContentsOfURL:url];
-
-      BOOL writeResult = [videoData writeToFile:destination options:NSDataWritingAtomic error:&error];
-
+      BOOL writeResult = false;
+        
+      if (@available(iOS 9.0, *)) {
+          NSURL *destinationUrl = [NSURL fileURLWithPath:destination relativeToURL:nil];
+          writeResult = [[NSFileManager defaultManager] copyItemAtURL:url toURL:destinationUrl error:&error];
+      } else {
+          NSData *videoData = [NSData dataWithContentsOfURL:url];
+          writeResult = [videoData writeToFile:destination options:NSDataWritingAtomic error:&error];
+      }
+        
       if(writeResult) {
         NSLog(@"video success");
       }
