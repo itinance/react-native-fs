@@ -443,16 +443,52 @@ Copies the file named `filename` in the Android app's res folder and copies it t
 
 Note: Android only. Will overwrite destPath if it already exists.
 
-### `copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number, scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string>`
+### (iOS only) `copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number, scale?: number, compression?: number, resizeMode?: string): Promise<string>`
 
-iOS-only (not available on Mac Catalyst): copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG?..."
-to a specific destination. It will download the original from iCloud if necessary.
+*Not available on Mac Catalyst.*
 
-If width and height is > 0, the image will be resized to a specific size and a specific compression rate.
-If scale is below 1, the image will be scaled according to the scale-factor (between 0.0 and 1.0)
-The resizeMode is also considered.
+Reads an image file from Camera Roll and writes to `destPath`. This method [assumes the image file to be JPEG file](https://github.com/itinance/react-native-fs/blob/f2f8f4a058cd9acfbcac3b8cf1e08fa1e9b09786/RNFSManager.m#L752-L753). This method will download the original from iCloud if necessary.
 
-*Video-Support:*
+#### Parameters
+
+##### `imageUri` string (required)
+
+URI of a file in Camera Roll. Can be [either of the following formats](https://github.com/itinance/react-native-fs/blob/f2f8f4a058cd9acfbcac3b8cf1e08fa1e9b09786/RNFSManager.m#L781-L785):
+
+- `ph://CC95F08C-88C3-4012-9D6D-64A413D254B3/L0/001`
+- `assets-library://asset/asset.JPG?id=CC95F08C-88C3-4012-9D6D-64A413D254B3&ext=JPG`
+
+##### `destPath` string (required)
+
+Destination to which the copied file will be saved, e.g. `RNFS.TemporaryDirectoryPath + 'example.jpg'`.
+
+##### `width` number (required)
+
+Copied file's image width will be resized to `width`. [If 0 is provided, width won't be resized.](https://github.com/itinance/react-native-fs/blob/f2f8f4a058cd9acfbcac3b8cf1e08fa1e9b09786/RNFSManager.m#L808)
+
+##### `height` number (required)
+
+Copied file's image height will be resized to `height`. [If 0 is provided, height won't be resized.](https://github.com/itinance/react-native-fs/blob/f2f8f4a058cd9acfbcac3b8cf1e08fa1e9b09786/RNFSManager.m#L808)
+
+##### `scale` number (optional)
+
+Copied file's image will be scaled proportional to `scale` factor from `width` x `height`. If both `width` and `height` are 0, the image won't scale. Range is [0.0, 1.0] and default is 1.0.
+
+##### `compression` number (optional)
+
+Quality of copied file's image. The value 0.0 represents the maximum compression (or lowest quality) while the value 1.0 represents the least compression (or best quality). Range is [0.0, 1.0] and default is 1.0.
+
+##### `resizeMode` string (optional)
+
+If `resizeMode` is 'contain', copied file's image will be scaled so that its larger dimension fits `width` x `height`. If `resizeMode` is other value than 'contain', the image will be scaled so that it completely fills `width` x `height`. Default is 'contain'. Refer to [PHImageContentMode](https://developer.apple.com/documentation/photokit/phimagecontentmode).
+
+#### Return value
+
+##### `Promise<string>`
+
+Copied file's URI.
+
+#### Video-Support
 
 One can use this method also to create a thumbNail from a video in a specific size.
 Currently it is impossible to specify a concrete position, the OS will decide wich
@@ -462,10 +498,11 @@ To copy a video from assets-library and save it as a mp4-file, refer to copyAsse
 Further information: https://developer.apple.com/reference/photos/phimagemanager/1616964-requestimageforasset
 The promise will on success return the final destination of the file, as it was defined in the destPath-parameter.
 
-### copyAssetsVideoIOS(videoUri: string, destPath: string): Promise<string>
+### (iOS only) `copyAssetsVideoIOS(videoUri: string, destPath: string): Promise<string>`
 
-iOS-only (not available on Mac Catalyst): copies a video from assets-library, that is prefixed with 'assets-library://asset/asset.MOV?...'
-to a specific destination.
+*Not available on Mac Catalyst.*
+
+Copies a video from assets-library, that is prefixed with 'assets-library://asset/asset.MOV?...' to a specific destination.
 
 ### `unlink(filepath: string): Promise<void>`
 
