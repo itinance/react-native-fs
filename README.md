@@ -25,7 +25,7 @@ For RN >= 0.61 please install react-native-fs at version >= @2.16.0!
 
 View the changelog [here](https://github.com/itinance/react-native-fs/blob/master/CHANGELOG.md).
 
-## Usage (iOS)
+## Usage (iOS/macOS)
 
 First you need to install react-native-fs:
 
