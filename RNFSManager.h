@@ -10,5 +10,6 @@
 #import <React/RCTLog.h>
 
 @interface RNFSManager : NSObject <RCTBridgeModule>
+@property (retain) UIDocumentInteractionController * documentController;
 
 @end

@@ -399,6 +399,21 @@ var RNFS = {
     );
   },
 
+  // not accurate on ios
+  canOpenFile(filepath: string, scheme?: string): Promise<void> {
+    return RNFSManager.canOpenFile(
+      normalizeFilePath(filepath),
+      scheme,
+    );
+  },
+
+  openFile(filepath: string, scheme?: string): Promise<void> {
+    return RNFSManager.openFile(
+      normalizeFilePath(filepath),
+      scheme,
+    );
+  },
+
   scanFile(path: string): Promise<ReadDirItem[]> {
     return RNFSManager.scanFile(path);
   },

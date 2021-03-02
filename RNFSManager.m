@@ -30,6 +30,8 @@ RCT_EXPORT_MODULE();
   return NO;
 }
 
+@synthesize documentController;
+
 RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -676,6 +678,37 @@ RCT_EXPORT_METHOD(touch:(NSString*)filepath
 }
 
 
+RCT_EXPORT_METHOD(canOpenFile:(NSString*)uri scheme:(NSString *)scheme resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if(scheme == nil || [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:scheme]]) {
+        resolve(@YES);
+    } else {
+        resolve(@NO);
+    }
+}
+
+RCT_EXPORT_METHOD(openFile:(NSString*)uri scheme:(NSString *)scheme resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSString * utf8uri = [uri stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    NSURL * url = [[NSURL alloc] initWithString:utf8uri];
+    // NSURL * url = [[NSURL alloc] initWithString:uri];
+    documentController = [UIDocumentInteractionController interactionControllerWithURL:url];
+    documentController.delegate = self;
+
+    if(scheme == nil || [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:scheme]]) {
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            if([documentController presentPreviewAnimated:YES]) {
+                resolve(@[[NSNull null]]);
+            } else {
+                reject(@"EINVAL", @"document is not supported", nil);
+            }
+        });
+    } else {
+        reject(@"EINVAL", @"scheme is not supported", nil);
+    }
+}
+
+
 - (NSNumber *)dateToTimeIntervalNumber:(NSDate *)date
 {
   return @([date timeIntervalSince1970]);
@@ -710,6 +743,12 @@ RCT_EXPORT_METHOD(touch:(NSString*)filepath
            @"RNFSFileProtectionCompleteUntilFirstUserAuthentication": NSFileProtectionCompleteUntilFirstUserAuthentication,
            @"RNFSFileProtectionNone": NSFileProtectionNone
           };
+}
+
+- (UIViewController *) documentInteractionControllerViewControllerForPreview: (UIDocumentInteractionController *) controller
+{
+    UIWindow *window = [UIApplication sharedApplication].keyWindow;
+    return window.rootViewController;
 }
 
 @end
