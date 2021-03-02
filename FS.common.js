@@ -401,15 +401,17 @@ var RNFS = {
 
   // not accurate on ios
   canOpenFile(filepath: string, scheme?: string): Promise<void> {
+    const path = `${isIOS ? 'file://' : ''}${normalizeFilePath(filepath)}`
     return RNFSManager.canOpenFile(
-      normalizeFilePath(filepath),
+      path,
       scheme,
     );
   },
 
   openFile(filepath: string, scheme?: string): Promise<void> {
+    const path = `${isIOS ? 'file://' : ''}${normalizeFilePath(filepath)}`
     return RNFSManager.openFile(
-      normalizeFilePath(filepath),
+      path,
       scheme,
     );
   },
