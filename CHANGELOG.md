@@ -1,5 +1,17 @@
 # Changelog
 
+## Changes for v2.17
+
+- #938 Manually flush & invalidate session upon completion
+- #954 Switch to using channels for byte copying.
+- #962 Size limit with copyAssetsVideoIOS
+- #963 Add basic support for Android content URIs in stat
+- #972 Manually flush & invalidate completed session
+- #974 Add content for copyAssetsFileIOS method
+- #975 Fix copyAssetsFileIOS's image resizing option to resize to exact width and height
+- #985 README.md: clarify usage of readFileRes
+- #986 macOS support
+
 ## Changes for v2.16
 - #797 Added path to the Android download folder
 - #842 Fixes #811 Concurrent downloads send progress updates to all progress callbacks
