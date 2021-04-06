@@ -24,12 +24,14 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 import com.facebook.react.bridge.Callback;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
@@ -56,6 +58,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   private SparseArray<Uploader> uploaders = new SparseArray<Uploader>();
 
   private ReactApplicationContext reactContext;
+  private BufferedReader mBufferedReader;
 
   public RNFSManager(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -248,6 +251,38 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       ex.printStackTrace();
       reject(promise, filepath, ex);
     }
+  }
+
+  @ReactMethod
+  public void readLines(String filepath, int lineCount, Promise promise) {
+      String line = null;
+      try {
+          List<String> lines = new ArrayList<>();
+          if (mBufferedReader == null) {
+              InputStream inputStream = getInputStream(filepath);
+              mBufferedReader = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()));
+          }
+          line = mBufferedReader.readLine();
+          while (line != null) {
+              lines.add(line);
+              if (lines.size() >= lineCount) {
+                  break;
+              }
+              line = mBufferedReader.readLine();
+          }
+          promise.resolve(Arguments.fromList(lines));
+      } catch (Exception ex) {
+          ex.printStackTrace();
+          reject(promise, filepath, ex);
+      } finally {
+          if (mBufferedReader != null && line == null) {
+              try {
+                  mBufferedReader.close();
+                  mBufferedReader = null;
+              } catch (Exception ignore) {
+              }
+          }
+      }
   }
 
   @ReactMethod

@@ -327,6 +327,10 @@ var RNFS = {
     });
   },
 
+  readLines(filepath: string, lineCount: number = 1): Promise<Array<string>> {
+    return RNFSManager.readLines(normalizeFilePath(filepath), lineCount);
+  },
+
   // Android only
   readFileAssets(filepath: string, encodingOrOptions?: any): Promise<string> {
     if (!RNFSManager.readFileAssets) {
