@@ -61,6 +61,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private ReactApplicationContext reactContext;
   private BufferedReader mBufferedReader;
+  private String mLastReadPath;
 
   public RNFSManager(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -257,34 +258,34 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void readLines(String filepath, int lineCount, Promise promise) {
-      String line = null;
-      try {
-          List<String> lines = new ArrayList<>();
-          if (mBufferedReader == null) {
-              InputStream inputStream = getInputStream(filepath);
-              mBufferedReader = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()));
-          }
-          line = mBufferedReader.readLine();
-          while (line != null) {
-              lines.add(line);
-              if (lines.size() >= lineCount) {
-                  break;
-              }
-              line = mBufferedReader.readLine();
-          }
-          promise.resolve(Arguments.fromList(lines));
-      } catch (Exception ex) {
-          ex.printStackTrace();
-          reject(promise, filepath, ex);
-      } finally {
-          if (mBufferedReader != null && line == null) {
-              try {
-                  mBufferedReader.close();
-                  mBufferedReader = null;
-              } catch (Exception ignore) {
-              }
-          }
-      }
+        String line = null;
+        try {
+            if (mLastReadPath != null && !mLastReadPath.equals(filepath)) {
+                this.closeBufferedReader();
+            }
+            this.mLastReadPath = filepath;
+            List<String> lines = new ArrayList<>();
+            if (mBufferedReader == null) {
+                InputStream inputStream = getInputStream(filepath);
+                mBufferedReader = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()));
+            }
+            line = mBufferedReader.readLine();
+            while (line != null) {
+                lines.add(line);
+                if (lines.size() >= lineCount) {
+                    break;
+                }
+                line = mBufferedReader.readLine();
+            }
+            promise.resolve(Arguments.fromList(lines));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            reject(promise, filepath, ex);
+        } finally {
+            if (line == null) {
+                this.closeBufferedReader();
+            }
+        }
   }
 
   @ReactMethod
@@ -937,5 +938,16 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     }
 
     return constants;
+  }
+
+  private void closeBufferedReader() {
+      if (mBufferedReader != null) {
+          try {
+              mBufferedReader.close();
+              mBufferedReader = null;
+              mLastReadPath = null;
+          } catch (Exception ignore) {
+          }
+      }
   }
 }
