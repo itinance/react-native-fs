@@ -309,8 +309,8 @@ var RNFS = {
         options = encodingOrOptions;
       }
     }
-
-    return RNFSManager.read(normalizeFilePath(filepath), length, position).then((b64) => {
+    const useBase64 = encodingOrOptions !== 'string';
+    return RNFSManager.read(normalizeFilePath(filepath), length, position,useBase64).then((b64) => {
       var contents;
 
       if (options.encoding === 'utf8') {
@@ -318,6 +318,8 @@ var RNFS = {
       } else if (options.encoding === 'ascii') {
         contents = base64.decode(b64);
       } else if (options.encoding === 'base64') {
+        contents = b64;
+      } else if(options.encoding === 'string'){
         contents = b64;
       } else {
         throw new Error('Invalid encoding type "' + String(options.encoding) + '"');

@@ -36,6 +36,7 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -231,7 +232,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
               String base64Content = Base64.encodeToString(inputData, Base64.NO_WRAP);
               promise.resolve(base64Content);
           } else {
-              promise.resolve(new String(inputData, "utf-8"));
+              promise.resolve(new String(inputData, StandardCharsets.UTF_8));
           }
       } catch (Exception ex) {
           ex.printStackTrace();
@@ -240,16 +241,20 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void read(String filepath, int length, int position, Promise promise) {
+  public void read(String filepath, int length, int position, boolean useBase64, Promise promise) {
     try {
       InputStream inputStream = getInputStream(filepath);
       byte[] buffer = new byte[length];
       inputStream.skip(position);
       int bytesRead = inputStream.read(buffer, 0, length);
 
-      String base64Content = Base64.encodeToString(buffer, 0, bytesRead, Base64.NO_WRAP);
-
-      promise.resolve(base64Content);
+      String content;
+      if (useBase64) {
+          content = Base64.encodeToString(buffer, 0, bytesRead, Base64.NO_WRAP);
+      } else {
+          content = new String(buffer, StandardCharsets.UTF_8);
+      }
+      promise.resolve(content);
     } catch (Exception ex) {
       ex.printStackTrace();
       reject(promise, filepath, ex);

@@ -368,6 +368,7 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
 RCT_EXPORT_METHOD(read:(NSString *)filepath
                   length: (NSInteger *)length
                   position: (NSInteger *)position
+                  useBase64: (BOOL)useBase64
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -405,9 +406,13 @@ RCT_EXPORT_METHOD(read:(NSString *)filepath
         content = [file readDataToEndOfFile];
     }
 
-    NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
-
-    resolve(base64Content);
+    if (useBase64) {
+        NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
+        resolve(base64Content);
+    } else {
+        NSString *utf8Content = [[NSString alloc] initWithData:content encoding:NSUTF8StringEncoding];
+        resolve(utf8Content);
+    }
 }
 
 RCT_EXPORT_METHOD(hash:(NSString *)filepath
