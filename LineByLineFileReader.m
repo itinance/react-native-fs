@@ -15,9 +15,6 @@
 
 // Block that is called to process each line as it is read.
 @property (nonatomic, copy) void (^lineProcessor)(NSString *line, NSError *error);
-
-@property (nonatomic, assign) NSInteger lineIndex;
-@property (nonatomic, assign) NSInteger lineCount;
 @end
 
 @implementation LineByLineFileReader
@@ -90,17 +87,12 @@ uint8_t buf[TRY_TO_READ];
         BOOL needFinishReading = NO;
         for (NSString *line in lines) {
             if (lineToProcess) {
-                self.lineIndex++;
                 self.lineProcessor(lineToProcess, nil);
                 // Use an empty string here so that files
                 // that end with a newline have a final empty
                 // line just like if reading with stringWithContentsOfFile
                 // and then splitting.
                 lineToProcess = @"";
-                if (self.lineIndex == self.lineCount) {
-                    needFinishReading = YES;
-                    break;
-                }
             }
             if (![line isEqualToString:@""]) {
                 lineToProcess = line;
@@ -131,7 +123,9 @@ uint8_t buf[TRY_TO_READ];
 
 - (void)finishReading
 {
-    [self closeStream:self.inputStream];
+    if (self.inputStream) {
+        [self closeStream:self.inputStream];
+    }
     // Treat anything left in stringBuffer as the remaining line.
     if (self.stringBuffer) {
         self.lineProcessor(self.stringBuffer, nil);
@@ -143,20 +137,16 @@ uint8_t buf[TRY_TO_READ];
 #pragma mark - public methods
 // Process the file identified by path calling block with each line to be processed or any
 // error. Either line or error will be non nil.
-- (void)processFile:(NSString *)path withEncoding:(NSStringEncoding)fileEncoding withLineCount:(NSInteger)lineCount usingBlock:(void (^)(NSString *line, NSError *error))block;
+- (void)processFile:(NSString *)path withEncoding:(NSStringEncoding)fileEncoding usingBlock:(void (^)(NSString *line, NSError *error))block;
 {
-    self.lineIndex = 0;
     self.encoding = fileEncoding;
-    self.lineCount = lineCount;
     self.lineProcessor = block;
     [self startProcessing:path];
 }
 
 - (void)closeStream
 {
-    if (self.inputStream) {
-        [self closeStream:self.inputStream];
-    }
+    [self finishReading];
 }
 
 

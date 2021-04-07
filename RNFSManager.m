@@ -96,10 +96,12 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
   resolve(contents);
 }
 
+
+
 RCT_EXPORT_METHOD(readLines:(NSString *)filePath
                   lineCount:(NSInteger)lineCount
-                  resolver: (RCTPromiseResolveBlock)resolve
-                  rejecter: (RCTPromiseRejectBlock)reject
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject
                   )
 {
     if (!filePath) {
@@ -117,6 +119,8 @@ RCT_EXPORT_METHOD(readLines:(NSString *)filePath
     if (self.lastReadLineOpeartionFilePath != nil && ![filePath isEqualToString:self.lastReadLineOpeartionFilePath]) {
         [self.lineByLineFileReader closeStream];
     }
+    
+    self.lastReadLineOpeartionFilePath = filePath;
 
     __block BOOL gotError = NO;
     __block NSError *errorToRaise = nil;
@@ -125,7 +129,6 @@ RCT_EXPORT_METHOD(readLines:(NSString *)filePath
     [self.lineByLineFileReader
      processFile:filePath
      withEncoding:NSUTF8StringEncoding
-     withLineCount:lineCount
      usingBlock:^(NSString *line, NSError *error)  {
         if (error) {
             gotError = YES;
@@ -144,7 +147,17 @@ RCT_EXPORT_METHOD(readLines:(NSString *)filePath
     } else {
         resolve(linesFromReader);
     }
-    
+}
+
+RCT_EXPORT_METHOD(closeReadLineReader:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.lineByLineFileReader != nil) {
+        [self.lineByLineFileReader closeStream];
+        resolve(@{});
+    } else {
+        return [self reject:reject withError:[NSError errorWithDomain:NSCocoaErrorDomain code:-1 userInfo:@{@"info":@"close failed"}]];
+    }
 }
 
 RCT_EXPORT_METHOD(exists:(NSString *)filepath
