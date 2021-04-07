@@ -18,14 +18,18 @@
 
 #import <CommonCrypto/CommonDigest.h>
 #import <Photos/Photos.h>
-
+#import "LineByLineFileReader.h"
 
 @interface RNFSManager()
 
 @property (retain) NSMutableDictionary* downloaders;
 @property (retain) NSMutableDictionary* uuids;
 @property (retain) NSMutableDictionary* uploaders;
-
+@property (nonatomic, strong) LineByLineFileReader *lineByLineFileReader;
+/**
+ 上一次按行读取操作文件路径
+ */
+@property (nonatomic, copy) NSString *lastReadLineOpeartionFilePath;
 @end
 
 @implementation RNFSManager
@@ -33,6 +37,14 @@
 static NSMutableDictionary *completionHandlers;
 
 @synthesize bridge = _bridge;
+
+- (instancetype)init
+{
+    if (self = [super init]) {
+        _lineByLineFileReader = [[LineByLineFileReader alloc] init];
+    }
+    return self;
+}
 
 RCT_EXPORT_MODULE();
 
@@ -82,6 +94,70 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
   }
 
   resolve(contents);
+}
+
+
+
+RCT_EXPORT_METHOD(readLines:(NSString *)filePath
+                  lineCount:(NSInteger)lineCount
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject
+                  )
+{
+    if (!filePath) {
+        return [self reject:reject withError:[NSError errorWithDomain:NSCocoaErrorDomain code:-1 userInfo:@{@"info":@"filePath not valid"}]];
+    }
+    
+    if (lineCount <= 0) {
+        return [self reject:reject withError:[NSError errorWithDomain:NSCocoaErrorDomain code:-1 userInfo:@{@"lineCount":@"filePath not valid"}]];
+    }
+    
+    if (self.lineByLineFileReader == nil) {
+        self.lineByLineFileReader = [[LineByLineFileReader alloc] init];
+    }
+    
+    if (self.lastReadLineOpeartionFilePath != nil && ![filePath isEqualToString:self.lastReadLineOpeartionFilePath]) {
+        [self.lineByLineFileReader closeStream];
+    }
+    
+    self.lastReadLineOpeartionFilePath = filePath;
+
+    __block BOOL gotError = NO;
+    __block NSError *errorToRaise = nil;
+    __block int linesRead = 0;
+    __block NSMutableArray *linesFromReader = [NSMutableArray arrayWithCapacity:lineCount];
+    [self.lineByLineFileReader
+     processFile:filePath
+     withEncoding:NSUTF8StringEncoding
+     usingBlock:^(NSString *line, NSError *error)  {
+        if (error) {
+            gotError = YES;
+            errorToRaise = error;
+        } else {
+            ++linesRead;
+            [linesFromReader addObject:line];
+        }
+    }];
+    
+    // RunLoop is used to read the file so need to give it time to run.
+    [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.0]];
+    
+    if (gotError) {
+        return [self reject:reject withError:errorToRaise];
+    } else {
+        resolve(linesFromReader);
+    }
+}
+
+RCT_EXPORT_METHOD(closeReadLineReader:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.lineByLineFileReader != nil) {
+        [self.lineByLineFileReader closeStream];
+        resolve(@{});
+    } else {
+        return [self reject:reject withError:[NSError errorWithDomain:NSCocoaErrorDomain code:-1 userInfo:@{@"info":@"close failed"}]];
+    }
 }
 
 RCT_EXPORT_METHOD(exists:(NSString *)filepath
