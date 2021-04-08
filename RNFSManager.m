@@ -135,7 +135,9 @@ RCT_EXPORT_METHOD(readLines:(NSString *)filePath
             errorToRaise = error;
         } else {
             ++linesRead;
-            [linesFromReader addObject:line];
+            if (linesRead <= lineCount) {
+                [linesFromReader addObject:line];
+            }
         }
     }];
     
