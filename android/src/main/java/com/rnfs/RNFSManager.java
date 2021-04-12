@@ -252,7 +252,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       if (useBase64) {
           content = Base64.encodeToString(buffer, 0, bytesRead, Base64.NO_WRAP);
       } else {
-          content = new String(buffer, StandardCharsets.UTF_8);
+          content = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
       }
       promise.resolve(content);
     } catch (Exception ex) {
