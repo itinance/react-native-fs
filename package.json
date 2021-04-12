@@ -49,6 +49,7 @@
     "*.m",
     "*.json",
     "*.ts",
-    "*.js"
+    "*.js",
+    "RNFS.podspec"
   ]
 }
