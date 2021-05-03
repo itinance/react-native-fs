@@ -22,6 +22,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.UUID;
 
 public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
     private UploadParams mParams;
@@ -52,7 +53,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
         DataOutputStream request = null;
         String crlf = "\r\n";
         String twoHyphens = "--";
-        String boundary = "*****";
+        String boundary = UUID.randomUUID().toString();
         String tail = crlf + twoHyphens + boundary + twoHyphens + crlf;
         String metaData = "", stringData = "";
         String[] fileHeader;
