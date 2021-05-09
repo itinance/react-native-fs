@@ -16,6 +16,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -126,39 +129,46 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             connection.connect();
 
             request = new DataOutputStream(connection.getOutputStream());
+            WritableByteChannel requestChannel = Channels.newChannel(request);
+
             if (!binaryStreamOnly) {
                 request.writeBytes(metaData);
             }
 
             byteSentTotal = 0;
-            Runtime run = Runtime.getRuntime();
 
             for (ReadableMap map : params.files) {
                 if (!binaryStreamOnly) {
                     request.writeBytes(fileHeader[fileCount]);
                 }
+
                 File file = new File(map.getString("filepath"));
-                int fileLength = (int) file.length();
-                int bytes_read = 0;
-                BufferedInputStream bufInput = new BufferedInputStream(new FileInputStream(file));
-                int buffer_size =(int) Math.ceil(fileLength / 100.f);
-                if(buffer_size > run.freeMemory() / 10.f) {
-                    buffer_size = (int) Math.ceil(run.freeMemory() / 10.f);
-                }
-                byte[] buffer = new byte[buffer_size];
-                while ((bytes_read = bufInput.read(buffer)) != -1) {
-                    request.write(buffer, 0, bytes_read);
+
+                long fileLength = file.length();
+                long bufferSize = (long) Math.ceil(fileLength / 100.f);
+                long bytesRead = 0;
+
+                FileInputStream fileStream = new FileInputStream(file);
+                FileChannel fileChannel = fileStream.getChannel();
+
+                while (bytesRead < fileLength) {
+                    long transferredBytes = fileChannel.transferTo(bytesRead, bufferSize, requestChannel);
+                    bytesRead += transferredBytes;
+
                     if (mParams.onUploadProgress != null) {
-                        byteSentTotal += bytes_read;
+                        byteSentTotal += transferredBytes;
                         mParams.onUploadProgress.onUploadProgress((int) totalFileLength, byteSentTotal);
                     }
                 }
+
                 if (!binaryStreamOnly) {
                     request.writeBytes(crlf);
                 }
+
                 fileCount++;
-                bufInput.close();
+                fileStream.close();
             }
+
             if (!binaryStreamOnly) {
                 request.writeBytes(tail);
             }
