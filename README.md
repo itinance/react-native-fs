@@ -383,43 +383,43 @@ type StatResult = {
 };
 ```
 
-### `readFile(filepath: string, encoding?: string): Promise<string>`
+### `readFile(filepath: string, encodingOrOptions?: 'utf8' | 'base64' | 'ascii' | object): Promise<string>`
 
-Reads the file at `path` and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+Reads the file at `path` and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files. `options` optionally takes an object specifying the file's properties, like mode etc.
 
 Note: you will take quite a performance hit if you are reading big files
 
-### `read(filepath: string, length = 0, position = 0, encodingOrOptions?: any): Promise<string>`
+### `read(filepath: string, length = 0, position = 0, encodingOrOptions?: 'utf8' | 'base64' | 'ascii' | object): Promise<string>`
 
-Reads `length` bytes from the given `position` of the file at `path` and returns contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+Reads `length` bytes from the given `position` of the file at `path` and returns contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files. `options` optionally takes an object specifying the file's properties, like mode etc.
 
 Note: reading big files piece by piece using this method may be useful in terms of performance.
 
-### `readFileAssets(filepath:string, encoding?: string): Promise<string>`
+### `readFileAssets(filepath:string, encodingOrOptions?: 'utf8' | 'base64' | 'ascii' | object): Promise<string>`
 
-Reads the file at `path` in the Android app's assets folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+Reads the file at `path` in the Android app's assets folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files. `options` optionally takes an object specifying the file's properties, like mode etc.
 
 `filepath` is the relative path to the file from the root of the `assets` folder.
 
 Note: Android only.
 
-### `readFileRes(filename:string, encoding?: string): Promise<string>`
+### `readFileRes(filename:string, encodingOrOptions?: 'utf8' | 'base64' | 'ascii' | object): Promise<string>`
 
-Reads the file named `filename` in the Android app's `res` folder and return contents. Only the file name (not folder) needs to be specified. The file type will be detected from the extension and automatically located within `res/drawable` (for image files) or `res/raw` (for everything else). `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+Reads the file named `filename` in the Android app's `res` folder and return contents. Only the file name (not folder) needs to be specified. The file type will be detected from the extension and automatically located within `res/drawable` (for image files) or `res/raw` (for everything else). `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files. `options` optionally takes an object specifying the file's properties, like mode etc.
 
 Note: Android only.
 
-### `writeFile(filepath: string, contents: string, encoding?: string): Promise<void>`
+### `writeFile(filepath: string, contents: string, encodingOrOptions?: 'utf8' | 'base64' | 'ascii' | object): Promise<void>`
 
 Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
 
-### `appendFile(filepath: string, contents: string, encoding?: string): Promise<void>`
+### `appendFile(filepath: string, contents: string, encodingOrOptions?: 'utf8' | 'base64' | 'ascii' | object): Promise<void>`
 
-Append the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`.
+Append the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
 
-### `write(filepath: string, contents: string, position?: number, encoding?: string): Promise<void>`
+### `write(filepath: string, contents: string, position?: number, encodingOrOptions?: 'utf8' | 'base64' | 'ascii' | object): Promise<void>`
 
-Write the `contents` to `filepath` at the given random access position. When `position` is `undefined` or `-1` the contents is appended to the end of the file. `encoding` can be one of `utf8` (default), `ascii`, `base64`.
+Write the `contents` to `filepath` at the given random access position. When `position` is `undefined` or `-1` the contents is appended to the end of the file. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
 
 ### `moveFile(filepath: string, destPath: string): Promise<void>`
 

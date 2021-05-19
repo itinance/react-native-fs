@@ -141,10 +141,12 @@ type FSInfoResult = {
   freeSpace: number;    // The amount of available storage space on the device (in bytes).
 };
 
+type EncodingOrOptions = 'utf8' | 'base64' | 'ascii' | Record<string, any>;
+
 /**
  * Generic function used by readFile and readFileAssets
  */
-function readFileGeneric(filepath: string, encodingOrOptions: ?string, command: Function) {
+function readFileGeneric(filepath: string, encodingOrOptions: ?EncodingOrOptions, command: Function) {
   var options = {
     encoding: 'utf8'
   };
@@ -306,11 +308,11 @@ var RNFS = {
     });
   },
 
-  readFile(filepath: string, encodingOrOptions?: any): Promise<string> {
+  readFile(filepath: string, encodingOrOptions?: EncodingOrOptions): Promise<string> {
     return readFileGeneric(filepath, encodingOrOptions, RNFSManager.readFile);
   },
 
-  read(filepath: string, length: number = 0, position: number = 0, encodingOrOptions?: any): Promise<string> {
+  read(filepath: string, length: number = 0, position: number = 0, encodingOrOptions?: EncodingOrOptions): Promise<string> {
     var options = {
       encoding: 'utf8'
     };
@@ -341,7 +343,7 @@ var RNFS = {
   },
 
   // Android only
-  readFileAssets(filepath: string, encodingOrOptions?: any): Promise<string> {
+  readFileAssets(filepath: string, encodingOrOptions?: EncodingOrOptions): Promise<string> {
     if (!RNFSManager.readFileAssets) {
       throw new Error('readFileAssets is not available on this platform');
     }
@@ -349,7 +351,7 @@ var RNFS = {
   },
 
   // Android only
-  readFileRes(filename: string, encodingOrOptions?: any): Promise<string> {
+  readFileRes(filename: string, encodingOrOptions?: EncodingOrOptions): Promise<string> {
     if (!RNFSManager.readFileRes) {
       throw new Error('readFileRes is not available on this platform');
     }
@@ -393,7 +395,7 @@ var RNFS = {
     return RNFSManager.copyAssetsVideoIOS(imageUri, destPath);
   },
 
-  writeFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
+  writeFile(filepath: string, contents: string, encodingOrOptions?: EncodingOrOptions): Promise<void> {
     var b64;
 
     var options = {
@@ -424,7 +426,7 @@ var RNFS = {
     return RNFSManager.writeFile(normalizeFilePath(filepath), b64, options).then(() => void 0);
   },
 
-  appendFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
+  appendFile(filepath: string, contents: string, encodingOrOptions?: EncodingOrOptions): Promise<void> {
     var b64;
 
     var options = {
@@ -452,7 +454,7 @@ var RNFS = {
     return RNFSManager.appendFile(normalizeFilePath(filepath), b64);
   },
 
-  write(filepath: string, contents: string, position?: number, encodingOrOptions?: any): Promise<void> {
+  write(filepath: string, contents: string, position?: number, encodingOrOptions?: EncodingOrOptions): Promise<void> {
     var b64;
 
     var options = {
