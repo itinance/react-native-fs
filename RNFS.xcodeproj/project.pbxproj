@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2DF3FA2D265DE6BA0013E969 /* NSData+BKExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 2DF3FA2B265DE6B90013E969 /* NSData+BKExtension.m */; };
 		645644281EB8DAA100672408 /* NSArray+Map.m in Sources */ = {isa = PBXBuildFile; fileRef = F1EB08BA1AFD0E6A008F8F2B /* NSArray+Map.m */; };
 		645644291EB8DAA100672408 /* RNFSManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E59BDE1ADD662800ACA28A /* RNFSManager.m */; };
 		6456442A1EB8DAA100672408 /* Downloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BF740761C033A2E0057A1E7 /* Downloader.m */; };
@@ -39,6 +40,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2DF3FA2B265DE6B90013E969 /* NSData+BKExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+BKExtension.m"; sourceTree = "<group>"; };
+		2DF3FA2C265DE6BA0013E969 /* NSData+BKExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+BKExtension.h"; sourceTree = "<group>"; };
 		6456441F1EB8DA9100672408 /* libRNFS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNFS.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BB364CA1CDA130000435A01 /* Uploader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Uploader.h; sourceTree = "<group>"; };
 		8BB364CB1CDA130000435A01 /* Uploader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Uploader.m; sourceTree = "<group>"; };
@@ -72,6 +75,8 @@
 		F12AFB921ADAF8F800E0535D = {
 			isa = PBXGroup;
 			children = (
+				2DF3FA2C265DE6BA0013E969 /* NSData+BKExtension.h */,
+				2DF3FA2B265DE6B90013E969 /* NSData+BKExtension.m */,
 				F1EB08B91AFD0E6A008F8F2B /* NSArray+Map.h */,
 				F1EB08BA1AFD0E6A008F8F2B /* NSArray+Map.m */,
 				F1E59BDD1ADD662800ACA28A /* RNFSManager.h */,
@@ -153,6 +158,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = F12AFB921ADAF8F800E0535D;
@@ -183,6 +189,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F1E59BDF1ADD662800ACA28A /* RNFSManager.m in Sources */,
+				2DF3FA2D265DE6BA0013E969 /* NSData+BKExtension.m in Sources */,
 				8BB364CC1CDA130000435A01 /* Uploader.m in Sources */,
 				F1EB08BB1AFD0E6A008F8F2B /* NSArray+Map.m in Sources */,
 				8BF740771C033A2E0057A1E7 /* Downloader.m in Sources */,
@@ -346,6 +353,7 @@
 				645644261EB8DA9100672408 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		F12AFB961ADAF8F800E0535D /* Build configuration list for PBXProject "RNFS" */ = {
 			isa = XCConfigurationList;

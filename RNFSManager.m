@@ -20,6 +20,8 @@
 #import <Photos/Photos.h>
 #import "LineByLineFileReader.h"
 
+#import "NSData+BKExtension.h"
+
 @interface RNFSManager()
 
 @property (retain) NSMutableDictionary* downloaders;
@@ -412,8 +414,10 @@ RCT_EXPORT_METHOD(read:(NSString *)filepath
         NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
         resolve(base64Content);
     } else {
-        NSString *utf8Content = [[NSString alloc] initWithData:content encoding:NSUTF8StringEncoding];
-        resolve(utf8Content);
+//        NSString *utf8Content = [[NSString alloc] initWithData:content encoding:NSUTF8StringEncoding];
+//        resolve(utf8Content);
+        NSString *result = [content convertedToUtf8String];
+        resolve(result);
     }
 }
 
