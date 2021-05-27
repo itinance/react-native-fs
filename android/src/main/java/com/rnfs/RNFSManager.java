@@ -304,9 +304,14 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   private int getResIdentifier(String filename) {
-    String suffix = filename.substring(filename.lastIndexOf(".") + 1);
-    String name = filename.substring(0, filename.lastIndexOf("."));
-    Boolean isImage = suffix.equals("png") || suffix.equals("jpg") || suffix.equals("jpeg") || suffix.equals("bmp") || suffix.equals("gif") || suffix.equals("webp") || suffix.equals("psd") || suffix.equals("svg") || suffix.equals("tiff");
+    int lastPeriodIndex = filename.lastIndexOf(".");
+    String name = filename;
+    Boolean isImage = false;
+    if (lastPeriodIndex > -1) {
+      String suffix = filename.substring(lastPeriodIndex + 1);
+      name = filename.substring(0, lastPeriodIndex);
+      isImage = suffix.equals("png") || suffix.equals("jpg") || suffix.equals("jpeg") || suffix.equals("bmp") || suffix.equals("gif") || suffix.equals("webp") || suffix.equals("psd") || suffix.equals("svg") || suffix.equals("tiff");
+    }
     return getReactApplicationContext().getResources().getIdentifier(name, isImage ? "drawable" : "raw", getReactApplicationContext().getPackageName());
   }
 
