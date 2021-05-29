@@ -110,7 +110,8 @@ type FSInfoResult = {
 	freeSpace: number // The amount of available storage space on the device (in bytes).
 }
 
-type EncodingOrOptions = 'utf8' | 'base64' | 'ascii' | Record<string, any>;
+type Encoding = 'utf8' | 'base64' | 'ascii';
+type EncodingOrOptions = Encoding | Record<string, any>;
 
 export function mkdir(filepath: string, options?: MkdirOptions): Promise<void>
 export function moveFile(
