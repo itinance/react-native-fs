@@ -323,7 +323,7 @@ RCT_EXPORT_METHOD(read:(NSString *)filepath
     }
 
     // Seek to the position if there is one.
-    [file seekToFileOffset: (int)position];
+    [file seekToFileOffset: (long)position];
 
     NSData *content;
     if ((int)length > 0) {
