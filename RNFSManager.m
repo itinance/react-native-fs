@@ -56,7 +56,18 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
   NSFileManager *fileManager = [NSFileManager defaultManager];
   NSError *error = nil;
 
-  NSArray *contents = [fileManager contentsOfDirectoryAtPath:dirPath error:&error];
+  NSMutableArray *tagetContents = [[NSMutableArray alloc] init];
+  NSArray *sourceContents = [fileManager contentsOfDirectoryAtPath:dirPath error:&error];
+  for (NSString *object in sourceContents) {
+    unichar firstChar = [object characterAtIndex:0];
+    if(firstChar == '.') {
+      // Skip hidden files
+    } else {
+      [tagetContents addObject:object];
+    }
+  }
+
+ NSArray *contents = [tagetContents copy];
 
   contents = [contents rnfs_mapObjectsUsingBlock:^id(NSString *obj, NSUInteger idx) {
     NSString *path = [dirPath stringByAppendingPathComponent:obj];
