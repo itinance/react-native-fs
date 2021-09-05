@@ -621,6 +621,7 @@ var RNFS = {
   ExternalCachesDirectoryPath: RNFSManager.RNFSExternalCachesDirectoryPath,
   DocumentDirectoryPath: RNFSManager.RNFSDocumentDirectoryPath,
   DownloadDirectoryPath: RNFSManager.RNFSDownloadDirectoryPath,
+  ApplicationSupportDirectoryPath: RNFSManager.RNFSApplicationSupportDirectoryPath,
   ExternalDirectoryPath: RNFSManager.RNFSExternalDirectoryPath,
   ExternalStorageDirectoryPath: RNFSManager.RNFSExternalStorageDirectoryPath,
   TemporaryDirectoryPath: RNFSManager.RNFSTemporaryDirectoryPath,

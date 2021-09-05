@@ -966,6 +966,7 @@ RCT_EXPORT_METHOD(touch:(NSString*)filepath
 {
   return @{
            @"RNFSMainBundlePath": [[NSBundle mainBundle] bundlePath],
+           @"RNFSApplicationSupportDirectoryPath": [self getPathForDirectory:NSApplicationSupportDirectory],
            @"RNFSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
            @"RNFSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
            @"RNFSExternalDirectoryPath": [NSNull null],
