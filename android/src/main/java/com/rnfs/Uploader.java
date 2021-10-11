@@ -107,7 +107,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                             "Content-Type: " + filetype + crlf;
                     ;
                     if (files.length - 1 == fileCount){
-                        totalFileLength += tail.length();
+                        totalFileLength += tail.getBytes().length;
                     }
 
                     String fileLengthHeader = "Content-length: " + fileLength + crlf;
@@ -122,7 +122,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             }
             if (!binaryStreamOnly) {
                 long requestLength = totalFileLength;
-                requestLength += stringData.length() + files.length * crlf.length();
+                requestLength += stringData.getBytes().length + files.length * crlf.getBytes().length;
                 connection.setRequestProperty("Content-length", "" +(int) requestLength);
                 connection.setFixedLengthStreamingMode((int)requestLength);
             }
@@ -132,14 +132,14 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             WritableByteChannel requestChannel = Channels.newChannel(request);
 
             if (!binaryStreamOnly) {
-                request.writeBytes(metaData);
+                request.write(metaData.getBytes());
             }
 
             byteSentTotal = 0;
 
             for (ReadableMap map : params.files) {
                 if (!binaryStreamOnly) {
-                    request.writeBytes(fileHeader[fileCount]);
+                    request.write(fileHeader[fileCount].getBytes());
                 }
 
                 File file = new File(map.getString("filepath"));
@@ -162,7 +162,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 }
 
                 if (!binaryStreamOnly) {
-                    request.writeBytes(crlf);
+                    request.write(crlf.getBytes());
                 }
 
                 fileCount++;
@@ -170,12 +170,17 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             }
 
             if (!binaryStreamOnly) {
-                request.writeBytes(tail);
+                request.write(tail.getBytes());
             }
             request.flush();
             request.close();
 
-            responseStream = new BufferedInputStream(connection.getInputStream());
+            int code = connection.getResponseCode();
+            if (code >= 200 && code <=300) {
+               responseStream = new BufferedInputStream(connection.getInputStream());
+            } else {
+               responseStream = new BufferedInputStream(connection.getErrorStream());
+            }
             responseStreamReader = new BufferedReader(new InputStreamReader(responseStream));
             WritableMap responseHeaders = Arguments.createMap();
             Map<String, List<String>> map = connection.getHeaderFields();
