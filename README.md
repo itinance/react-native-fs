@@ -484,7 +484,7 @@ Note: Android only. Will overwrite destPath if it already exists
 
 ### `copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number, scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string>`
 
-iOS-only: copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG?..."
+iOS-only: copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG|PNG?..."
 to a specific destination. It will download the original from iCloud if necessary.
 
 If width and height is > 0, the image will be resized to a specific size and a specific compression rate.

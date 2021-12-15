@@ -708,8 +708,8 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
 
 
 /**
- * iOS Only: copy images from the assets-library (camera-roll) to a specific path, asuming
- * JPEG-Images.
+ * iOS Only: copy images from the assets-library (camera-roll) to a specific path, assuming
+ * JPEG-Images or PNG-Images.
  *
  * Video-Support:
  *
