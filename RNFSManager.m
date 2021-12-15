@@ -754,7 +754,6 @@ RCT_EXPORT_METHOD(copyAssetsFileIOS: (NSString *) imageUri
     // Allow us to fetch images from iCloud
     imageOptions.networkAccessAllowed = YES;
 
-
     // Note: PhotoKit defaults to a deliveryMode of PHImageRequestOptionsDeliveryModeOpportunistic
     // which means it may call back multiple times - we probably don't want that
     imageOptions.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
@@ -774,18 +773,31 @@ RCT_EXPORT_METHOD(copyAssetsFileIOS: (NSString *) imageUri
         contentMode = PHImageContentModeAspectFit;
     }
 
-    // PHImageRequestID requestID =
     [[PHImageManager defaultManager] requestImageForAsset:asset
                                                targetSize:targetSize
                                               contentMode:contentMode
                                                   options:imageOptions
                                             resultHandler:^(UIImage *result, NSDictionary<NSString *, id> *info) {
         if (result) {
-
-            NSData *imageData = UIImageJPEGRepresentation(result, compression );
-            [imageData writeToFile:destination atomically:YES];
-            resolve(destination);
-
+            PHContentEditingInputRequestOptions *imageEditingOptions = [PHContentEditingInputRequestOptions new];
+            
+            // Allow us to fetch MIME of images from iCloud
+            imageEditingOptions.networkAccessAllowed = YES;
+            
+            [asset requestContentEditingInputWithOptions:imageEditingOptions completionHandler:^(PHContentEditingInput *contentEditingInput, NSDictionary *info) {
+                NSString *mimeType = (__bridge NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)contentEditingInput.uniformTypeIdentifier, kUTTagClassMIMEType);
+                
+                NSData *imageData;
+                if ([mimeType isEqual: @"image/png"]) {
+                    imageData = UIImagePNGRepresentation(result);
+                }
+                else {
+                    imageData = UIImageJPEGRepresentation(result, compression);
+                }
+                
+                [imageData writeToFile:destination atomically:YES];
+                resolve(destination);
+            }];
         } else {
             NSMutableDictionary* details = [NSMutableDictionary dictionary];
             [details setValue:info[PHImageErrorKey] forKey:NSLocalizedDescriptionKey];
