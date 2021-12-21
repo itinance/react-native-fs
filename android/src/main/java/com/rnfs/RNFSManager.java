@@ -60,7 +60,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   private SparseArray<Downloader> downloaders = new SparseArray<>();
   private SparseArray<Uploader> uploaders = new SparseArray<>();
 
-  private ReactApplicationContext reactContext;
+  static ReactApplicationContext reactContext;
 
   public RNFSManager(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -701,6 +701,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     try {
       File file = new File(options.getString("toFile"));
       URL url = new URL(options.getString("fromUrl"));
+      boolean useDownloadManager = options.getBoolean("useDownloadManager");
       final int jobId = options.getInt("jobId");
       ReadableMap headers = options.getMap("headers");
       int progressInterval = options.getInt("progressInterval");
@@ -714,6 +715,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
       params.src = url;
       params.dest = file;
+      params.useDownloadManager = useDownloadManager;
       params.headers = headers;
       params.progressInterval = progressInterval;
       params.progressDivider = progressDivider;

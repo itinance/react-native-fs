@@ -21,6 +21,7 @@ public class DownloadParams {
 
   public URL src;
   public File dest;
+  public boolean useDownloadManager;
   public ReadableMap headers;
   public int progressInterval;
   public float progressDivider;

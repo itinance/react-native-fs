@@ -66,6 +66,7 @@ type Fields = { [name: string]: string };
 type DownloadFileOptions = {
   fromUrl: string;          // URL to download file from
   toFile: string;           // Local filesystem path to save the file to
+  useDownloadManager?: boolean;
   headers?: Headers;        // An object of headers to be passed to the server
   background?: boolean;     // Continue the download in the background after the app terminates (iOS only)
   discretionary?: boolean;  // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
@@ -488,6 +489,7 @@ var RNFS = {
     if (typeof options !== 'object') throw new Error('downloadFile: Invalid value for argument `options`');
     if (typeof options.fromUrl !== 'string') throw new Error('downloadFile: Invalid value for property `fromUrl`');
     if (typeof options.toFile !== 'string') throw new Error('downloadFile: Invalid value for property `toFile`');
+    if (options.useDownloadManager && typeof options.useDownloadManager !== 'boolean') throw new Error('downloadFile: Invalid value for property `useDownloadManager`');
     if (options.headers && typeof options.headers !== 'object') throw new Error('downloadFile: Invalid value for property `headers`');
     if (options.background && typeof options.background !== 'boolean') throw new Error('downloadFile: Invalid value for property `background`');
     if (options.progressDivider && typeof options.progressDivider !== 'number') throw new Error('downloadFile: Invalid value for property `progressDivider`');
@@ -521,6 +523,7 @@ var RNFS = {
       jobId: jobId,
       fromUrl: options.fromUrl,
       toFile: normalizeFilePath(options.toFile),
+      useDownloadManager: options.useDownloadManager,
       headers: options.headers || {},
       background: !!options.background,
       progressDivider: options.progressDivider || 0,

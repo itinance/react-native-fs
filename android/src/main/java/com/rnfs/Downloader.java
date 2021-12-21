@@ -1,5 +1,14 @@
 package com.rnfs;
 
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.database.Cursor;
+import android.net.Uri;
+
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -20,6 +29,8 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
   private AtomicBoolean mAbort = new AtomicBoolean(false);
   DownloadResult res;
 
+  private long downloadManagerId;
+
   protected DownloadResult doInBackground(DownloadParams... params) {
     mParam = params[0];
     res = new DownloadResult();
@@ -28,10 +39,12 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
       public void run() {
         try {
           download(mParam, res);
-          mParam.onTaskCompleted.onTaskCompleted(res);
+          if(!mParam.useDownloadManager)
+              mParam.onTaskCompleted.onTaskCompleted(res);
         } catch (Exception ex) {
           res.exception = ex;
-          mParam.onTaskCompleted.onTaskCompleted(res);
+          if(!mParam.useDownloadManager)
+              mParam.onTaskCompleted.onTaskCompleted(res);
         }
       }
     }).start();
@@ -43,6 +56,19 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
     InputStream input = null;
     OutputStream output = null;
     HttpURLConnection connection = null;
+
+    if (param.useDownloadManager){
+      Uri uri = Uri.parse(param.src.toString());
+      DownloadManager.Request req = new DownloadManager.Request(uri);
+      req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+      req.setDestinationUri(Uri.parse("file://" + param.dest));
+
+      Context appCtx = RNFSManager.reactContext.getApplicationContext();
+      DownloadManager dm = (DownloadManager) appCtx.getSystemService(Context.DOWNLOAD_SERVICE);
+      downloadManagerId = dm.enqueue(req);
+      appCtx.registerReceiver(new DownloadReceiver(), new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+      return;
+    }
 
     try {
       connection = (HttpURLConnection)param.src.openConnection();
@@ -151,6 +177,7 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
     }
   }
 
+
   private long getContentLength(HttpURLConnection connection){
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
       return connection.getContentLengthLong();
@@ -172,5 +199,49 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
 
   protected void onPostExecute(Exception ex) {
 
+  }
+
+  public class DownloadReceiver extends BroadcastReceiver {
+    public DownloadReceiver() {
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      String action = intent.getAction();
+      if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
+        Context appCtx = RNFSManager.reactContext.getApplicationContext();
+        long id = intent.getExtras().getLong(DownloadManager.EXTRA_DOWNLOAD_ID);
+        if (id == downloadManagerId) {
+          DownloadManager.Query query = new DownloadManager.Query();
+          query.setFilterById(downloadManagerId);
+          DownloadManager dm = (DownloadManager) appCtx.getSystemService(Context.DOWNLOAD_SERVICE);
+          dm.query(query);
+          Cursor c = dm.query(query);
+
+          String filePath = null;
+          try {
+            // the file exists in media content database
+            if (c.moveToFirst()) {
+              int statusCode = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
+              if(statusCode == DownloadManager.STATUS_FAILED) {
+                return;
+              }
+              DownloadResult res = new DownloadResult();
+              res.statusCode = 200;
+              if(mParam.useDownloadManager)
+                mParam.onTaskCompleted.onTaskCompleted(res);
+            }
+          } catch(Exception ex) {
+            if (c != null) {
+              c.close();
+            }
+            DownloadResult res = new DownloadResult();
+            res.exception = ex;
+            if(mParam.useDownloadManager)
+              mParam.onTaskCompleted.onTaskCompleted(res);
+          }
+        }
+      }
+    }
   }
 }
