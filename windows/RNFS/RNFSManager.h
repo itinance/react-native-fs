@@ -104,7 +104,7 @@ struct RNFSManager final
     winrt::fire_and_forget stat(std::wstring filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
     REACT_METHOD(readFile); // Implemented
-    winrt::fire_and_forget readFile(std::string filePath, RN::ReactPromise<std::string> promise) noexcept;
+    winrt::fire_and_forget readFile(std::wstring filePath, RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_METHOD(read); // Implemented
     winrt::fire_and_forget read(
