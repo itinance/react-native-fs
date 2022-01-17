@@ -744,7 +744,7 @@ winrt::fire_and_forget RNFSManager::downloadFile(RN::JSValueObject options, RN::
     {
         //Filepath
         std::filesystem::path path(options["toFile"].AsString());
-        path = convertPath(originalPath);
+        path = convertPath(path);
         if (path.filename().empty())
         {
             promise.Reject("Failed to determine filename in path");
@@ -818,7 +818,7 @@ winrt::fire_and_forget RNFSManager::uploadFiles(RN::JSValueObject options, RN::R
             auto filepath{ fileObj["filepath"].AsString() };
 
             std::filesystem::path path{ filePath };
-            path = convertPath(originalPath);
+            path = convertPath(path);
 
             winrt::hstring directoryPath, fileName;
             splitPath(path.wstring(), directoryPath, fileName);
@@ -857,7 +857,7 @@ try
 {
 
     std::filesystem::path path(filepath);
-    path = convertPath(originalPath);
+    path = convertPath(path);
     auto s_path{ path.c_str() };
     PCWSTR actual_path{ s_path };
     DWORD accessMode{ GENERIC_READ | GENERIC_WRITE };
@@ -928,7 +928,7 @@ void RNFSManager::splitPath(const std::wstring& fullPath, winrt::hstring& direct
     fileName = path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"";
 }
 
-std::filesystem::path RNFSManager::convertPath(const std::filesystem::path originalPath) noexcept
+std::filesystem::path RNFSManager::convertPath(const std::filesystem::path originalPath)
 {
     winrt::hstring fPathHString = winrt::to_hstring(originalPath.string());
     std::filesystem::path path{fPathHString.c_str()};
@@ -1098,7 +1098,7 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
             try
             {
                 std::filesystem::path path{ filePath };
-                path = convertPath(originalPath);
+                path = convertPath(path);
                 winrt::hstring directoryPath, fileName;
                 splitPath(path.wstring(), directoryPath, fileName);
                 StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };

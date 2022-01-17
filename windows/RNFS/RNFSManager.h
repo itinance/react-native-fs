@@ -4,6 +4,7 @@
 #include "NativeModules.h"
 #include <string>
 #include <mutex>
+#include <filesystem>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Security.Cryptography.h>
 #include <winrt/Windows.Security.Cryptography.Core.h>
@@ -155,7 +156,7 @@ private:
     void splitPath(const std::wstring& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept;
 
 private:
-    std::filesystem::path convertPath(const std::filesystem::path originalPath) noexcept;
+    std::filesystem::path convertPath(const std::filesystem::path originalPath);
 
     winrt::Windows::Foundation::IAsyncAction ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
         winrt::Windows::Web::Http::HttpRequestMessage request, std::wstring_view filePath, int32_t jobId, int64_t progressInterval, int64_t progressDivider);
