@@ -750,7 +750,7 @@ winrt::fire_and_forget RNFSManager::downloadFile(RN::JSValueObject options, RN::
             promise.Reject("Failed to determine filename in path");
             co_return;
         }
-        auto filePath{ winrt::to_hstring(path.string()) };
+        auto filePath{ path.wstring() };
 
         //URL
         std::string fromURLString{ options["fromUrl"].AsString() };
