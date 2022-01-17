@@ -817,7 +817,7 @@ winrt::fire_and_forget RNFSManager::uploadFiles(RN::JSValueObject options, RN::R
             auto const& fileObj{ fileInfo.AsObject() };
             auto filepath{ fileObj["filepath"].AsString() };
 
-            std::filesystem::path path{ filePath };
+            std::filesystem::path path{ filepath };
             path = convertPath(path);
 
             winrt::hstring directoryPath, fileName;
@@ -1097,7 +1097,7 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
 
             try
             {
-                std::filesystem::path path{ filePath };
+                std::filesystem::path path{ filepath };
                 path = convertPath(path);
                 winrt::hstring directoryPath, fileName;
                 splitPath(path.wstring(), directoryPath, fileName);
