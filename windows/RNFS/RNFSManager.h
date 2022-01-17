@@ -154,6 +154,9 @@ struct RNFSManager final
 private:
     void splitPath(const std::wstring& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept;
 
+private:
+    std::filesystem::path convertPath(const std::filesystem::path originalPath) noexcept;
+
     winrt::Windows::Foundation::IAsyncAction ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
         winrt::Windows::Web::Http::HttpRequestMessage request, std::wstring_view filePath, int32_t jobId, int64_t progressInterval, int64_t progressDivider);
 

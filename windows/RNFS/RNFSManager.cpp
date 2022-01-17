@@ -743,15 +743,14 @@ winrt::fire_and_forget RNFSManager::downloadFile(RN::JSValueObject options, RN::
     try
     {
         //Filepath
-        std::wstring wStringPath{options["toFile"].AsString()};
-        std::filesystem::path path(wStringPath);
-        path.make_preferred();
+        std::filesystem::path path(options["toFile"].AsString());
+        path = convertPath(originalPath);
         if (path.filename().empty())
         {
             promise.Reject("Failed to determine filename in path");
             co_return;
         }
-        auto filePath{ path.wstring() };
+        auto filePath{ winrt::to_hstring(path.string()) };
 
         //URL
         std::string fromURLString{ options["fromUrl"].AsString() };
@@ -816,10 +815,13 @@ winrt::fire_and_forget RNFSManager::uploadFiles(RN::JSValueObject options, RN::R
         for (const auto& fileInfo : files)
         {
             auto const& fileObj{ fileInfo.AsObject() };
-            std::wstring filepath{ fileObj["filepath"].AsString() };
+            auto filepath{ fileObj["filepath"].AsString() };
+
+            std::filesystem::path path{ filePath };
+            path = convertPath(originalPath);
 
             winrt::hstring directoryPath, fileName;
-            splitPath(filepath, directoryPath, fileName);
+            splitPath(path.wstring(), directoryPath, fileName);
 
             try
             {
@@ -855,8 +857,8 @@ try
 {
 
     std::filesystem::path path(filepath);
-    path.make_preferred();
-    auto s_path{ path.wstring() };
+    path = convertPath(originalPath);
+    auto s_path{ path.c_str() };
     PCWSTR actual_path{ s_path };
     DWORD accessMode{ GENERIC_READ | GENERIC_WRITE };
     DWORD shareMode{ FILE_SHARE_WRITE };
@@ -922,8 +924,16 @@ void RNFSManager::splitPath(const std::wstring& fullPath, winrt::hstring& direct
     std::filesystem::path path(fullPath);
     path.make_preferred();
 
-    directoryPath = path.has_parent_path() ? winrt::to_hstring(path.parent_path().wstring()) : L"";
-    fileName = path.has_filename() ? winrt::to_hstring(path.filename().wstring()) : L"";
+    directoryPath = path.has_parent_path() ? winrt::to_hstring(path.parent_path().c_str()) : L"";
+    fileName = path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"";
+}
+
+std::filesystem::path RNFSManager::convertPath(const std::filesystem::path originalPath) noexcept
+{
+    winrt::hstring fPathHString = winrt::to_hstring(originalPath.string());
+    std::filesystem::path path{fPathHString.c_str()};
+    path.make_preferred();
+    return path;
 }
 
 
@@ -1087,8 +1097,10 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
 
             try
             {
+                std::filesystem::path path{ filePath };
+                path = convertPath(originalPath);
                 winrt::hstring directoryPath, fileName;
-                splitPath(filepath, directoryPath, fileName);
+                splitPath(path.wstring(), directoryPath, fileName);
                 StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
                 StorageFile file{ co_await folder.GetFileAsync(fileName) };
                 auto properties{ co_await file.GetBasicPropertiesAsync() };
