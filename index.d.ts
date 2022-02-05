@@ -1,113 +1,182 @@
-type MkdirOptions = {
-	NSURLIsExcludedFromBackupKey?: boolean // iOS only
-	NSFileProtectionKey?: string // IOS only
+export type MkdirOptions = {
+	/** (iOS only) */
+	NSURLIsExcludedFromBackupKey?: boolean
+	/** (iOS only) */
+	NSFileProtectionKey?: string
 }
 
-type FileOptions = {
-	NSFileProtectionKey?: string // IOS only
+export type FileOptions = {
+	/** (iOS only) */
+	NSFileProtectionKey?: string
 }
 
-type ReadDirItem = {
-	ctime: Date | undefined // The creation date of the file (iOS only)
-	mtime: Date | undefined // The last modified date of the file
-	name: string // The name of the item
-	path: string // The absolute path to the item
-	size: string // Size in bytes
-	isFile: () => boolean // Is the file just a file?
-	isDirectory: () => boolean // Is the file a directory?
+export type ReadDirItem = {
+	/** (iOS only) The creation date of the file */
+	ctime: Date | undefined
+	/** The last modified date of the file */
+	mtime: Date | undefined
+	/** The name of the item */
+	name: string
+	/** The absolute path to the item */
+	path: string
+	/** Size in bytes */
+	size: string
+	/** Is the file just a file? */
+	isFile: () => boolean
+	/** Is the file a directory? */
+	isDirectory: () => boolean
 }
 
-type StatResult = {
-	name: string | undefined // The name of the item TODO: why is this not documented?
-	path: string // The absolute path to the item
-	size: string // Size in bytes
-	mode: number // UNIX file mode
-	ctime: number // Created date
-	mtime: number // Last modified date
-	originalFilepath: string // In case of content uri this is the pointed file path, otherwise is the same as path
-	isFile: () => boolean // Is the file just a file?
-	isDirectory: () => boolean // Is the file a directory?
+export type StatResult = {
+	/** The name of the item TODO: why is this not documented? */
+	name: string | undefined
+	/** The absolute path to the item */
+	path: string
+	/** Size in bytes */
+	size: string
+	/** UNIX file mode */
+	mode: number
+	/** Created date */
+	ctime: number
+	/** Last modified date */
+	mtime: number
+	/** In case of content uri this is the pointed file path, otherwise is the same as path */
+	originalFilepath: string
+	/** Is the file just a file? */
+	isFile: () => boolean
+	/** Is the file a directory? */
+	isDirectory: () => boolean
 }
 
 type Headers = { [name: string]: string }
 type Fields = { [name: string]: string }
 
-type DownloadFileOptions = {
-	fromUrl: string // URL to download file from
-	toFile: string // Local filesystem path to save the file to
-	headers?: Headers // An object of headers to be passed to the server
-	background?: boolean // Continue the download in the background after the app terminates (iOS only)
-	discretionary?: boolean // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
-	cacheable?: boolean // Whether the download can be stored in the shared NSURLCache (iOS only)
+export type DownloadFileOptions = {
+	/** URL to download file from */
+	fromUrl: string
+	/** Local filesystem path to save the file to */
+	toFile: string
+	/** An object of headers to be passed to the server */
+	headers?: Headers
+	/** (iOS only) Continue the download in the background after the app terminates */
+	background?: boolean
+	/** (iOS only) Allow the OS to control the timing and speed of the download to improve perceived performance */
+	discretionary?: boolean
+	/** (iOS only) Whether the download can be stored in the shared NSURLCache */
+	cacheable?: boolean
+	/** 
+	* (in milliseconds) Throttles the amount of progress callbacks invoked based on the maximum frequency of progressDivider.
+	*
+	* For example, if progressInterval = 100, you will not receive callbacks more often than every 100th millisecond.
+	*/
 	progressInterval?: number
+	/** Invokes the progress callback every x percent. e.g. setting it to 10 will invoke the progress callback for 0, 10, 20, ..., 100 (Default: 0) */
 	progressDivider?: number
 	begin?: (res: DownloadBeginCallbackResult) => void
 	progress?: (res: DownloadProgressCallbackResult) => void
-	resumable?: () => void // only supported on iOS yet
-	connectionTimeout?: number // only supported on Android yet
-	readTimeout?: number // supported on Android and iOS
-	backgroundTimeout?: number // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
+	/** iOS only */
+	resumable?: () => void
+	/** Android only */
+	connectionTimeout?: number
+	/** Supported on Android and iOS */
+	readTimeout?: number
+	/** (iOS only) Maximum time (in milliseconds) to download an entire resource (useful for timing out background downloads) */
+	backgroundTimeout?: number
 }
 
 type DownloadBeginCallbackResult = {
-	jobId: number // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
-	statusCode: number // The HTTP status code
-	contentLength: number // The total size in bytes of the download resource
-	headers: Headers // The HTTP response headers from the server
+	/** The download job ID, required if one wishes to cancel the download. See `stopDownload`. */
+	jobId: number
+	/** The HTTP status code */
+	statusCode: number
+	/**  The total size in bytes of the download resource */
+	contentLength: number
+	/** The HTTP response headers from the server */
+	headers: Headers
 }
 
-type DownloadProgressCallbackResult = {
-	jobId: number // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
-	contentLength: number // The total size in bytes of the download resource
-	bytesWritten: number // The number of bytes written to the file so far
+export type DownloadProgressCallbackResult = {
+	/** The download job ID, required if one wishes to cancel the download. See `stopDownload`. */
+	jobId: number
+	/** The total size in bytes of the download resource */
+	contentLength: number
+	/** The number of bytes written to the file so far */
+	bytesWritten: number
 }
 
-type DownloadResult = {
-	jobId: number // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
-	statusCode: number // The HTTP status code
-	bytesWritten: number // The number of bytes written to the file
+export type DownloadResult = {
+	/** The download job ID, required if one wishes to cancel the download. See `stopDownload`. */
+	jobId: number
+	/** The HTTP status code */
+	statusCode: number
+	/** The number of bytes written to the file */
+	bytesWritten: number
 }
 
-type UploadFileOptions = {
-	toUrl: string // URL to upload file to
-	binaryStreamOnly?: boolean // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
-	files: UploadFileItem[] // An array of objects with the file information to be uploaded.
-	headers?: Headers // An object of headers to be passed to the server
-	fields?: Fields // An object of fields to be passed to the server
-	method?: string // Default is 'POST', supports 'POST' and 'PUT'
-	beginCallback?: (res: UploadBeginCallbackResult) => void // deprecated
-	progressCallback?: (res: UploadProgressCallbackResult) => void // deprecated
+export type UploadFileOptions = {
+	/** URL to upload file to */
+	toUrl: string
+	/** Allow for binary data stream for file to be uploaded without extra headers, Default is 'false' */
+	binaryStreamOnly?: boolean
+	/** An array of objects with the file information to be uploaded. */
+	files: UploadFileItem[]
+	/** An object of headers to be passed to the server */
+	headers?: Headers
+	/** An object of fields to be passed to the server */
+	fields?: Fields
+	/** Default is 'POST', supports 'POST' and 'PUT' */
+	method?: string
+	/** @deprecated */
+	beginCallback?: (res: UploadBeginCallbackResult) => void
+	/** @deprecated */
+	progressCallback?: (res: UploadProgressCallbackResult) => void
+	/** Callback when upload starts */
 	begin?: (res: UploadBeginCallbackResult) => void
+	/** Upload progress callback */
 	progress?: (res: UploadProgressCallbackResult) => void
 }
 
-type UploadFileItem = {
-	name: string // Name of the file, if not defined then filename is used
-	filename: string // Name of file
-	filepath: string // Path to file
-	filetype: string // The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
+export type UploadFileItem = {
+	/** Name of the file, if not defined then filename is used */
+	name: string
+	/** Name of file */
+	filename: string
+	/** Path to file */
+	filepath: string
+	/** The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension */
+	filetype: string
 }
 
-type UploadBeginCallbackResult = {
-	jobId: number // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
+export type UploadBeginCallbackResult = {
+	/** The upload job ID, required if one wishes to cancel the upload. See `stopUpload`. */
+	jobId: number
 }
 
-type UploadProgressCallbackResult = {
-	jobId: number // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
-	totalBytesExpectedToSend: number // The total number of bytes that will be sent to the server
-	totalBytesSent: number // The number of bytes sent to the server
+export type UploadProgressCallbackResult = {
+	/** The upload job ID, required if one wishes to cancel the upload. See `stopUpload`. */
+	jobId: number
+	/** The total number of bytes that will be sent to the server */
+	totalBytesExpectedToSend: number
+	/** The number of bytes sent to the server */
+	totalBytesSent: number
 }
 
-type UploadResult = {
-	jobId: number // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
-	statusCode: number // The HTTP status code
-	headers: Headers // The HTTP response headers from the server
-	body: string // The HTTP response body
+export type UploadResult = {
+	/** The upload job ID, required if one wishes to cancel the upload. See `stopUpload` */
+	jobId: number
+	/** The HTTP status code */
+	statusCode: number
+	/** The HTTP response headers from the server */
+	headers: Headers
+	/** The HTTP response body */
+	body: string
 }
 
-type FSInfoResult = {
-	totalSpace: number // The total amount of storage space on the device (in bytes).
-	freeSpace: number // The amount of available storage space on the device (in bytes).
+export type FSInfoResult = {
+	/** The total amount of storage space on the device (in bytes). */
+	totalSpace: number
+	/** The amount of available storage space on the device (in bytes). */
+	freeSpace: number
 }
 
 export function mkdir(filepath: string, options?: MkdirOptions): Promise<void>
