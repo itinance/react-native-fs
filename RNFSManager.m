@@ -57,26 +57,27 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
   NSError *error = nil;
 
   NSArray *contents = [fileManager contentsOfDirectoryAtPath:dirPath error:&error];
-
-  contents = [contents rnfs_mapObjectsUsingBlock:^id(NSString *obj, NSUInteger idx) {
+  NSMutableArray *tagetContents = [[NSMutableArray alloc] init];
+  for (NSString *obj in contents) {
     NSString *path = [dirPath stringByAppendingPathComponent:obj];
     NSDictionary *attributes = [fileManager attributesOfItemAtPath:path error:nil];
-
-    return @{
-             @"ctime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileCreationDate]],
-             @"mtime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileModificationDate]],
-             @"name": obj,
-             @"path": path,
-             @"size": [attributes objectForKey:NSFileSize],
-             @"type": [attributes objectForKey:NSFileType]
-             };
-  }];
+    if(attributes != nil) {
+        [tagetContents addObject:@{
+            @"ctime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileCreationDate]],
+            @"mtime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileModificationDate]],
+            @"name": obj,
+            @"path": path,
+            @"size": [attributes objectForKey:NSFileSize],
+            @"type": [attributes objectForKey:NSFileType]
+            }];
+    }
+  }
 
   if (error) {
     return [self reject:reject withError:error];
   }
 
-  resolve(contents);
+  resolve(tagetContents);
 }
 
 RCT_EXPORT_METHOD(exists:(NSString *)filepath
