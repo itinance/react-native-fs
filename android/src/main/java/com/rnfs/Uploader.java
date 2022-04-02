@@ -84,7 +84,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             while (fieldsIterator.hasNextKey()) {
                 String key = fieldsIterator.nextKey();
                 String value = params.fields.getString(key);
-                metaData += twoHyphens + boundary + crlf + "Content-Disposition: form-data; name=\"" + key + "\"" + crlf + crlf + value +crlf;
+                metaData += twoHyphens + boundary + crlf + "Content-Disposition: form-data; name=\"" + key + "\"" + crlf + crlf + value + crlf;
             }
             stringData += metaData;
             fileHeader = new String[files.length];
@@ -122,7 +122,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             }
             if (!binaryStreamOnly) {
                 long requestLength = totalFileLength;
-                requestLength += stringData.length() + files.length * crlf.length();
+                requestLength += stringData.getBytes("UTF-8").length + files.length * crlf.getBytes("UTF-8").length;
                 connection.setRequestProperty("Content-length", "" +(int) requestLength);
                 connection.setFixedLengthStreamingMode((int)requestLength);
             }
@@ -132,14 +132,14 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             WritableByteChannel requestChannel = Channels.newChannel(request);
 
             if (!binaryStreamOnly) {
-                request.writeBytes(metaData);
+                request.write(metaData.getBytes("UTF-8"));
             }
 
             byteSentTotal = 0;
 
             for (ReadableMap map : params.files) {
                 if (!binaryStreamOnly) {
-                    request.writeBytes(fileHeader[fileCount]);
+                    request.write(fileHeader[fileCount].getBytes("UTF-8"));
                 }
 
                 File file = new File(map.getString("filepath"));
@@ -162,7 +162,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 }
 
                 if (!binaryStreamOnly) {
-                    request.writeBytes(crlf);
+                    request.write(crlf.getBytes("UTF-8"));
                 }
 
                 fileCount++;
@@ -170,7 +170,7 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             }
 
             if (!binaryStreamOnly) {
-                request.writeBytes(tail);
+                request.write(tail.getBytes("UTF-8"));
             }
             request.flush();
             request.close();
