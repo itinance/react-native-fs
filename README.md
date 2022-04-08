@@ -265,7 +265,8 @@ var files = [
   }
 ];
 
-var uploadBegin = (response) => {
+var upload
+= (response) => {
   var jobId = response.jobId;
   console.log('UPLOAD HAS BEGUN! JobId: ' + jobId);
 };
@@ -558,7 +559,7 @@ type DownloadFileOptions = {
   cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only, defaults to true)
   progressInterval?: number;
   progressDivider?: number;
-  begin?: (res: DownloadBeginCallbackResult) => void;
+  begin?: (res: DownloadBeginCallbackResult) => void; // Note: it is required when progress prop provided
   progress?: (res: DownloadProgressCallbackResult) => void;
   resumable?: () => void;    // only supported on iOS yet
   connectionTimeout?: number // only supported on Android yet
