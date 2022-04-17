@@ -1,6 +1,6 @@
 {
   "name": "@exodus/react-native-fs",
-  "version": "2.20.0",
+  "version": "2.21.0",
   "description": "Native filesystem access for react-native",
   "main": "FS.common.js",
   "typings": "index.d.ts",
