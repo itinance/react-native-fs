@@ -1,5 +1,18 @@
 # Changelog
 
+## Changes for v2.20
+
+- #1037 Invalidate upload session
+
+## Changes vor v2.19
+
+- #1048  fix: use correct type for stat size #1048
+- #1063 RNFSManager:readDir iOS crash fix #1063
+- #1036 fix: addListener and removeListeners methods wass added to pass warning with Native Event Emitter #1036
+- RNFSManager iOS crash in readDir
+- fix: use correct type for stat size
+- make react-native-windows peer dependency optional #1016
+
 ## Changes for v2.17
 
 - #938 Manually flush & invalidate session upon completion
