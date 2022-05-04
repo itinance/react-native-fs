@@ -336,8 +336,8 @@ type ReadDirItem = {
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
-  isFile: () => boolean;        // Is the file just a file?
-  isDirectory: () => boolean;   // Is the file a directory?
+  isFile: () => boolean;        // Is the item just a file?
+  isDirectory: () => boolean;   // Is the item a directory?
 };
 ```
 
