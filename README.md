@@ -265,7 +265,8 @@ var files = [
   }
 ];
 
-var uploadBegin = (response) => {
+var upload
+= (response) => {
   var jobId = response.jobId;
   console.log('UPLOAD HAS BEGUN! JobId: ' + jobId);
 };
@@ -335,8 +336,8 @@ type ReadDirItem = {
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
-  isFile: () => boolean;        // Is the file just a file?
-  isDirectory: () => boolean;   // Is the file a directory?
+  isFile: () => boolean;        // Is the item just a file?
+  isDirectory: () => boolean;   // Is the item a directory?
 };
 ```
 
@@ -375,7 +376,7 @@ type StatResult = {
   path:            // The same as filepath argument
   ctime: date;     // The creation date of the file
   mtime: date;     // The last modified date of the file
-  size: string;     // Size in bytes
+  size: number;     // Size in bytes
   mode: number;     // UNIX file mode
   originalFilepath: string;    // ANDROID: In case of content uri this is the pointed file path, otherwise is the same as path
   isFile: () => boolean;        // Is the file just a file?
@@ -558,7 +559,7 @@ type DownloadFileOptions = {
   cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only, defaults to true)
   progressInterval?: number;
   progressDivider?: number;
-  begin?: (res: DownloadBeginCallbackResult) => void;
+  begin?: (res: DownloadBeginCallbackResult) => void; // Note: it is required when progress prop provided
   progress?: (res: DownloadProgressCallbackResult) => void;
   resumable?: () => void;    // only supported on iOS yet
   connectionTimeout?: number // only supported on Android yet
