@@ -99,6 +99,12 @@ namespace RNFS
                     constants.Add("RNFSPicturesDirectoryPath", pictures);
                 }
 
+                var movies = GetFolderPathSafe(() => KnownFolders.VideosLibrary);
+                if (movies != null)
+                {
+                    constants.Add("RNFSMoviesDirectoryPath", movies);
+                }
+
                 return constants;
             }
         }

@@ -80,6 +80,7 @@ namespace RNFS
                     { "RNFSDocumentDirectoryPath",  KnownFolders.Documents.Path },
                     { "RNFSTemporaryDirectoryPath", KnownFolders.InternetCache.Path },
                     { "RNFSPicturesDirectoryPath", KnownFolders.CameraRoll.Path },
+                    { "RNFSMoviesDirectoryPath", KnownFolders.VideosLibrary.Path },
                     { "RNFSFileTypeRegular", 0 },
                     { "RNFSFileTypeDirectory", 1 },
                 };

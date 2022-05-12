@@ -291,4 +291,5 @@ export const ExternalStorageDirectoryPath: string
 export const TemporaryDirectoryPath: string
 export const LibraryDirectoryPath: string
 export const PicturesDirectoryPath: string
+export const MoviesDirectoryPath: string
 export const FileProtectionKeys: string
