@@ -626,6 +626,7 @@ var RNFS = {
   TemporaryDirectoryPath: RNFSManager.RNFSTemporaryDirectoryPath,
   LibraryDirectoryPath: RNFSManager.RNFSLibraryDirectoryPath,
   PicturesDirectoryPath: RNFSManager.RNFSPicturesDirectoryPath,
+  MoviesDirectoryPath: RNFSManager.RNFSMoviesDirectoryPath,
   FileProtectionKeys: RNFSManager.RNFSFileProtectionKeys
 };
 
