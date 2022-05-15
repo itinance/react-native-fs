@@ -626,7 +626,10 @@ var RNFS = {
   TemporaryDirectoryPath: RNFSManager.RNFSTemporaryDirectoryPath,
   LibraryDirectoryPath: RNFSManager.RNFSLibraryDirectoryPath,
   PicturesDirectoryPath: RNFSManager.RNFSPicturesDirectoryPath,
-  FileProtectionKeys: RNFSManager.RNFSFileProtectionKeys
+  FileProtectionComplete: RNFSManager.RNFSFileProtectionComplete,
+  FileProtectionCompleteUnlessOpen: RNFSManager.RNFSFileProtectionCompleteUnlessOpen,
+  FileProtectionCompleteUntilFirstUserAuthentication: RNFSManager.RNFSFileProtectionCompleteUntilFirstUserAuthentication,
+  FileProtectionNone: RNFSManager.RNFSFileProtectionNone
 };
 
 module.exports = RNFS;

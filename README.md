@@ -311,15 +311,20 @@ RNFS.uploadFiles({
 
 The following constants are available on the `RNFS` export:
 
-- `MainBundlePath` (`String`) The absolute path to the main bundle directory (not available on Android)
+- `MainBundlePath` (`String`) The absolute path to the main bundle directory (iOS only)
 - `CachesDirectoryPath` (`String`) The absolute path to the caches directory
-- `ExternalCachesDirectoryPath` (`String`) The absolute path to the external caches directory (android only)
+- `ExternalCachesDirectoryPath` (`String`) The absolute path to the external caches directory (Android only)
 - `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
-- `DownloadDirectoryPath` (`String`) The absolute path to the download directory (on android only)
+- `DownloadDirectoryPath` (`String`) The absolute path to the download directory (Android only)
+- `ExternalDirectoryPath` (`String`) The absolute path to the external files, shared directory (Android only)
+- `ExternalStorageDirectoryPath` (`String`) The absolute path to the external storage, shared directory (Android only)
 - `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (falls back to Caching-Directory on Android)
 - `LibraryDirectoryPath` (`String`) The absolute path to the NSLibraryDirectory (iOS only)
-- `ExternalDirectoryPath` (`String`) The absolute path to the external files, shared directory (android only)
-- `ExternalStorageDirectoryPath` (`String`) The absolute path to the external storage, shared directory (android only)
+- `PicturesDirectoryPath` (`String`) The absolute path to the pictures (Android only)
+- `FileProtectionComplete` (`String`) (iOS only)
+- `FileProtectionCompleteUnlessOpen` (`String`) (iOS only)
+- `FileProtectionCompleteUntilFirstUserAuthentication` (`String`) (iOS only)
+- `FileProtectionNone` (`String`) (iOS only)
 
 IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request permissions (on Android) to read and write on the external storage, here an example: [React Native Offical Doc](https://facebook.github.io/react-native/docs/permissionsandroid)
 
@@ -410,9 +415,17 @@ Reads the file named `filename` in the Android app's `res` folder and return con
 
 Note: Android only.
 
-### `writeFile(filepath: string, contents: string, encoding?: string): Promise<void>`
+### `writeFile(filepath: string, contents: string, encodingOrOptions?: string | FileOptions): Promise<void>`
+
+```
+type FileOptions = {
+  NSFileProtectionKey?: string; // iOS only
+};
+```
 
 Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
+
+(iOS only): The NSFileProtectionKey property can be provided to set this attribute on iOS platforms. See [Apple documentation](https://developer.apple.com/documentation/foundation/nsfileprotectiontype).
 
 ### `appendFile(filepath: string, contents: string, encoding?: string): Promise<void>`
 
@@ -422,15 +435,31 @@ Append the `contents` to `filepath`. `encoding` can be one of `utf8` (default), 
 
 Write the `contents` to `filepath` at the given random access position. When `position` is `undefined` or `-1` the contents is appended to the end of the file. `encoding` can be one of `utf8` (default), `ascii`, `base64`.
 
-### `moveFile(filepath: string, destPath: string): Promise<void>`
+### `moveFile(filepath: string, destPath: string, options?: FileOptions): Promise<void>`
+
+```
+type FileOptions = {
+  NSFileProtectionKey?: string; // iOS only
+};
+```
 
 Moves the file located at `filepath` to `destPath`. This is more performant than reading and then re-writing the file data because the move is done natively and the data doesn't have to be copied or cross the bridge.
 
-### `copyFile(filepath: string, destPath: string): Promise<void>`
+(iOS only): The NSFileProtectionKey property can be provided to set this attribute on iOS platforms. See [Apple documentation](https://developer.apple.com/documentation/foundation/nsfileprotectiontype).
+
+### `copyFile(filepath: string, destPath: string, options?: FileOptions): Promise<void>`
+
+```
+type FileOptions = {
+  NSFileProtectionKey?: string; // iOS only
+};
+```
 
 Copies the file located at `filepath` to `destPath`.
 
 Note: On Android copyFile will overwrite `destPath` if it already exists. On iOS an error will be thrown if the file already exists.
+
+(iOS only): The NSFileProtectionKey property can be provided to set this attribute on iOS platforms. See [Apple documentation](https://developer.apple.com/documentation/foundation/nsfileprotectiontype).
 
 ### `copyFileAssets(filepath: string, destPath: string): Promise<void>`
 
