@@ -334,6 +334,41 @@ namespace RNFS
         }
 
         [ReactMethod]
+        public async void copyFileToDownloads(string filepath, string filename, JObject options, IPromise promise)
+        {
+            try
+            {
+                CreationCollisionOption collisionOption;
+                switch (options.Value<string>("creationCollisionOption"))
+                {
+                    case "FailIfExists":
+                        collisionOption = CreationCollisionOption.FailIfExists;
+                        break;
+                    case "OpenIfExists":
+                        collisionOption = CreationCollisionOption.OpenIfExists;
+                        break;
+                    case "ReplaceExisting":
+                        collisionOption = CreationCollisionOption.ReplaceExisting;
+                        break;
+                    case "GenerateUniqueName":
+                    default:
+                        collisionOption = CreationCollisionOption.GenerateUniqueName;
+                        break;
+                }
+                // see https://docs.microsoft.com/en-us/windows/uwp/files/file-access-permissions
+                StorageFile newFile = await DownloadsFolder.CreateFileAsync(filename, collisionOption);
+                Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(newFile);
+                StorageFile toCopy = await StorageFile.GetFileFromPathAsync(filepath);
+                await toCopy.CopyAndReplaceAsync(newFile);
+                promise.Resolve(newFile.Path);
+            }
+            catch (Exception ex)
+            {
+                Reject(promise, filepath, ex);
+            }
+        }
+
+        [ReactMethod]
         public async void copyFile(string filepath, string destPath, JObject options, IPromise promise)
         {
             try
