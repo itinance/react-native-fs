@@ -373,7 +373,12 @@ namespace RNFS
         {
             try
             {
-                await Task.Run(() => File.Copy(filepath, destPath)).ConfigureAwait(false);
+                Boolean overwrite = false;
+                if (options.Value<bool>("overwrite"))
+                {
+                    overwrite = true;
+                }
+                await Task.Run(() => File.Copy(filepath, destPath, overwrite)).ConfigureAwait(false);
                 promise.Resolve(null);
 
             }
