@@ -125,6 +125,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="EncryptionManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestCancellationException.cs" />
     <Compile Include="RNFSManager.cs" />
@@ -132,7 +133,7 @@
     <EmbeddedResource Include="Properties\RNFS.rd.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\node_modules\react-native-windows\ReactWindows\ReactNative\ReactNative.csproj">
+    <ProjectReference Include="..\..\..\react-native-windows\ReactWindows\ReactNative\ReactNative.csproj">
       <Project>{c7673ad5-e3aa-468c-a5fd-fa38154e205c}</Project>
       <Name>ReactNative</Name>
     </ProjectReference>

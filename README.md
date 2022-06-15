@@ -432,6 +432,11 @@ Copies the file located at `filepath` to `destPath`.
 
 Note: On Android copyFile will overwrite `destPath` if it already exists. On iOS an error will be thrown if the file already exists.
 
+### `copyFileToDownloads(filepath: string, filename: string): Promise<string>` (UWP only)
+
+Copies the file located to the Downloads folder (subdirectory in the users Downloads folder, specific to the app)
+Returns the path to the file in the Downloads folder.
+
 ### `copyFileAssets(filepath: string, destPath: string): Promise<void>`
 
 Copies the file at `filepath` in the Android app's assets folder and copies it to the given `destPath ` path.

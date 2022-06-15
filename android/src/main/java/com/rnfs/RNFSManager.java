@@ -220,7 +220,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void readFile(String filepath, Promise promise) {
+  public void readFile(String filepath, ReadableMap options, Promise promise) {
     try {
       InputStream inputStream = getInputStream(filepath);
       byte[] inputData = getInputStreamBytes(inputStream);
@@ -697,7 +697,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void downloadFile(final ReadableMap options, final Promise promise) {
+  public void downloadFile(final ReadableMap options, ReadableMap fileOptions, final Promise promise) {
     try {
       File file = new File(options.getString("toFile"));
       URL url = new URL(options.getString("fromUrl"));

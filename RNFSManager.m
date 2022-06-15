@@ -266,6 +266,7 @@ RCT_EXPORT_METHOD(mkdir:(NSString *)filepath
 }
 
 RCT_EXPORT_METHOD(readFile:(NSString *)filepath
+                  options:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -469,6 +470,7 @@ RCT_EXPORT_METHOD(copyFile:(NSString *)filepath
 }
 
 RCT_EXPORT_METHOD(downloadFile:(NSDictionary *)options
+                  fileOptions:(NSDictionary *)fileOptions
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
