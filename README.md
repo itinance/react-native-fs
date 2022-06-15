@@ -42,6 +42,10 @@ npm install react-native-fs@2.0.1-rc.2 --save
 As @a-koka pointed out, you should then update your package.json to
 `"react-native-fs": "2.0.1-rc.2"` (without the tilde)
 
+### Update Info.plist if you want files to appear in Documents directory
+
+Set [UIFileSharingEnabled](https://developer.apple.com/documentation/bundleresources/information_property_list/uifilesharingenabled) and [LSSupportsOpeningDocumentsInPlace](https://developer.apple.com/documentation/bundleresources/information_property_list/lssupportsopeningdocumentsinplace) to be true to grant access to the Documents directory
+
 ### Adding automatically with react-native link
 
 At the command line, in your project folder, type:
