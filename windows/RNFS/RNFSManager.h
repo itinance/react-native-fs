@@ -4,6 +4,7 @@
 #include "NativeModules.h"
 #include <string>
 #include <mutex>
+#include <filesystem>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Security.Cryptography.h>
 #include <winrt/Windows.Security.Cryptography.Core.h>
@@ -60,36 +61,36 @@ struct RNFSManager final
         void ConstantsViaConstantsProvider(RN::ReactConstantProvider& constants) noexcept;
 
     REACT_METHOD(mkdir); // Implemented
-    winrt::fire_and_forget mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept;
+    winrt::fire_and_forget mkdir(std::wstring directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept;
 
     REACT_METHOD(moveFile); // Implemented
     winrt::fire_and_forget moveFile(
-        std::string filepath,
-        std::string destPath,
+        std::wstring filepath,
+        std::wstring destPath,
         RN::JSValueObject options,
         RN::ReactPromise<void> promise) noexcept;
 
     REACT_METHOD(copyFile); // Implemented
     winrt::fire_and_forget copyFile(
-        std::string filepath,
-        std::string destPath,
+        std::wstring filepath,
+        std::wstring destPath,
         RN::JSValueObject options,
         RN::ReactPromise<void> promise) noexcept;
 
     REACT_METHOD(copyFolder); // Implemented
     winrt::fire_and_forget copyFolder(
-        std::string src,
-        std::string dest,
+        std::wstring src,
+        std::wstring dest,
         RN::ReactPromise<void> promise) noexcept;
 
     REACT_METHOD(getFSInfo); // Implemented, no unit tests but cannot be tested
     winrt::fire_and_forget getFSInfo(RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
     REACT_METHOD(unlink); // Implemented
-    winrt::fire_and_forget unlink(std::string filePath, RN::ReactPromise<void> promise) noexcept;
+    winrt::fire_and_forget unlink(std::wstring filePath, RN::ReactPromise<void> promise) noexcept;
 
     REACT_METHOD(exists); // Implemented
-    winrt::fire_and_forget exists(std::string fullpath, RN::ReactPromise<bool> promise) noexcept;
+    winrt::fire_and_forget exists(std::wstring fullpath, RN::ReactPromise<bool> promise) noexcept;
 
     REACT_METHOD(stopDownload); // DOWNLOADER
     void stopDownload(int jobID) noexcept;
@@ -98,34 +99,34 @@ struct RNFSManager final
     void stopUpload(int jobID) noexcept;
 
     REACT_METHOD(readDir); // Implemented
-    winrt::fire_and_forget readDir(std::string directory, RN::ReactPromise<RN::JSValueArray> promise) noexcept;
+    winrt::fire_and_forget readDir(std::wstring directory, RN::ReactPromise<RN::JSValueArray> promise) noexcept;
 
     REACT_METHOD(stat); // Implemented, unit tests incomplete
-    winrt::fire_and_forget stat(std::string filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
+    winrt::fire_and_forget stat(std::wstring filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
     REACT_METHOD(readFile); // Implemented
-    winrt::fire_and_forget readFile(std::string filePath, RN::ReactPromise<std::string> promise) noexcept;
+    winrt::fire_and_forget readFile(std::wstring filePath, RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_METHOD(read); // Implemented
     winrt::fire_and_forget read(
-        std::string filePath,
+        std::wstring filePath,
         uint32_t length,
         uint64_t position,
         RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_METHOD(hash); // Implemented
-    winrt::fire_and_forget hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept;
+    winrt::fire_and_forget hash(std::wstring filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_METHOD(writeFile); // Implemented
     winrt::fire_and_forget writeFile(
-        std::string filePath,
+        std::wstring filePath,
         std::string base64Content,
         RN::JSValueObject options,
         RN::ReactPromise<void> promise) noexcept;
 
     REACT_METHOD(appendFile); // Implemented, no unit tests
     winrt::fire_and_forget appendFile(
-        std::string filepath,
+        std::wstring filepath,
         std::string base64Content,
         RN::ReactPromise<void> promise
     ) noexcept;
@@ -133,7 +134,7 @@ struct RNFSManager final
 
     REACT_METHOD(write); // Implemented
     winrt::fire_and_forget write(
-        std::string filePath,
+        std::wstring filePath,
         std::string base64Content,
         int position,
         RN::ReactPromise<void> promise) noexcept;
@@ -146,13 +147,16 @@ struct RNFSManager final
     winrt::fire_and_forget uploadFiles(RN::JSValueObject options, RN::ReactPromise<RN::JSValueObject> promise) noexcept;
 
     REACT_METHOD(touch); // Implemented
-    void touch(std::string filepath, int64_t mtime, int64_t ctime, bool modifyCreationTime, RN::ReactPromise<std::string> promise) noexcept;
+    void touch(std::wstring filepath, int64_t mtime, int64_t ctime, bool modifyCreationTime, RN::ReactPromise<std::string> promise) noexcept;
 
     REACT_EVENT(TimedEvent, L"TimedEventCpp");
     std::function<void(int)> TimedEvent;
 
 private:
-    void splitPath(const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept;
+    void splitPath(const std::wstring& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept;
+
+private:
+    std::filesystem::path convertPath(const std::filesystem::path originalPath);
 
     winrt::Windows::Foundation::IAsyncAction ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSValueObject> promise,
         winrt::Windows::Web::Http::HttpRequestMessage request, std::wstring_view filePath, int32_t jobId, int64_t progressInterval, int64_t progressDivider);

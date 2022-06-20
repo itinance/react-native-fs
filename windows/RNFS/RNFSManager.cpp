@@ -184,7 +184,7 @@ void RNFSManager::ConstantsViaConstantsProvider(RN::ReactConstantProvider& const
     constants.Add(L"RNFSFileTypeDirectory", 1);
 }
 
-winrt::fire_and_forget RNFSManager::mkdir(std::string directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::mkdir(std::wstring directory, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
     size_t pathLength{ directory.length() };
@@ -233,7 +233,7 @@ catch (const hresult_error& ex)
 }
 
 
-winrt::fire_and_forget RNFSManager::moveFile(std::string filepath, std::string destpath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::moveFile(std::wstring filepath, std::wstring destpath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
     winrt::hstring srcDirectoryPath, srcFileName;
@@ -257,7 +257,7 @@ catch (const hresult_error& ex)
 }
 
 
-winrt::fire_and_forget RNFSManager::copyFile(std::string filepath, std::string destpath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::copyFile(std::wstring filepath, std::wstring destpath, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
     winrt::hstring srcDirectoryPath, srcFileName;
@@ -282,8 +282,8 @@ catch (const hresult_error& ex)
 
 
 winrt::fire_and_forget RNFSManager::copyFolder(
-    std::string srcFolderPath,
-    std::string destFolderPath,
+    std::wstring srcFolderPath,
+    std::wstring destFolderPath,
     RN::ReactPromise<void> promise) noexcept
 try
 {
@@ -292,8 +292,8 @@ try
     std::filesystem::path destPath{ destFolderPath };
     destPath.make_preferred();
 
-    StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(winrt::to_hstring(srcPath.c_str())) };
-    StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(winrt::to_hstring(destPath.c_str())) };
+    StorageFolder srcFolder{ co_await StorageFolder::GetFolderFromPathAsync(srcPath.wstring()) };
+    StorageFolder destFolder{ co_await StorageFolder::GetFolderFromPathAsync(destPath.wstring()) };
 
     auto items{ co_await srcFolder.GetItemsAsync() };
     for (auto item : items)
@@ -366,7 +366,7 @@ catch (const hresult_error& ex)
 }
 
 
-winrt::fire_and_forget RNFSManager::unlink(std::string filepath, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::unlink(std::wstring filepath, RN::ReactPromise<void> promise) noexcept
 try
 {
     size_t pathLength{ filepath.length() };
@@ -391,7 +391,7 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + winrt::to_string(filepath) });
     }
     else
     {
@@ -401,7 +401,7 @@ catch (const hresult_error& ex)
 }
 
 
-winrt::fire_and_forget RNFSManager::exists(std::string filepath, RN::ReactPromise<bool> promise) noexcept
+winrt::fire_and_forget RNFSManager::exists(std::wstring filepath, RN::ReactPromise<bool> promise) noexcept
 try
 {
     size_t fileLength{ filepath.length() };
@@ -445,7 +445,7 @@ void RNFSManager::stopUpload(int32_t jobID) noexcept
 }
 
 
-winrt::fire_and_forget RNFSManager::readFile(std::string filepath, RN::ReactPromise<std::string> promise) noexcept
+winrt::fire_and_forget RNFSManager::readFile(std::wstring filepath, RN::ReactPromise<std::string> promise) noexcept
 try
 {
     winrt::hstring directoryPath, fileName;
@@ -463,7 +463,7 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + winrt::to_string(filepath) });
     }
     else if (result == HRESULT_FROM_WIN32(E_ACCESSDENIED)) // UnauthorizedAccessException
     {
@@ -477,7 +477,7 @@ catch (const hresult_error& ex)
 }
 
 
-winrt::fire_and_forget RNFSManager::stat(std::string filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept
+winrt::fire_and_forget RNFSManager::stat(std::wstring filepath, RN::ReactPromise<RN::JSValueObject> promise) noexcept
 try
 {
     size_t pathLength{ filepath.length() };
@@ -504,16 +504,16 @@ try
 }
 catch (...)
 {
-    promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
+    promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + winrt::to_string(filepath) });
 }
 
 
-winrt::fire_and_forget RNFSManager::readDir(std::string directory, RN::ReactPromise<RN::JSValueArray> promise) noexcept
+winrt::fire_and_forget RNFSManager::readDir(std::wstring directory, RN::ReactPromise<RN::JSValueArray> promise) noexcept
 try
 {
     std::filesystem::path path(directory);
     path.make_preferred();
-    StorageFolder targetDirectory{ co_await StorageFolder::GetFolderFromPathAsync(path.c_str()) };
+    StorageFolder targetDirectory{ co_await StorageFolder::GetFolderFromPathAsync(path.wstring()) };
 
     RN::JSValueArray resultsArray;
 
@@ -542,7 +542,7 @@ catch (const hresult_error& ex)
 }
 
 
-winrt::fire_and_forget RNFSManager::read(std::string filepath, uint32_t length, uint64_t position, RN::ReactPromise<std::string> promise) noexcept
+winrt::fire_and_forget RNFSManager::read(std::wstring filepath, uint32_t length, uint64_t position, RN::ReactPromise<std::string> promise) noexcept
 try
 {
     winrt::hstring directoryPath, fileName;
@@ -566,7 +566,7 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + winrt::to_string(filepath) });
     }
     else if (result == HRESULT_FROM_WIN32(E_ACCESSDENIED)) // UnauthorizedAccessException
     {
@@ -580,7 +580,7 @@ catch (const hresult_error& ex)
 }
 
 
-winrt::fire_and_forget RNFSManager::hash(std::string filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept
+winrt::fire_and_forget RNFSManager::hash(std::wstring filepath, std::string algorithm, RN::ReactPromise<std::string> promise) noexcept
 try
 {
     // Note: SHA224 is not part of winrt 
@@ -616,7 +616,7 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + winrt::to_string(filepath) });
     }
     else if (result == HRESULT_FROM_WIN32(E_ACCESSDENIED)) // UnauthorizedAccessException
     {
@@ -630,7 +630,7 @@ catch (const hresult_error& ex)
 }
 
 
-winrt::fire_and_forget RNFSManager::writeFile(std::string filepath, std::string base64Content, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::writeFile(std::wstring filepath, std::string base64Content, RN::JSValueObject options, RN::ReactPromise<void> promise) noexcept
 try
 {
     winrt::hstring base64ContentStr{ winrt::to_hstring(base64Content) };
@@ -652,7 +652,7 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + winrt::to_string(filepath) });
     }
     else
     {
@@ -662,7 +662,7 @@ catch (const hresult_error& ex)
 }
 
 
-winrt::fire_and_forget RNFSManager::appendFile(std::string filepath, std::string base64Content, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::appendFile(std::wstring filepath, std::string base64Content, RN::ReactPromise<void> promise) noexcept
 try
 {
     size_t fileLength = filepath.length();
@@ -689,7 +689,7 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + winrt::to_string(filepath) });
     }
     else
     {
@@ -697,7 +697,7 @@ catch (const hresult_error& ex)
         promise.Reject(winrt::to_string(ex.message()).c_str());
     }
 }
-winrt::fire_and_forget RNFSManager::write(std::string filepath, std::string base64Content, int position, RN::ReactPromise<void> promise) noexcept
+winrt::fire_and_forget RNFSManager::write(std::wstring filepath, std::string base64Content, int position, RN::ReactPromise<void> promise) noexcept
 try
 {
     winrt::hstring directoryPath, fileName;
@@ -726,7 +726,7 @@ catch (const hresult_error& ex)
     hresult result{ ex.code() };
     if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) // FileNotFoundException
     {
-        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + filepath });
+        promise.Reject(RN::ReactError{ "ENOENT", "ENOENT: no such file or directory, open " + winrt::to_string(filepath) });
     }
     else
     {
@@ -744,13 +744,13 @@ winrt::fire_and_forget RNFSManager::downloadFile(RN::JSValueObject options, RN::
     {
         //Filepath
         std::filesystem::path path(options["toFile"].AsString());
-        path.make_preferred();
+        path = convertPath(path);
         if (path.filename().empty())
         {
             promise.Reject("Failed to determine filename in path");
             co_return;
         }
-        auto filePath{ winrt::to_hstring(path.c_str()) };
+        auto filePath{ path.wstring() };
 
         //URL
         std::string fromURLString{ options["fromUrl"].AsString() };
@@ -817,8 +817,11 @@ winrt::fire_and_forget RNFSManager::uploadFiles(RN::JSValueObject options, RN::R
             auto const& fileObj{ fileInfo.AsObject() };
             auto filepath{ fileObj["filepath"].AsString() };
 
+            std::filesystem::path path{ filepath };
+            path = convertPath(path);
+
             winrt::hstring directoryPath, fileName;
-            splitPath(filepath, directoryPath, fileName);
+            splitPath(path.wstring(), directoryPath, fileName);
 
             try
             {
@@ -849,12 +852,12 @@ winrt::fire_and_forget RNFSManager::uploadFiles(RN::JSValueObject options, RN::R
 }
 
 
-void RNFSManager::touch(std::string filepath, int64_t mtime, int64_t ctime, bool modifyCreationTime, RN::ReactPromise<std::string> promise) noexcept
+void RNFSManager::touch(std::wstring filepath, int64_t mtime, int64_t ctime, bool modifyCreationTime, RN::ReactPromise<std::string> promise) noexcept
 try
 {
 
     std::filesystem::path path(filepath);
-    path.make_preferred();
+    path = convertPath(path);
     auto s_path{ path.c_str() };
     PCWSTR actual_path{ s_path };
     DWORD accessMode{ GENERIC_READ | GENERIC_WRITE };
@@ -916,13 +919,21 @@ catch (const hresult_error& ex)
 }
 
 
-void RNFSManager::splitPath(const std::string& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept
+void RNFSManager::splitPath(const std::wstring& fullPath, winrt::hstring& directoryPath, winrt::hstring& fileName) noexcept
 {
     std::filesystem::path path(fullPath);
     path.make_preferred();
 
     directoryPath = path.has_parent_path() ? winrt::to_hstring(path.parent_path().c_str()) : L"";
     fileName = path.has_filename() ? winrt::to_hstring(path.filename().c_str()) : L"";
+}
+
+std::filesystem::path RNFSManager::convertPath(const std::filesystem::path originalPath)
+{
+    winrt::hstring fPathHString = winrt::to_hstring(originalPath.string());
+    std::filesystem::path path{fPathHString.c_str()};
+    path.make_preferred();
+    return path;
 }
 
 
@@ -1086,8 +1097,10 @@ IAsyncAction RNFSManager::ProcessUploadRequestAsync(RN::ReactPromise<RN::JSValue
 
             try
             {
+                std::filesystem::path path{ filepath };
+                path = convertPath(path);
                 winrt::hstring directoryPath, fileName;
-                splitPath(filepath, directoryPath, fileName);
+                splitPath(path.wstring(), directoryPath, fileName);
                 StorageFolder folder{ co_await StorageFolder::GetFolderFromPathAsync(directoryPath) };
                 StorageFile file{ co_await folder.GetFileAsync(fileName) };
                 auto properties{ co_await file.GetBasicPropertiesAsync() };
