@@ -109,6 +109,7 @@
       return self->_params.completeCallback(str, response);
   }];
   [_task resume];
+  [session finishTasksAndInvalidate];
   if (_params.beginCallback) {
     _params.beginCallback();
   }

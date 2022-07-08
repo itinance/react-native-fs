@@ -1,5 +1,30 @@
 # Changelog
 
+## Changes for v2.20
+
+- #1037 Invalidate upload session
+
+## Changes vor v2.19
+
+- #1048  fix: use correct type for stat size #1048
+- #1063 RNFSManager:readDir iOS crash fix #1063
+- #1036 fix: addListener and removeListeners methods wass added to pass warning with Native Event Emitter #1036
+- RNFSManager iOS crash in readDir
+- fix: use correct type for stat size
+- make react-native-windows peer dependency optional #1016
+
+## Changes for v2.17
+
+- #938 Manually flush & invalidate session upon completion
+- #954 Switch to using channels for byte copying.
+- #962 Size limit with copyAssetsVideoIOS
+- #963 Add basic support for Android content URIs in stat
+- #972 Manually flush & invalidate completed session
+- #974 Add content for copyAssetsFileIOS method
+- #975 Fix copyAssetsFileIOS's image resizing option to resize to exact width and height
+- #985 README.md: clarify usage of readFileRes
+- #986 macOS support
+
 ## Changes for v2.16
 - #797 Added path to the Android download folder
 - #842 Fixes #811 Concurrent downloads send progress updates to all progress callbacks
