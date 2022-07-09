@@ -13,8 +13,6 @@ var NativeEventEmitter = require('react-native').NativeEventEmitter;
 
 var RNFS_NativeEventEmitter = new NativeEventEmitter(RNFSManager);
 
-var base64 = require('base-64');
-var utf8 = require('utf8');
 var isIOS = require('react-native').Platform.OS === 'ios';
 
 var RNFSFileTypeRegular = RNFSManager.RNFSFileTypeRegular;
@@ -141,37 +139,31 @@ type FSInfoResult = {
   freeSpace: number;    // The amount of available storage space on the device (in bytes).
 };
 
-/**
- * Generic function used by readFile and readFileAssets
- */
-function readFileGeneric(filepath: string, encodingOrOptions: ?string, command: Function) {
-  var options = {
-    encoding: 'utf8'
-  };
+function ensureSafeEncoding(encodingOrOptions: ?any) {
+  var encoding = 'utf8';
 
   if (encodingOrOptions) {
     if (typeof encodingOrOptions === 'string') {
-      options.encoding = encodingOrOptions;
+      encoding = encodingOrOptions;
     } else if (typeof encodingOrOptions === 'object') {
-      options = encodingOrOptions;
+      encoding = encodingOrOptions.encoding || 'utf8';
     }
   }
 
-  return command(normalizeFilePath(filepath)).then((b64) => {
-    var contents;
+  if (encoding != 'utf8' && encoding != 'base64' && encoding != 'ascii') {
+    throw new Error('Invalid encoding type "' + String(encoding) + '"');
+  }
 
-    if (options.encoding === 'utf8') {
-      contents = utf8.decode(base64.decode(b64));
-    } else if (options.encoding === 'ascii') {
-      contents = base64.decode(b64);
-    } else if (options.encoding === 'base64') {
-      contents = b64;
-    } else {
-      throw new Error('Invalid encoding type "' + String(options.encoding) + '"');
-    }
+  return encoding;
+}
 
-    return contents;
-  });
+/**
+ * Generic function used by readFile and readFileAssets
+ */
+function readFileGeneric(filepath: string, encodingOrOptions: ?any, command: Function) {
+  var encoding = ensureSafeEncoding(encodingOrOptions);
+
+  return command(normalizeFilePath(filepath), encoding);
 }
 
 /**
@@ -311,33 +303,9 @@ var RNFS = {
   },
 
   read(filepath: string, length: number = 0, position: number = 0, encodingOrOptions?: any): Promise<string> {
-    var options = {
-      encoding: 'utf8'
-    };
+    var encoding = ensureSafeEncoding(encodingOrOptions);
 
-    if (encodingOrOptions) {
-      if (typeof encodingOrOptions === 'string') {
-        options.encoding = encodingOrOptions;
-      } else if (typeof encodingOrOptions === 'object') {
-        options = encodingOrOptions;
-      }
-    }
-
-    return RNFSManager.read(normalizeFilePath(filepath), length, position).then((b64) => {
-      var contents;
-
-      if (options.encoding === 'utf8') {
-        contents = utf8.decode(base64.decode(b64));
-      } else if (options.encoding === 'ascii') {
-        contents = base64.decode(b64);
-      } else if (options.encoding === 'base64') {
-        contents = b64;
-      } else {
-        throw new Error('Invalid encoding type "' + String(options.encoding) + '"');
-      }
-
-      return contents;
-    });
+    return RNFSManager.read(normalizeFilePath(filepath), length, position, encoding);
   },
 
   // Android only
@@ -394,94 +362,26 @@ var RNFS = {
   },
 
   writeFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
-    var b64;
+    var encoding = ensureSafeEncoding(encodingOrOptions)
+    var options = (encodingOrOptions && typeof encodingOrOptions === 'object') ? encodingOrOptions : {};
 
-    var options = {
-      encoding: 'utf8'
-    };
-
-    if (encodingOrOptions) {
-      if (typeof encodingOrOptions === 'string') {
-        options.encoding = encodingOrOptions;
-      } else if (typeof encodingOrOptions === 'object') {
-        options = {
-          ...options,
-          ...encodingOrOptions
-        };
-      }
-    }
-
-    if (options.encoding === 'utf8') {
-      b64 = base64.encode(utf8.encode(contents));
-    } else if (options.encoding === 'ascii') {
-      b64 = base64.encode(contents);
-    } else if (options.encoding === 'base64') {
-      b64 = contents;
-    } else {
-      throw new Error('Invalid encoding type "' + options.encoding + '"');
-    }
-
-    return RNFSManager.writeFile(normalizeFilePath(filepath), b64, options).then(() => void 0);
+    return RNFSManager.writeFile(normalizeFilePath(filepath), contents, encoding, options).then(() => void 0);
   },
 
   appendFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
-    var b64;
+    var encoding = ensureSafeEncoding(encodingOrOptions)
 
-    var options = {
-      encoding: 'utf8'
-    };
-
-    if (encodingOrOptions) {
-      if (typeof encodingOrOptions === 'string') {
-        options.encoding = encodingOrOptions;
-      } else if (typeof encodingOrOptions === 'object') {
-        options = encodingOrOptions;
-      }
-    }
-
-    if (options.encoding === 'utf8') {
-      b64 = base64.encode(utf8.encode(contents));
-    } else if (options.encoding === 'ascii') {
-      b64 = base64.encode(contents);
-    } else if (options.encoding === 'base64') {
-      b64 = contents;
-    } else {
-      throw new Error('Invalid encoding type "' + options.encoding + '"');
-    }
-
-    return RNFSManager.appendFile(normalizeFilePath(filepath), b64);
+    return RNFSManager.appendFile(normalizeFilePath(filepath), contents, encoding);
   },
 
   write(filepath: string, contents: string, position?: number, encodingOrOptions?: any): Promise<void> {
-    var b64;
-
-    var options = {
-      encoding: 'utf8'
-    };
-
-    if (encodingOrOptions) {
-      if (typeof encodingOrOptions === 'string') {
-        options.encoding = encodingOrOptions;
-      } else if (typeof encodingOrOptions === 'object') {
-        options = encodingOrOptions;
-      }
-    }
-
-    if (options.encoding === 'utf8') {
-      b64 = base64.encode(utf8.encode(contents));
-    } else if (options.encoding === 'ascii') {
-      b64 = base64.encode(contents);
-    } else if (options.encoding === 'base64') {
-      b64 = contents;
-    } else {
-      throw new Error('Invalid encoding type "' + options.encoding + '"');
-    }
+    var encoding = ensureSafeEncoding(encodingOrOptions)
 
     if (position === undefined) {
       position = -1;
     }
 
-    return RNFSManager.write(normalizeFilePath(filepath), b64, position).then(() => void 0);
+    return RNFSManager.write(normalizeFilePath(filepath), contents, encoding, position).then(() => void 0);
   },
 
   downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> } {
@@ -621,6 +521,9 @@ var RNFS = {
   ExternalCachesDirectoryPath: RNFSManager.RNFSExternalCachesDirectoryPath,
   DocumentDirectoryPath: RNFSManager.RNFSDocumentDirectoryPath,
   DownloadDirectoryPath: RNFSManager.RNFSDownloadDirectoryPath,
+  ApplicationSupportDirectoryPath: RNFSManager.RNFSApplicationSupportDirectoryPath,
+  // Per Apple's docs, all app content in Application Support must be within a subdirectory of the app's bundle identifier
+  ApplicationSupportDirectoryBundlePath: RNFSManager.RNFSApplicationSupportDirectoryBundlePath,
   ExternalDirectoryPath: RNFSManager.RNFSExternalDirectoryPath,
   ExternalStorageDirectoryPath: RNFSManager.RNFSExternalStorageDirectoryPath,
   TemporaryDirectoryPath: RNFSManager.RNFSTemporaryDirectoryPath,

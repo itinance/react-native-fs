@@ -112,12 +112,14 @@ RCT_EXPORT_METHOD(stat:(NSString *)filepath
 }
 
 RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
-                  contents:(NSString *)base64Content
+                  contents:(NSString *)content
+                  encoding:(NSString *)encoding
                   options:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
+
+  NSData *data = [self dataFromContentWithEncoding:content withEncoding:encoding];
 
   NSMutableDictionary *attributes = [[NSMutableDictionary alloc] init];
 
@@ -135,11 +137,12 @@ RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
 }
 
 RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
-                  contents:(NSString *)base64Content
+                  contents:(NSString *)content
+                  encoding:(NSString *)encoding
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
+  NSData *data = [self dataFromContentWithEncoding:content withEncoding:encoding];
 
   NSFileManager *fM = [NSFileManager defaultManager];
 
@@ -174,12 +177,13 @@ RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
 }
 
 RCT_EXPORT_METHOD(write:(NSString *)filepath
-                  contents:(NSString *)base64Content
+                  contents:(NSString *)content
+                  encoding:(NSString *)encoding
                   position:(NSInteger)position
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Content options:NSDataBase64DecodingIgnoreUnknownCharacters];
+  NSData *data = [self dataFromContentWithEncoding:content withEncoding:encoding];
 
   NSFileManager *fM = [NSFileManager defaultManager];
 
@@ -265,9 +269,7 @@ RCT_EXPORT_METHOD(mkdir:(NSString *)filepath
   resolve(nil);
 }
 
-RCT_EXPORT_METHOD(readFile:(NSString *)filepath
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(readFile:(NSString *)filepath withEncoding:(NSString *)encoding resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
   BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filepath];
 
@@ -288,14 +290,44 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
   }
 
   NSData *content = [[NSFileManager defaultManager] contentsAtPath:filepath];
-  NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
+  [self resolveContentWithEncoding:content withEncoding: encoding resolver: resolve rejecter: reject];
 
-  resolve(base64Content);
+}
+
+- (void) resolveContentWithEncoding: (NSData *)content
+                       withEncoding: (NSString *)encoding
+                           resolver: (RCTPromiseResolveBlock)resolve
+                           rejecter:(RCTPromiseRejectBlock)reject {
+
+    if ([encoding isEqualToString:@"base64"]) {
+        resolve([content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed]);
+    } else if ([encoding isEqualToString:@"utf8"]) {
+        resolve([[NSString alloc] initWithData:content encoding:NSUTF8StringEncoding]);
+    } else if ([encoding isEqualToString:@"ascii"]) {
+        resolve([[NSString alloc] initWithData:content encoding:NSASCIIStringEncoding]);
+    } else {
+        reject(@"encodingerr", @"unknown encoding, use base64, utf8 or ascii", nil);
+    }
+
+}
+
+-(NSData *) dataFromContentWithEncoding: (NSString *)content
+                           withEncoding: (NSString *)encoding {
+        if ([encoding isEqualToString:@"base64"]) {
+           return [[NSData alloc] initWithBase64EncodedString:content options:NSDataBase64DecodingIgnoreUnknownCharacters];
+       } else if ([encoding isEqualToString:@"utf8"]) {
+           return [content dataUsingEncoding:NSUTF8StringEncoding];
+       } else if ([encoding isEqualToString:@"ascii"]) {
+           return [content dataUsingEncoding:NSASCIIStringEncoding];
+       } else {
+           return nil;
+       }
 }
 
 RCT_EXPORT_METHOD(read:(NSString *)filepath
                   length: (NSInteger *)length
                   position: (NSInteger *)position
+                  encoding: (NSString *)encoding
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -333,10 +365,10 @@ RCT_EXPORT_METHOD(read:(NSString *)filepath
         content = [file readDataToEndOfFile];
     }
 
-    NSString *base64Content = [content base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
-
-    resolve(base64Content);
+    [self resolveContentWithEncoding:content withEncoding:encoding resolver:resolve rejecter:reject];
 }
+
+
 
 RCT_EXPORT_METHOD(hash:(NSString *)filepath
                   algorithm:(NSString *)algorithm
@@ -969,6 +1001,9 @@ RCT_EXPORT_METHOD(touch:(NSString*)filepath
            @"RNFSMainBundlePath": [[NSBundle mainBundle] bundlePath],
            @"RNFSCachesDirectoryPath": [self getPathForDirectory:NSCachesDirectory],
            @"RNFSDocumentDirectoryPath": [self getPathForDirectory:NSDocumentDirectory],
+           @"RNFSApplicationSupportDirectoryPath": [self getPathForDirectory:NSApplicationSupportDirectory],
+           // Per Apple's docs, all app content in Application Support must be within a subdirectory of the app's bundle identifier
+           @"RNFSApplicationSupportDirectoryBundlePath": [[self getPathForDirectory:NSApplicationSupportDirectory] stringByAppendingPathComponent:[[NSBundle mainBundle] bundleIdentifier]],
            @"RNFSExternalDirectoryPath": [NSNull null],
            @"RNFSExternalStorageDirectoryPath": [NSNull null],
            @"RNFSTemporaryDirectoryPath": NSTemporaryDirectory(),

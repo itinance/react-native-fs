@@ -25,10 +25,7 @@
   ],
   "author": "Johannes Lumpe <johannes@lum.pe> (https://github.com/johanneslumpe)",
   "license": "MIT",
-  "dependencies": {
-    "base-64": "^0.1.0",
-    "utf8": "^3.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "create-react-class": "15.6.3",
     "flow-bin": "^0.109.0",
