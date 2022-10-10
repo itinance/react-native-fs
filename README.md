@@ -404,6 +404,10 @@ Reads the file at `path` in the Android app's assets folder and return contents.
 
 Note: Android only.
 
+### `readAssets(filepath: string, length = 0, position = 0, encoding?: string): Promise<string>`
+
+Reads `length` bytes from the given `position` of the file at `filepath` in the Android app's assets folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
+
 ### `readFileRes(filename:string, encoding?: string): Promise<string>`
 
 Reads the file named `filename` in the Android app's `res` folder and return contents. Only the file name (not folder) needs to be specified. The file type will be detected from the extension and automatically located within `res/drawable` (for image files) or `res/raw` (for everything else). `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
