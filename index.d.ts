@@ -12,7 +12,7 @@ type ReadDirItem = {
 	mtime: Date | undefined // The last modified date of the file
 	name: string // The name of the item
 	path: string // The absolute path to the item
-	size: string // Size in bytes
+	size: number // Size in bytes
 	isFile: () => boolean // Is the file just a file?
 	isDirectory: () => boolean // Is the file a directory?
 }
@@ -20,7 +20,7 @@ type ReadDirItem = {
 type StatResult = {
 	name: string | undefined // The name of the item TODO: why is this not documented?
 	path: string // The absolute path to the item
-	size: string // Size in bytes
+	size: number // Size in bytes
 	mode: number // UNIX file mode
 	ctime: number // Created date
 	mtime: number // Last modified date

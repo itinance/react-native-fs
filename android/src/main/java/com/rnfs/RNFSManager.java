@@ -115,11 +115,15 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     return stream;
   }
 
+  private String getWriteAccessByAPILevel() {
+    return android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.P ? "w" : "rwt";
+  }
+
   private OutputStream getOutputStream(String filepath, boolean append) throws IORejectionException {
     Uri uri = getFileUri(filepath, false);
     OutputStream stream;
     try {
-      stream = reactContext.getContentResolver().openOutputStream(uri, append ? "wa" : "w");
+      stream = reactContext.getContentResolver().openOutputStream(uri, append ? "wa" : getWriteAccessByAPILevel());
     } catch (FileNotFoundException ex) {
       throw new IORejectionException("ENOENT", "ENOENT: " + ex.getMessage() + ", open '" + filepath + "'");
     }
@@ -947,6 +951,17 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         }
       }
     );
+  }
+
+  // Required for rn built in EventEmitter Calls.
+  @ReactMethod
+  public void addListener(String eventName) {
+
+  }
+
+  @ReactMethod
+  public void removeListeners(Integer count) {
+
   }
 
   private void reject(Promise promise, String filepath, Exception ex) {

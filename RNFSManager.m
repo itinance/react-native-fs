@@ -57,26 +57,27 @@ RCT_EXPORT_METHOD(readDir:(NSString *)dirPath
   NSError *error = nil;
 
   NSArray *contents = [fileManager contentsOfDirectoryAtPath:dirPath error:&error];
-
-  contents = [contents rnfs_mapObjectsUsingBlock:^id(NSString *obj, NSUInteger idx) {
+  NSMutableArray *tagetContents = [[NSMutableArray alloc] init];
+  for (NSString *obj in contents) {
     NSString *path = [dirPath stringByAppendingPathComponent:obj];
     NSDictionary *attributes = [fileManager attributesOfItemAtPath:path error:nil];
-
-    return @{
-             @"ctime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileCreationDate]],
-             @"mtime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileModificationDate]],
-             @"name": obj,
-             @"path": path,
-             @"size": [attributes objectForKey:NSFileSize],
-             @"type": [attributes objectForKey:NSFileType]
-             };
-  }];
+    if(attributes != nil) {
+        [tagetContents addObject:@{
+            @"ctime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileCreationDate]],
+            @"mtime": [self dateToTimeIntervalNumber:(NSDate *)[attributes objectForKey:NSFileModificationDate]],
+            @"name": obj,
+            @"path": path,
+            @"size": [attributes objectForKey:NSFileSize],
+            @"type": [attributes objectForKey:NSFileType]
+            }];
+    }
+  }
 
   if (error) {
     return [self reject:reject withError:error];
   }
 
-  resolve(contents);
+  resolve(tagetContents);
 }
 
 RCT_EXPORT_METHOD(exists:(NSString *)filepath
@@ -747,7 +748,7 @@ RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
 
 
 // [PHAsset fetchAssetsWithALAssetURLs] is deprecated and not supported in Mac Catalyst
-#if !TARGET_OS_UIKITFORMAC
+#if !TARGET_OS_UIKITFORMAC && !TARGET_OS_OSX
 /**
  * iOS Only: copy images from the assets-library (camera-roll) to a specific path, asuming
  * JPEG-Images.
@@ -812,7 +813,7 @@ RCT_EXPORT_METHOD(copyAssetsFileIOS: (NSString *) imageUri
         imageOptions.resizeMode = PHImageRequestOptionsResizeModeNone;
     } else {
         targetSize = CGSizeApplyAffineTransform(size, CGAffineTransformMakeScale(scale, scale));
-        imageOptions.resizeMode = PHImageRequestOptionsResizeModeFast;
+        imageOptions.resizeMode = PHImageRequestOptionsResizeModeExact;
     }
 
     PHImageContentMode contentMode = PHImageContentModeAspectFill;
@@ -844,7 +845,7 @@ RCT_EXPORT_METHOD(copyAssetsFileIOS: (NSString *) imageUri
 #endif
 
 // [PHAsset fetchAssetsWithALAssetURLs] is deprecated and not supported in Mac Catalyst
-#if !TARGET_OS_UIKITFORMAC
+#if !TARGET_OS_UIKITFORMAC && !TARGET_OS_OSX
 /**
  * iOS Only: copy videos from the assets-library (camera-roll) to a specific path as mp4-file.
  *
@@ -882,10 +883,16 @@ RCT_EXPORT_METHOD(copyAssetsVideoIOS: (NSString *) imageUri
     if ([asset isKindOfClass:[AVURLAsset class]]) {
       NSURL *url = [(AVURLAsset *)asset URL];
       NSLog(@"Final URL %@",url);
-      NSData *videoData = [NSData dataWithContentsOfURL:url];
-
-      BOOL writeResult = [videoData writeToFile:destination options:NSDataWritingAtomic error:&error];
-
+      BOOL writeResult = false;
+        
+      if (@available(iOS 9.0, *)) {
+          NSURL *destinationUrl = [NSURL fileURLWithPath:destination relativeToURL:nil];
+          writeResult = [[NSFileManager defaultManager] copyItemAtURL:url toURL:destinationUrl error:&error];
+      } else {
+          NSData *videoData = [NSData dataWithContentsOfURL:url];
+          writeResult = [videoData writeToFile:destination options:NSDataWritingAtomic error:&error];
+      }
+        
       if(writeResult) {
         NSLog(@"video success");
       }
