@@ -46,7 +46,7 @@ As @a-koka pointed out, you should then update your package.json to
 
 At the command line, in your project folder, type:
 
-`react-native link react-native-fs`
+`npx react-native link react-native-fs`
 
 Done! No need to worry about manually adding the library to your project.
 
