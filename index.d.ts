@@ -123,6 +123,7 @@ export function copyFile(
 ): Promise<void>
 export function pathForBundle(bundleNamed: string): Promise<string>
 export function pathForGroup(groupName: string): Promise<string>
+export function pathForGroupSync(groupName: string): string
 export function getFSInfo(): Promise<FSInfoResult>
 export function getAllExternalFilesDirs(): Promise<string[]>
 export function unlink(filepath: string): Promise<void>
