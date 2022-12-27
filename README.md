@@ -440,12 +440,7 @@ Note: Android only. Will overwrite destPath if it already exists.
 
 ### `copyFileRes(filename: string, destPath: string): Promise<void>`
 
-<<<<<<< HEAD
-iOS-only: copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG|PNG?..."
-to a specific destination. It will download the original from iCloud if necessary.
-=======
 Copies the file named `filename` in the Android app's res folder and copies it to the given `destPath ` path. `res/drawable` is used as the source parent folder for image files, `res/raw` for everything else.
->>>>>>> upstream/master
 
 Note: Android only. Will overwrite destPath if it already exists.
 
