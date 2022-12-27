@@ -1,6 +1,6 @@
 {
   "name": "react-native-fs",
-  "version": "2.13.2",
+  "version": "2.20.0",
   "description": "Native filesystem access for react-native",
   "main": "FS.common.js",
   "typings": "index.d.ts",
@@ -27,19 +27,20 @@
   "license": "MIT",
   "dependencies": {
     "base-64": "^0.1.0",
-    "utf8": "^2.1.1"
+    "utf8": "^3.0.0"
   },
   "devDependencies": {
-    "flow-bin": "0.28.0",
-    "react": "^16.2.0",
-    "react-native": "^0.57.0",
-    "prop-types": "15.6.0",
-    "create-react-class": "^15.6.2",
-    "react-native-windows": "^0.57.0"
+    "create-react-class": "15.6.3",
+    "flow-bin": "^0.109.0",
+    "prop-types": "^15.7.2"
   },
   "peerDependencies": {
-    "react": "^16.2.0",
-    "react-native": ">=0.51.0 <1.0.0",
-    "prop-types": "^15.6.0"
+    "react-native": "*",
+    "react-native-windows": "*"
+  },
+  "peerDependenciesMeta": {
+    "react-native-windows": {
+      "optional": true
+    }
   }
 }

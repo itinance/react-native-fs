@@ -2,6 +2,7 @@ using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
 using ReactNative.Modules.Core;
 using ReactNative.Modules.Network;
+using Syroot.Windows.IO;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,8 +12,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
-using Windows.Storage;
+//using Windows.ApplicationModel;
+//using Windows.Storage;
 
 namespace RNFS
 {
@@ -73,31 +74,15 @@ namespace RNFS
             {
                 var constants = new Dictionary<string, object>
                 {
-                    { "RNFSMainBundlePath", Package.Current.InstalledLocation.Path },
-                    { "RNFSCachesDirectoryPath", ApplicationData.Current.LocalCacheFolder.Path },
-                    { "RNFSRoamingDirectoryPath", ApplicationData.Current.RoamingFolder.Path },
-                    { "RNFSDocumentDirectoryPath", ApplicationData.Current.LocalFolder.Path },
-                    { "RNFSTemporaryDirectoryPath", ApplicationData.Current.TemporaryFolder.Path },
+                    { "RNFSMainBundlePath", AppDomain.CurrentDomain.BaseDirectory },
+                    { "RNFSCachesDirectoryPath", KnownFolders.Downloads.Path },
+                    { "RNFSRoamingDirectoryPath", KnownFolders.RoamingAppData.Path },
+                    { "RNFSDocumentDirectoryPath",  KnownFolders.Documents.Path },
+                    { "RNFSTemporaryDirectoryPath", KnownFolders.InternetCache.Path },
+                    { "RNFSPicturesDirectoryPath", KnownFolders.CameraRoll.Path },
                     { "RNFSFileTypeRegular", 0 },
                     { "RNFSFileTypeDirectory", 1 },
                 };
-
-                var external = GetFolderPathSafe(() => KnownFolders.RemovableDevices);
-                if (external != null)
-                {
-                    var externalItems = KnownFolders.RemovableDevices.GetItemsAsync().AsTask().Result;
-                    if (externalItems.Count > 0)
-                    {
-                        constants.Add("RNFSExternalDirectoryPath", externalItems[0].Path);
-                    }
-                    constants.Add("RNFSExternalDirectoryPaths", externalItems.Select(i => i.Path).ToArray());
-                }
-
-                var pictures = GetFolderPathSafe(() => KnownFolders.PicturesLibrary);
-                if (pictures != null)
-                {
-                    constants.Add("RNFSPicturesDirectoryPath", pictures);
-                }
 
                 return constants;
             }
@@ -476,19 +461,12 @@ namespace RNFS
         {
             try
             {
-                var properties = await ApplicationData.Current.LocalFolder.Properties.RetrievePropertiesAsync(
-                    new[] 
-                    {
-                        "System.FreeSpace",
-                        "System.Capacity",
-                    })
-                    .AsTask()
-                    .ConfigureAwait(false);
-
+                DiskStatus status = new DiskStatus();
+                DiskUtil.DriveFreeBytes(KnownFolders.RoamingAppData.Path, out status);
                 promise.Resolve(new JObject
                 {
-                    { "freeSpace", (ulong)properties["System.FreeSpace"] },
-                    { "totalSpace", (ulong)properties["System.Capacity"] },
+                    { "freeSpace", status.free },
+                    { "totalSpace", status.total },
                 });
             }
             catch (Exception)
@@ -590,10 +568,6 @@ namespace RNFS
                     });
                 }
             }
-            catch (OperationCanceledException ex)
-            {
-                promise.Reject(new RequestCancellationException(jobId, filepath, ex));
-            }
             finally
             {
                 request.Dispose();
@@ -618,18 +592,6 @@ namespace RNFS
         private void SendEvent(string eventName, JObject eventData)
         {
             Emitter.emit(eventName, eventData);
-        }
-
-        private static string GetFolderPathSafe(Func<StorageFolder> getFolder)
-        {
-            try
-            {
-                return getFolder().Path;
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return null;
-            }
         }
 
         public static double ConvertToUnixTimestamp(DateTime date)

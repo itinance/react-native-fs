@@ -9,8 +9,10 @@
 
 var RNFSManager = require('react-native').NativeModules.RNFSManager;
 
-var NativeAppEventEmitter = require('react-native').NativeAppEventEmitter;  // iOS
-var DeviceEventEmitter = require('react-native').DeviceEventEmitter;        // Android
+var NativeEventEmitter = require('react-native').NativeEventEmitter;
+
+var RNFS_NativeEventEmitter = new NativeEventEmitter(RNFSManager);
+
 var base64 = require('base-64');
 var utf8 = require('utf8');
 var isIOS = require('react-native').Platform.OS === 'ios';
@@ -33,7 +35,7 @@ type MkdirOptions = {
 };
 
 type FileOptions = {
-    NSFileProtectionKey?: string; // IOS only
+  NSFileProtectionKey?: string; // IOS only
 };
 
 type ReadDirItem = {
@@ -68,12 +70,14 @@ type DownloadFileOptions = {
   background?: boolean;     // Continue the download in the background after the app terminates (iOS only)
   discretionary?: boolean;  // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
   cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only)
+  progressInterval?: number;
   progressDivider?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
   resumable?: () => void;    // only supported on iOS yet
   connectionTimeout?: number; // only supported on Android yet
   readTimeout?: number;       // supported on Android and iOS
+  backgroundTimeout?: number; // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
 };
 
 type DownloadBeginCallbackResult = {
@@ -97,6 +101,7 @@ type DownloadResult = {
 
 type UploadFileOptions = {
   toUrl: string;            // URL to upload file to
+  binaryStreamOnly?: boolean; // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
   files: UploadFileItem[];  // An array of objects with the file information to be uploaded.
   headers?: Headers;        // An object of headers to be passed to the server
   fields?: Fields;          // An object of fields to be passed to the server
@@ -139,7 +144,7 @@ type FSInfoResult = {
 /**
  * Generic function used by readFile and readFileAssets
  */
-function readFileGeneric(filepath: string, encodingOrOptions:?string, command: Function) {
+function readFileGeneric(filepath: string, encodingOrOptions: ?string, command: Function) {
   var options = {
     encoding: 'utf8'
   };
@@ -229,11 +234,11 @@ var RNFS = {
   },
 
   resumeDownload(jobId: number): void {
-      RNFSManager.resumeDownload(jobId);
+    RNFSManager.resumeDownload(jobId);
   },
 
   isResumable(jobId: number): Promise<bool> {
-      return RNFSManager.isResumable(jobId);
+    return RNFSManager.isResumable(jobId);
   },
 
   stopUpload(jobId: number): void {
@@ -264,6 +269,14 @@ var RNFS = {
     return RNFSManager.existsAssets(filepath);
   },
 
+  // Android-only
+  existsRes(filename: string) {
+    if (!RNFSManager.existsRes) {
+      throw new Error('existsRes is not available on this platform');
+    }
+    return RNFSManager.existsRes(filename);
+  },
+
   // Node style version (lowercase d). Returns just the names
   readdir(dirpath: string): Promise<string[]> {
     return RNFS.readDir(normalizeFilePath(dirpath)).then(files => {
@@ -272,8 +285,8 @@ var RNFS = {
   },
 
   // setReadable for Android
-  setReadable(filepath : string, readable: boolean, ownerOnly: boolean) : Promise<boolean> {
-    return RNFSManager.setReadable(filepath, readable, ownerOnly).then( (result) => {
+  setReadable(filepath: string, readable: boolean, ownerOnly: boolean): Promise<boolean> {
+    return RNFSManager.setReadable(filepath, readable, ownerOnly).then((result) => {
       return result;
     })
   },
@@ -335,16 +348,32 @@ var RNFS = {
     return readFileGeneric(filepath, encodingOrOptions, RNFSManager.readFileAssets);
   },
 
+  // Android only
+  readFileRes(filename: string, encodingOrOptions?: any): Promise<string> {
+    if (!RNFSManager.readFileRes) {
+      throw new Error('readFileRes is not available on this platform');
+    }
+    return readFileGeneric(filename, encodingOrOptions, RNFSManager.readFileRes);
+  },
+
   hash(filepath: string, algorithm: string): Promise<string> {
     return RNFSManager.hash(normalizeFilePath(filepath), algorithm);
   },
 
   // Android only
-  copyFileAssets(filepath: string, destPath:string) {
+  copyFileAssets(filepath: string, destPath: string) {
     if (!RNFSManager.copyFileAssets) {
       throw new Error('copyFileAssets is not available on this platform');
     }
     return RNFSManager.copyFileAssets(normalizeFilePath(filepath), normalizeFilePath(destPath)).then(() => void 0);
+  },
+
+  // Android only
+  copyFileRes(filename: string, destPath: string) {
+    if (!RNFSManager.copyFileRes) {
+      throw new Error('copyFileRes is not available on this platform');
+    }
+    return RNFSManager.copyFileRes(filename, normalizeFilePath(destPath)).then(() => void 0);
   },
 
   // iOS only
@@ -352,8 +381,8 @@ var RNFS = {
   // with a given width or height
   // @see: https://developer.apple.com/reference/photos/phimagemanager/1616964-requestimageforasset
   copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number,
-    scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string> {
-    return RNFSManager.copyAssetsFileIOS(imageUri, destPath, width, height, scale, compression, resizeMode );
+    scale: number = 1.0, compression: number = 1.0, resizeMode: string = 'contain'): Promise<string> {
+    return RNFSManager.copyAssetsFileIOS(imageUri, destPath, width, height, scale, compression, resizeMode);
   },
 
   // iOS only
@@ -376,8 +405,8 @@ var RNFS = {
         options.encoding = encodingOrOptions;
       } else if (typeof encodingOrOptions === 'object') {
         options = {
-            ...options,
-            ...encodingOrOptions
+          ...options,
+          ...encodingOrOptions
         };
       }
     }
@@ -462,22 +491,30 @@ var RNFS = {
     if (options.headers && typeof options.headers !== 'object') throw new Error('downloadFile: Invalid value for property `headers`');
     if (options.background && typeof options.background !== 'boolean') throw new Error('downloadFile: Invalid value for property `background`');
     if (options.progressDivider && typeof options.progressDivider !== 'number') throw new Error('downloadFile: Invalid value for property `progressDivider`');
+    if (options.progressInterval && typeof options.progressInterval !== 'number') throw new Error('downloadFile: Invalid value for property `progressInterval`');
     if (options.readTimeout && typeof options.readTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `readTimeout`');
     if (options.connectionTimeout && typeof options.connectionTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `connectionTimeout`');
+    if (options.backgroundTimeout && typeof options.backgroundTimeout !== 'number') throw new Error('downloadFile: Invalid value for property `backgroundTimeout`');
 
     var jobId = getJobId();
     var subscriptions = [];
 
     if (options.begin) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadBegin-' + jobId, options.begin));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadBegin', (res) => {
+        if (res.jobId === jobId) options.begin(res);
+      }));
     }
 
     if (options.progress) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadProgress-' + jobId, options.progress));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadProgress', (res) => {
+        if (res.jobId === jobId) options.progress(res);
+      }));
     }
 
     if (options.resumable) {
-      subscriptions.push(NativeAppEventEmitter.addListener('DownloadResumable-' + jobId, options.resumable));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('DownloadResumable', (res) => {
+        if (res.jobId === jobId) options.resumable(res);
+      }));
     }
 
     var bridgeOptions = {
@@ -487,8 +524,13 @@ var RNFS = {
       headers: options.headers || {},
       background: !!options.background,
       progressDivider: options.progressDivider || 0,
+      progressInterval: options.progressInterval || 0,
       readTimeout: options.readTimeout || 15000,
-      connectionTimeout: options.connectionTimeout || 5000
+      connectionTimeout: options.connectionTimeout || 5000,
+      backgroundTimeout: options.backgroundTimeout || 3600000, // 1 hour
+      hasBeginCallback: options.begin instanceof Function,
+      hasProgressCallback: options.progress instanceof Function,
+      hasResumableCallback: options.resumable instanceof Function,
     };
 
     return {
@@ -497,9 +539,9 @@ var RNFS = {
         subscriptions.forEach(sub => sub.remove());
         return res;
       })
-      .catch( e => {
-        return Promise.reject(e);
-      })
+        .catch(e => {
+          return Promise.reject(e);
+        })
     };
   },
 
@@ -522,28 +564,29 @@ var RNFS = {
     if (options.method && typeof options.method !== 'string') throw new Error('uploadFiles: Invalid value for property `method`');
 
     if (options.begin) {
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadBegin-' + jobId, options.begin));
-    }
-    if (options.beginCallback && options.beginCallback instanceof Function) {
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.begin));
+    } else if (options.beginCallback) {
       // Deprecated
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadBegin-' + jobId, options.beginCallback));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadBegin', options.beginCallback));
     }
 
     if (options.progress) {
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadProgress-' + jobId, options.progress));
-    }
-    if (options.progressCallback && options.progressCallback instanceof Function) {
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progress));
+    } else if (options.progressCallback) {
       // Deprecated
-      subscriptions.push(NativeAppEventEmitter.addListener('UploadProgress-' + jobId, options.progressCallback));
+      subscriptions.push(RNFS_NativeEventEmitter.addListener('UploadProgress', options.progressCallback));
     }
 
     var bridgeOptions = {
       jobId: jobId,
       toUrl: options.toUrl,
       files: options.files,
+      binaryStreamOnly: options.binaryStreamOnly || false,
       headers: options.headers || {},
       fields: options.fields || {},
-      method: options.method || 'POST'
+      method: options.method || 'POST',
+      hasBeginCallback: options.begin instanceof Function || options.beginCallback instanceof Function,
+      hasProgressCallback: options.progress instanceof Function || options.progressCallback instanceof Function,
     };
 
     return {
@@ -577,6 +620,7 @@ var RNFS = {
   CachesDirectoryPath: RNFSManager.RNFSCachesDirectoryPath,
   ExternalCachesDirectoryPath: RNFSManager.RNFSExternalCachesDirectoryPath,
   DocumentDirectoryPath: RNFSManager.RNFSDocumentDirectoryPath,
+  DownloadDirectoryPath: RNFSManager.RNFSDownloadDirectoryPath,
   ExternalDirectoryPath: RNFSManager.RNFSExternalDirectoryPath,
   ExternalStorageDirectoryPath: RNFSManager.RNFSExternalStorageDirectoryPath,
   TemporaryDirectoryPath: RNFSManager.RNFSTemporaryDirectoryPath,
