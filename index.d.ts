@@ -12,7 +12,7 @@ type ReadDirItem = {
 	mtime: Date | undefined // The last modified date of the file
 	name: string // The name of the item
 	path: string // The absolute path to the item
-	size: string // Size in bytes
+	size: number // Size in bytes
 	isFile: () => boolean // Is the file just a file?
 	isDirectory: () => boolean // Is the file a directory?
 }
@@ -20,7 +20,7 @@ type ReadDirItem = {
 type StatResult = {
 	name: string | undefined // The name of the item TODO: why is this not documented?
 	path: string // The absolute path to the item
-	size: string // Size in bytes
+	size: number // Size in bytes
 	mode: number // UNIX file mode
 	ctime: number // Created date
 	mtime: number // Last modified date
@@ -39,12 +39,14 @@ type DownloadFileOptions = {
 	background?: boolean // Continue the download in the background after the app terminates (iOS only)
 	discretionary?: boolean // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
 	cacheable?: boolean // Whether the download can be stored in the shared NSURLCache (iOS only)
+	progressInterval?: number
 	progressDivider?: number
 	begin?: (res: DownloadBeginCallbackResult) => void
 	progress?: (res: DownloadProgressCallbackResult) => void
 	resumable?: () => void // only supported on iOS yet
 	connectionTimeout?: number // only supported on Android yet
 	readTimeout?: number // supported on Android and iOS
+	backgroundTimeout?: number // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
 }
 
 type DownloadBeginCallbackResult = {
@@ -68,6 +70,7 @@ type DownloadResult = {
 
 type UploadFileOptions = {
 	toUrl: string // URL to upload file to
+	binaryStreamOnly?: boolean // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
 	files: UploadFileItem[] // An array of objects with the file information to be uploaded.
 	headers?: Headers // An object of headers to be passed to the server
 	fields?: Fields // An object of fields to be passed to the server
@@ -121,7 +124,7 @@ export function copyFile(
 export function pathForBundle(bundleNamed: string): Promise<string>
 export function pathForGroup(groupName: string): Promise<string>
 export function getFSInfo(): Promise<FSInfoResult>
-export function getAllExternalFilesDirs(): Promise<string>
+export function getAllExternalFilesDirs(): Promise<string[]>
 export function unlink(filepath: string): Promise<void>
 export function exists(filepath: string): Promise<boolean>
 
@@ -140,12 +143,22 @@ export function readDir(dirpath: string): Promise<ReadDirItem[]>
 /**
  * Android-only
  */
+export function scanFile(path: string): Promise<string[]>
+
+/**
+ * Android-only
+ */
 export function readDirAssets(dirpath: string): Promise<ReadDirItem[]>
 
 /**
  * Android-only
  */
 export function existsAssets(filepath: string): Promise<boolean>
+
+/**
+ * Android-only
+ */
+export function existsRes(filepath: string): Promise<boolean>
 
 /**
  * Node style version (lowercase d). Returns just the names
@@ -182,12 +195,28 @@ export function readFileAssets(
 	encodingOrOptions?: any
 ): Promise<string>
 
+/**
+ * Android only
+ */
+export function readFileRes(
+	filepath: string,
+	encodingOrOptions?: any
+): Promise<string>
+
 export function hash(filepath: string, algorithm: string): Promise<string>
 
 /**
  * Android only
  */
 export function copyFileAssets(
+	filepath: string,
+	destPath: string
+): Promise<void>
+
+/**
+ * Android only
+ */
+export function copyFileRes(
 	filepath: string,
 	destPath: string
 ): Promise<void>
@@ -225,6 +254,12 @@ export function writeFile(
 	encodingOrOptions?: any
 ): Promise<void>
 
+export function appendFile(
+	filepath: string,
+	contents: string,
+	encodingOrOptions?: string
+): Promise<void>
+
 export function write(
 	filepath: string,
 	contents: string,
@@ -249,6 +284,7 @@ export function touch(
 export const MainBundlePath: string
 export const CachesDirectoryPath: string
 export const ExternalCachesDirectoryPath: string
+export const DownloadDirectoryPath: string
 export const DocumentDirectoryPath: string
 export const ExternalDirectoryPath: string
 export const ExternalStorageDirectoryPath: string

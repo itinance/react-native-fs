@@ -1,4 +1,4 @@
-## react-native-fs
+# react-native-fs
 
 Native filesystem access for react-native
 
@@ -6,78 +6,26 @@ Native filesystem access for react-native
 
 For RN < 0.57 and/or Gradle < 3 you MUST install react-native-fs at version @2.11.17!
 
-For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version @2.12!
+For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version >= @2.13.2!
 
-## Changes for v2.13
-- #544 [Android] Add scanFile method
-- #597 [Android] Perform copyFile in background thread to prevent UI blocking
-- #587 [Windows] Fixed implementation for Windows
-- #585 [Android] Fix EISDIR on stat directory
-- #583 [Android] fix Android downloadFile overflow contentLength and bytesWritten
+For RN >= 0.61 please install react-native-fs at version >= @2.16.0!
 
-## Changes for v2.12
-- #601 [iOS] Another fix for copyAssetsVideoIOS
-- #599 [iOS] Fix for copyAssetsVideoIOS regarding iCloud-Files
-- #564 [Android] Upgrade to Gradle 3 (BREAKING compatiblity for < RN 0.57)
-- #571 [Android] Fix issue #566 android progress callback not sync and handle uppercase file extension mimetype
+## Table of Contents
+1. [Changelog](#Changelog)
+1. Usage
+    1. [iOS](#usage-ios)
+    1. [Android](#usage-android)
+    1. [Windows](#usage-windows)
+1. [Examples](#Examples)
+1. [API](#API)
+1. [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios)
+1. [Test / Demo App](#test--demo-app)
 
-## Changes for v2.11
-- Prepared for RN 0.56 thanx to [#535](https://github.com/itinance/react-native-fs/pull/535) by [rmevans9](https://github.com/rmevans9)
-- #503 make sure to return the original file uri if content:// scheme is not used
-- #510 Fixes an IndexOutOfBounds while uploading files in Android
-- #515 Add cacheable option to downloadFile on iOScompletion callback
-- #516 [iOS] Ensure _bytesWritten is correct in download
-- #519 updated compilesdkversion and buildtoolsversion
-- #535 Make this work with RN56
-- #558 [Android] fixed missing parameter in movefile and writefile
-- #557 [Android] copyFile: fix missing parameter on Android
-- #564 [Android] Replace deprecated 'compile' gradle configuration with 'implementation
+## Changelog
 
-## Changes for v2.10
-- UploadFiles is now also available for Android [#486](https://github.com/itinance/react-native-fs/pull/486) by [hank121314](https://github.com/hank121314)
-- Fixed a memory leak that caused after running many simultaneous upload jobs on iOS [#502](https://github.com/itinance/react-native-fs/pull/502) by [Ignigena](https://github.com/Ignigena)
-- Android: Resolve filepath for content URI [480](https://github.com/itinance/react-native-fs/pull/480) by [andtos90](https://github.com/andtos90)
-- (Android only) Add ExternalCachesDirectoryPath [490](https://github.com/itinance/react-native-fs/pull/490) by [superandrew213](https://github.com/superandrew213)
+View the changelog [here](https://github.com/itinance/react-native-fs/blob/master/CHANGELOG.md).
 
-## Changes for v2.9
-- (iOS only) Resumable downloads and better background downloads handling [#335](https://github.com/itinance/react-native-fs/pull/335) by [ptelad](https://github.com/ptelad)
-- (Android only) getAllExternalFilesDirs() added by [ngrj](https://github.com/ngrj)
-- Content URI support [#395](https://github.com/itinance/react-native-fs/pull/395) by [krzysztof-miemiec](https://github.com/krzysztof-miemiec)
-- Fixed Cocoapods-Installation
-
-## Changes for v2.8
-- Fix for [#346](https://github.com/itinance/react-native-fs/pull/347): compressed file assets are detected as directories thx to [jacargentina](https://github.com/jacargentina)
-- added support for Video-Assets on iOS (copyAssetsVideoIOS) and setReadable() on Android by [itinance](https://github.com/itinance)
-- Added react-native-windows support for UWP [#337](https://github.com/itinance/react-native-fs/pull/337) thx to [rozele](https://github.com/rozele)
-- Expose the iOS `discretionary` flag on `downloadFile` [#360](https://github.com/itinance/react-native-fs/pull/360) thx to [jamesreggio](https://github.com/jamesreggio)
-
-## Changes for v2.5
-- breaking change for RN 0.47 at android (https://github.com/facebook/react-native/releases/tag/v0.47.0)
-
-## Changes for v2.4
-- Made new thread for other native processes [ANDROID] (https://github.com/itinance/react-native-fs/commit/ad36b078db9728489155a55c1b7daa42ed191945) thx to [codesinghanoop](https://github.com/codesinghanoop)
-- Upgrade gradle build tools to 25 (https://github.com/itinance/react-native-fs/commit/239bccb9d56fe9308daafb86920ed29eb9e5cfe4) thx to [markusguenther](https://github.com/markusguenther)
-- Fixed Podfile Path-Error (https://github.com/itinance/react-native-fs/commit/9fd51e7e977400f3194c100af88b4c25e7510530) thx to [colorfulberry](https://github.com/colorfulberry)
-- Add read-method with length and position params (https://github.com/itinance/react-native-fs/commit/a39c22be81f0c1f2263dbe60f3cd6cfcc902d2ac) thx to [simitti](https://github.com/simitii)
-
-## Changes for v2.3
-
-- React-Native 0.40 is minimum required for compiling on iOS (otherwise install an older release, see below)
-- Access to iOS-based "assets-library" is now supported with `copyAssetsFileIOS`
-- `readDir` will return now creation- and modification-time of files as with `stat()` (thanks @Ignigena)
-- optional connectionTimeout and readTimeout-Settings on `downloadFile` for Android (thanks @drunksaint)
-
-## Breaking change in v2.0
-
-- Removed attributes from `writeFile` and `appendFile` for iOS / Android consistency
-- `downloadFile` takes `options` object rather than parameters
-- `stopDownload` will cause the rejection of promise returned by `downloadFile`
-- `uploadFiles` promise result `response` property is now `body`
-- A boolean is no longer returned from any method except `exists`
-- `downloadFile` and `uploadFiles` return an object of the form `{ jobId: number, promise: Promise }`
-- `mkdir` takes optional 2nd parameter `options` for iOS users to set the `NSURLIsExcludedFromBackupKey` attribute
-
-## Usage (iOS)
+## Usage (iOS/macOS)
 
 First you need to install react-native-fs:
 
@@ -143,7 +91,7 @@ project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/
 ...
 dependencies {
     ...
-    compile project(':react-native-fs')
+    implementation project(':react-native-fs')
 }
 ```
 
@@ -295,7 +243,7 @@ return RNFS.unlink(path)
   });
 ```
 
-### File upload (iOS only)
+### File upload (Android and IOS only)
 
 ```javascript
 // require the module
@@ -317,7 +265,8 @@ var files = [
   }
 ];
 
-var uploadBegin = (response) => {
+var upload
+= (response) => {
   var jobId = response.jobId;
   console.log('UPLOAD HAS BEGUN! JobId: ' + jobId);
 };
@@ -366,12 +315,13 @@ The following constants are available on the `RNFS` export:
 - `CachesDirectoryPath` (`String`) The absolute path to the caches directory
 - `ExternalCachesDirectoryPath` (`String`) The absolute path to the external caches directory (android only)
 - `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
+- `DownloadDirectoryPath` (`String`) The absolute path to the download directory (on android only)
 - `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (falls back to Caching-Directory on Android)
 - `LibraryDirectoryPath` (`String`) The absolute path to the NSLibraryDirectory (iOS only)
 - `ExternalDirectoryPath` (`String`) The absolute path to the external files, shared directory (android only)
 - `ExternalStorageDirectoryPath` (`String`) The absolute path to the external storage, shared directory (android only)
 
-IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request permissions (on Android) to read and write on the external storage, here an example: [React Native Offical Doc] (https://facebook.github.io/react-native/docs/permissionsandroid)
+IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request permissions (on Android) to read and write on the external storage, here an example: [React Native Offical Doc](https://facebook.github.io/react-native/docs/permissionsandroid)
 
 ### `readDir(dirpath: string): Promise<ReadDirItem[]>`
 
@@ -379,15 +329,15 @@ Reads the contents of `path`. This must be an absolute path. Use the above path 
 
 The returned promise resolves with an array of objects with the following properties:
 
-```
+```js
 type ReadDirItem = {
   ctime: date;     // The creation date of the file (iOS only)
   mtime: date;     // The last modified date of the file
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
-  isFile: () => boolean;        // Is the file just a file?
-  isDirectory: () => boolean;   // Is the file a directory?
+  isFile: () => boolean;        // Is the item just a file?
+  isDirectory: () => boolean;   // Is the item a directory?
 };
 ```
 
@@ -398,7 +348,7 @@ Reads the contents of `dirpath ` in the Android app's assets folder.
 
 The returned promise resolves with an array of objects with the following properties:
 
-```
+```js
 type ReadDirItem = {
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
@@ -421,12 +371,12 @@ Node.js style version of `readDir` that returns only the names. Note the lowerca
 Stats an item at `filepath`. If the `filepath` is linked to a virtual file, for example Android Content URI, the `originalPath` can be used to find the pointed file path.
 The promise resolves with an object with the following properties:
 
-```
+```js
 type StatResult = {
   path:            // The same as filepath argument
   ctime: date;     // The creation date of the file
   mtime: date;     // The last modified date of the file
-  size: string;     // Size in bytes
+  size: number;     // Size in bytes
   mode: number;     // UNIX file mode
   originalFilepath: string;    // ANDROID: In case of content uri this is the pointed file path, otherwise is the same as path
   isFile: () => boolean;        // Is the file just a file?
@@ -451,6 +401,12 @@ Note: reading big files piece by piece using this method may be useful in terms 
 Reads the file at `path` in the Android app's assets folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
 `filepath` is the relative path to the file from the root of the `assets` folder.
+
+Note: Android only.
+
+### `readFileRes(filename:string, encoding?: string): Promise<string>`
+
+Reads the file named `filename` in the Android app's `res` folder and return contents. Only the file name (not folder) needs to be specified. The file type will be detected from the extension and automatically located within `res/drawable` (for image files) or `res/raw` (for everything else). `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
 Note: Android only.
 
@@ -480,18 +436,60 @@ Note: On Android copyFile will overwrite `destPath` if it already exists. On iOS
 
 Copies the file at `filepath` in the Android app's assets folder and copies it to the given `destPath ` path.
 
-Note: Android only. Will overwrite destPath if it already exists
+Note: Android only. Will overwrite destPath if it already exists.
 
-### `copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number, scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string>`
+### `copyFileRes(filename: string, destPath: string): Promise<void>`
 
-iOS-only: copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG|PNG?..."
-to a specific destination. It will download the original from iCloud if necessary.
+Copies the file named `filename` in the Android app's res folder and copies it to the given `destPath ` path. `res/drawable` is used as the source parent folder for image files, `res/raw` for everything else.
 
-If width and height is > 0, the image will be resized to a specific size and a specific compression rate.
-If scale is below 1, the image will be scaled according to the scale-factor (between 0.0 and 1.0)
-The resizeMode is also considered.
+Note: Android only. Will overwrite destPath if it already exists.
 
-*Video-Support:*
+### (iOS only) `copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number, scale?: number, compression?: number, resizeMode?: string): Promise<string>`
+
+*Not available on Mac Catalyst.*
+
+Reads an image file from Camera Roll and writes to `destPath`. This method [assumes the image file to be JPEG file](https://github.com/itinance/react-native-fs/blob/f2f8f4a058cd9acfbcac3b8cf1e08fa1e9b09786/RNFSManager.m#L752-L753). This method will download the original from iCloud if necessary.
+
+#### Parameters
+
+##### `imageUri` string (required)
+
+URI of a file in Camera Roll. Can be [either of the following formats](https://github.com/itinance/react-native-fs/blob/f2f8f4a058cd9acfbcac3b8cf1e08fa1e9b09786/RNFSManager.m#L781-L785):
+
+- `ph://CC95F08C-88C3-4012-9D6D-64A413D254B3/L0/001`
+- `assets-library://asset/asset.JPG?id=CC95F08C-88C3-4012-9D6D-64A413D254B3&ext=JPG`
+
+##### `destPath` string (required)
+
+Destination to which the copied file will be saved, e.g. `RNFS.TemporaryDirectoryPath + 'example.jpg'`.
+
+##### `width` number (required)
+
+Copied file's image width will be resized to `width`. [If 0 is provided, width won't be resized.](https://github.com/itinance/react-native-fs/blob/f2f8f4a058cd9acfbcac3b8cf1e08fa1e9b09786/RNFSManager.m#L808)
+
+##### `height` number (required)
+
+Copied file's image height will be resized to `height`. [If 0 is provided, height won't be resized.](https://github.com/itinance/react-native-fs/blob/f2f8f4a058cd9acfbcac3b8cf1e08fa1e9b09786/RNFSManager.m#L808)
+
+##### `scale` number (optional)
+
+Copied file's image will be scaled proportional to `scale` factor from `width` x `height`. If both `width` and `height` are 0, the image won't scale. Range is [0.0, 1.0] and default is 1.0.
+
+##### `compression` number (optional)
+
+Quality of copied file's image. The value 0.0 represents the maximum compression (or lowest quality) while the value 1.0 represents the least compression (or best quality). Range is [0.0, 1.0] and default is 1.0.
+
+##### `resizeMode` string (optional)
+
+If `resizeMode` is 'contain', copied file's image will be scaled so that its larger dimension fits `width` x `height`. If `resizeMode` is other value than 'contain', the image will be scaled so that it completely fills `width` x `height`. Default is 'contain'. Refer to [PHImageContentMode](https://developer.apple.com/documentation/photokit/phimagecontentmode).
+
+#### Return value
+
+##### `Promise<string>`
+
+Copied file's URI.
+
+#### Video-Support
 
 One can use this method also to create a thumbNail from a video in a specific size.
 Currently it is impossible to specify a concrete position, the OS will decide wich
@@ -501,10 +499,11 @@ To copy a video from assets-library and save it as a mp4-file, refer to copyAsse
 Further information: https://developer.apple.com/reference/photos/phimagemanager/1616964-requestimageforasset
 The promise will on success return the final destination of the file, as it was defined in the destPath-parameter.
 
-### copyAssetsVideoIOS(videoUri: string, destPath: string): Promise<string>
+### (iOS only) `copyAssetsVideoIOS(videoUri: string, destPath: string): Promise<string>`
 
-iOS-only: copies a video from assets-library, that is prefixed with 'assets-library://asset/asset.MOV?...'
-to a specific destination.
+*Not available on Mac Catalyst.*
+
+Copies a video from assets-library, that is prefixed with 'assets-library://asset/asset.MOV?...' to a specific destination.
 
 ### `unlink(filepath: string): Promise<void>`
 
@@ -519,6 +518,14 @@ Check if the item exists at `filepath`. If the item does not exist, return false
 ### `existsAssets(filepath: string): Promise<boolean>`
 
 Check in the Android assets folder if the item exists. `filepath` is the relative path from the root of the assets folder. If the item does not exist, return false.
+
+Note: Android only.
+
+### `existsRes(filename: string): Promise<boolean>`
+
+Check in the Android res folder if the item named `filename` exists. `res/drawable` is used as the parent folder for image files, `res/raw` for everything else. If the item does not exist, return false.
+
+Note: Android only.
 
 ### `hash(filepath: string, algorithm: string): Promise<string>`
 
@@ -542,7 +549,7 @@ Create a directory at `filepath`. Automatically creates parents and does not thr
 
 ### `downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> }`
 
-```
+```js
 type DownloadFileOptions = {
   fromUrl: string;          // URL to download file from
   toFile: string;           // Local filesystem path to save the file to
@@ -550,15 +557,17 @@ type DownloadFileOptions = {
   background?: boolean;     // Continue the download in the background after the app terminates (iOS only)
   discretionary?: boolean;  // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
   cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only, defaults to true)
+  progressInterval?: number;
   progressDivider?: number;
-  begin?: (res: DownloadBeginCallbackResult) => void;
+  begin?: (res: DownloadBeginCallbackResult) => void; // Note: it is required when progress prop provided
   progress?: (res: DownloadProgressCallbackResult) => void;
   resumable?: () => void;    // only supported on iOS yet
   connectionTimeout?: number // only supported on Android yet
   readTimeout?: number       // supported on Android and iOS
+  backgroundTimeout?: number // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
 };
 ```
-```
+```js
 type DownloadResult = {
   jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
   statusCode: number;     // The HTTP status code
@@ -570,7 +579,7 @@ Download file from `options.fromUrl` to `options.toFile`. Will overwrite any pre
 
 If `options.begin` is provided, it will be invoked once upon download starting when headers have been received and passed a single argument with the following properties:
 
-```
+```js
 type DownloadBeginCallbackResult = {
   jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
   statusCode: number;     // The HTTP status code
@@ -581,13 +590,16 @@ type DownloadBeginCallbackResult = {
 
 If `options.progress` is provided, it will be invoked continuously and passed a single argument with the following properties:
 
-```
+```js
 type DownloadProgressCallbackResult = {
   jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
   contentLength: number;  // The total size in bytes of the download resource
   bytesWritten: number;   // The number of bytes written to the file so far
 };
 ```
+
+If `options.progressInterval` is provided, it will return progress events in the maximum frequency of `progressDivider`.
+For example, if `progressInterval` = 100, you will not receive callbacks more often than every 100th millisecond.
 
 If `options.progressDivider` is provided, it will return progress events that divided by `progressDivider`.
 
@@ -614,7 +626,7 @@ Check if the the download job with this ID is resumable with `resumeDownload()`.
 
 Example:
 
-```
+```js
 if (await RNFS.isResumable(jobId) {
     RNFS.resumeDownload(jobId)
 }
@@ -626,13 +638,14 @@ For use when using background downloads, tell iOS you are done handling a comple
 
 Read more about background downloads in the [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios) section.
 
-### (iOS only) `uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> }`
+### `uploadFiles(options: UploadFileOptions): { jobId: number, promise: Promise<UploadResult> }`
 
 `options` (`Object`) - An object containing named parameters
 
-```
+```js
 type UploadFileOptions = {
   toUrl: string;            // URL to upload file to
+  binaryStreamOnly?: boolean// Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
   files: UploadFileItem[];  // An array of objects with the file information to be uploaded.
   headers?: Headers;        // An object of headers to be passed to the server
   fields?: Fields;          // An object of fields to be passed to the server
@@ -642,7 +655,7 @@ type UploadFileOptions = {
 };
 
 ```
-```
+```js
 type UploadResult = {
   jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
   statusCode: number;   // The HTTP status code
@@ -653,7 +666,7 @@ type UploadResult = {
 
 Each file should have the following structure:
 
-```
+```js
 type UploadFileItem = {
   name: string;       // Name of the file, if not defined then filename is used
   filename: string;   // Name of file
@@ -664,7 +677,7 @@ type UploadFileItem = {
 
 If `options.begin` is provided, it will be invoked once upon upload has begun:
 
-```
+```js
 type UploadBeginCallbackResult = {
   jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
 };
@@ -672,7 +685,7 @@ type UploadBeginCallbackResult = {
 
 If `options.progress` is provided, it will be invoked continuously and passed a single object with the following properties:
 
-```
+```js
 type UploadProgressCallbackResult = {
   jobId: number;                      // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
   totalBytesExpectedToSend: number;   // The total number of bytes that will be sent to the server
@@ -690,7 +703,7 @@ Abort the current upload job with this ID.
 
 Returns an object with the following properties:
 
-```
+```js
 type FSInfoResult = {
   totalSpace: number;   // The total amount of storage space on the device (in bytes).
   freeSpace: number;    // The amount of available storage space on the device (in bytes).
@@ -722,7 +735,7 @@ Background downloads in iOS require a bit of a setup.
 
 First, in your `AppDelegate.m` file add the following:
 
-```
+```js
 #import <RNFSManager.h>
 
 ...
