@@ -39,8 +39,8 @@ type FileOptions = {
 };
 
 type ReadDirItem = {
-  ctime: ?Date;    // The creation date of the file (iOS only)
-  mtime: ?Date;    // The last modified date of the file
+  ctime?: Date;    // The creation date of the file (iOS only)
+  mtime?: Date;    // The last modified date of the file
   name: string;     // The name of the item
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
@@ -49,7 +49,7 @@ type ReadDirItem = {
 };
 
 type StatResult = {
-  name: ?string;     // The name of the item TODO: why is this not documented?
+  name?: string;     // The name of the item TODO: why is this not documented?
   path: string;     // The absolute path to the item
   size: string;     // Size in bytes
   mode: number;     // UNIX file mode
@@ -60,13 +60,13 @@ type StatResult = {
   isDirectory: () => boolean;   // Is the file a directory?
 };
 
-type Headers = { [name: string]: string };
+type THeaders = { [name: string]: string };
 type Fields = { [name: string]: string };
 
 type DownloadFileOptions = {
   fromUrl: string;          // URL to download file from
   toFile: string;           // Local filesystem path to save the file to
-  headers?: Headers;        // An object of headers to be passed to the server
+  headers?: THeaders;        // An object of headers to be passed to the server
   background?: boolean;     // Continue the download in the background after the app terminates (iOS only)
   discretionary?: boolean;  // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
   cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only)
@@ -74,7 +74,7 @@ type DownloadFileOptions = {
   progressDivider?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
-  resumable?: () => void;    // only supported on iOS yet
+  resumable?: (v: any) => void;    // only supported on iOS yet
   connectionTimeout?: number; // only supported on Android yet
   readTimeout?: number;       // supported on Android and iOS
   backgroundTimeout?: number; // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
@@ -84,7 +84,7 @@ type DownloadBeginCallbackResult = {
   jobId: number;          // The download job ID, required if one wishes to cancel the download. See `stopDownload`.
   statusCode: number;     // The HTTP status code
   contentLength: number;  // The total size in bytes of the download resource
-  headers: Headers;       // The HTTP response headers from the server
+  headers: THeaders;       // The HTTP response headers from the server
 };
 
 type DownloadProgressCallbackResult = {
@@ -103,7 +103,7 @@ type UploadFileOptions = {
   toUrl: string;            // URL to upload file to
   binaryStreamOnly?: boolean; // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
   files: UploadFileItem[];  // An array of objects with the file information to be uploaded.
-  headers?: Headers;        // An object of headers to be passed to the server
+  headers?: THeaders;        // An object of headers to be passed to the server
   fields?: Fields;          // An object of fields to be passed to the server
   method?: string;          // Default is 'POST', supports 'POST' and 'PUT'
   beginCallback?: (res: UploadBeginCallbackResult) => void; // deprecated
@@ -132,7 +132,7 @@ type UploadProgressCallbackResult = {
 type UploadResult = {
   jobId: number;        // The upload job ID, required if one wishes to cancel the upload. See `stopUpload`.
   statusCode: number;   // The HTTP status code
-  headers: Headers;     // The HTTP response headers from the server
+  headers: THeaders;     // The HTTP response headers from the server
   body: string;         // The HTTP response body
 };
 
@@ -144,7 +144,7 @@ type FSInfoResult = {
 /**
  * Generic function used by readFile and readFileAssets
  */
-function readFileGeneric(filepath: string, encodingOrOptions: ?string, command: Function) {
+function readFileGeneric(filepath: string, encodingOrOptions?: string, command?: Function) {
   var options = {
     encoding: 'utf8'
   };
@@ -237,7 +237,7 @@ var RNFS = {
     RNFSManager.resumeDownload(jobId);
   },
 
-  isResumable(jobId: number): Promise<bool> {
+  isResumable(jobId: number): Promise<boolean> {
     return RNFSManager.isResumable(jobId);
   },
 
