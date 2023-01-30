@@ -671,7 +671,7 @@ type UploadFileItem = {
   name: string;       // Name of the file, if not defined then filename is used
   filename: string;   // Name of file
   filepath: string;   // Path to file
-  filetype: string;   // The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
+  filetype?: string;   // The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
 };
 ```
 
