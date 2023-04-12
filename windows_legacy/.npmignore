@@ -10,6 +10,3 @@ obj/
 
 # Don't publish tests to NPM
 RNFS.Tests/
-
-# Don't publish setting used for developement
-Directory.Build.props

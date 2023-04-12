@@ -16,6 +16,7 @@ var RNFS_NativeEventEmitter = new NativeEventEmitter(RNFSManager);
 var base64 = require('base-64');
 var utf8 = require('utf8');
 var isIOS = require('react-native').Platform.OS === 'ios';
+var isWindows = require('react-native').Platform.OS === 'windows'; // To accommodate Windows
 
 var RNFSFileTypeRegular = RNFSManager.RNFSFileTypeRegular;
 var RNFSFileTypeDirectory = RNFSManager.RNFSFileTypeDirectory;
@@ -203,6 +204,13 @@ var RNFS = {
 
   copyFile(filepath: string, destPath: string, options: FileOptions = {}): Promise<void> {
     return RNFSManager.copyFile(normalizeFilePath(filepath), normalizeFilePath(destPath), options).then(() => void 0);
+  },
+
+  // Windows workaround for slow copying of large folders of files
+  copyFolder(filepath: string, destPath: string): Promise<void> {
+    if(isWindows) {
+      return RNFSManager.copyFolder(normalizeFilePath(filepath), normalizeFilePath(destPath));
+    }
   },
 
   pathForBundle(bundleNamed: string): Promise<string> {
@@ -598,18 +606,29 @@ var RNFS = {
     };
   },
 
-  touch(filepath: string, mtime?: Date, ctime?: Date): Promise<void> {
+  touch(filepath: string, mtime?: Date, ctime?: Date, Creation?: boolean): Promise<void> {
     if (ctime && !(ctime instanceof Date)) throw new Error('touch: Invalid value for argument `ctime`');
     if (mtime && !(mtime instanceof Date)) throw new Error('touch: Invalid value for argument `mtime`');
     var ctimeTime = 0;
-    if (isIOS) {
+    if (isIOS || isWindows) { // Modified to accommodate Windows
       ctimeTime = ctime && ctime.getTime();
     }
-    return RNFSManager.touch(
-      normalizeFilePath(filepath),
-      mtime && mtime.getTime(),
-      ctimeTime
-    );
+    if (isWindows) {
+      var modifyCreationTime = !ctime ? false: true;
+      return RNFSManager.touch(
+        normalizeFilePath(filepath),
+        mtime && mtime.getTime(),
+        ctimeTime,
+        modifyCreationTime
+      );
+    }
+    else {
+      return RNFSManager.touch(
+        normalizeFilePath(filepath),
+        mtime && mtime.getTime(),
+        ctimeTime
+      );
+    }
   },
 
   scanFile(path: string): Promise<ReadDirItem[]> {
@@ -625,8 +644,9 @@ var RNFS = {
   ExternalStorageDirectoryPath: RNFSManager.RNFSExternalStorageDirectoryPath,
   TemporaryDirectoryPath: RNFSManager.RNFSTemporaryDirectoryPath,
   LibraryDirectoryPath: RNFSManager.RNFSLibraryDirectoryPath,
-  PicturesDirectoryPath: RNFSManager.RNFSPicturesDirectoryPath,
-  FileProtectionKeys: RNFSManager.RNFSFileProtectionKeys
+  PicturesDirectoryPath: RNFSManager.RNFSPicturesDirectoryPath, // For Windows
+  FileProtectionKeys: RNFSManager.RNFSFileProtectionKeys,
+  RoamingDirectoryPath: RNFSManager.RNFSRoamingDirectoryPath, // For Windows
 };
 
 module.exports = RNFS;
