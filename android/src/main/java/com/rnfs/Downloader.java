@@ -141,6 +141,7 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
         }
 
         output.flush();
+        output.getFD().sync();
         res.bytesWritten = total;
       }
       res.statusCode = statusCode;
