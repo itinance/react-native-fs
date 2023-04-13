@@ -318,7 +318,7 @@ var RNFS = {
     return readFileGeneric(filepath, encodingOrOptions, RNFSManager.readFile);
   },
 
-  read(filepath: string, length: number = 0, position: number = 0, encodingOrOptions?: any): Promise<string> {
+  read(filepath: string, chunkLengthInBytes: number = 0, offsetInBytes: number = 0, encodingOrOptions?: any): Promise<string> {
     var options = {
       encoding: 'utf8'
     };
@@ -331,7 +331,7 @@ var RNFS = {
       }
     }
 
-    return RNFSManager.read(normalizeFilePath(filepath), length, position).then((b64) => {
+    return RNFSManager.read(normalizeFilePath(filepath), chunkLengthInBytes, offsetInBytes).then((b64) => {
       var contents;
 
       if (options.encoding === 'utf8') {

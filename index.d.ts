@@ -186,8 +186,8 @@ export function readFile(
 ): Promise<string>
 export function read(
 	filepath: string,
-	length?: number,
-	position?: number,
+	chunkLengthInBytes?: number,
+	offsetInBytes?: number,
 	encodingOrOptions?: any
 ): Promise<string>
 
