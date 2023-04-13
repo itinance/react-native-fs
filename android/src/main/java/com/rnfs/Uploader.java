@@ -125,6 +125,9 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
                 requestLength += stringData.length() + files.length * crlf.length();
                 connection.setRequestProperty("Content-length", "" +(int) requestLength);
                 connection.setFixedLengthStreamingMode((int)requestLength);
+            } else {
+                // ensure byteSentTotal sent in progress updates is accurate
+                connection.setFixedLengthStreamingMode((int)totalFileLength);
             }
             connection.connect();
 
