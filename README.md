@@ -1,5 +1,7 @@
 # react-native-fs
 
+## Forked for RN-Windows compatibility. Be careful to read the instructions :-)
+
 Native filesystem access for react-native
 
 ## IMPORTANT
@@ -25,7 +27,11 @@ For RN >= 0.61 please install react-native-fs at version >= @2.16.0!
 
 View the changelog [here](https://github.com/itinance/react-native-fs/blob/master/CHANGELOG.md).
 
+<<<<<<< HEAD
+## Install
+=======
 ## Usage (iOS/macOS)
+>>>>>>> e8e092c5d5c7bf8f10e7eccd7cda5eb1c26d58a5
 
 First you need to install react-native-fs:
 
@@ -33,14 +39,7 @@ First you need to install react-native-fs:
 npm install react-native-fs --save
 ```
 
-**Note:** If your react-native version is < 0.40 install with this tag instead:
-
-```
-npm install react-native-fs@2.0.1-rc.2 --save
-```
-
-As @a-koka pointed out, you should then update your package.json to
-`"react-native-fs": "2.0.1-rc.2"` (without the tilde)
+After that, go to package.json and replace the version with this repositories link/.git link and run npm install/yarn again.
 
 ### Adding automatically with react-native link
 
