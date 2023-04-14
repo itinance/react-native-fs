@@ -221,6 +221,10 @@ var RNFS = {
     return RNFSManager.pathForGroup(groupName);
   },
 
+  pathForGroupSync(groupName: string): string {
+    return RNFSManager.pathForGroupSync(groupName);
+  },
+
   getFSInfo(): Promise<FSInfoResult> {
     return RNFSManager.getFSInfo();
   },

@@ -722,6 +722,11 @@ RCT_EXPORT_METHOD(pathForGroup:(nonnull NSString *)groupId
   }
 }
 
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(pathForGroupSync:(nonnull NSString *)groupId) {
+  NSURL *groupURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier: groupId];
+  return [groupURL path];
+}
+
 RCT_EXPORT_METHOD(getFSInfo:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
   unsigned long long totalSpace = 0;
