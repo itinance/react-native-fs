@@ -120,11 +120,11 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
             if (mParams.onUploadBegin != null) {
                 mParams.onUploadBegin.onUploadBegin();
             }
+            long requestLength = totalFileLength;
+            connection.setFixedLengthStreamingMode((int)requestLength);
             if (!binaryStreamOnly) {
-                long requestLength = totalFileLength;
                 requestLength += stringData.length() + files.length * crlf.length();
                 connection.setRequestProperty("Content-length", "" +(int) requestLength);
-                connection.setFixedLengthStreamingMode((int)requestLength);
             }
             connection.connect();
 
