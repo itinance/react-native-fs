@@ -67,6 +67,7 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
         (
           statusCode == HttpURLConnection.HTTP_MOVED_PERM ||
           statusCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+          statusCode == HttpURLConnection.HTTP_SEE_OTHER ||
           statusCode == 307 ||
           statusCode == 308
         )
