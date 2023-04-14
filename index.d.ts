@@ -1,3 +1,5 @@
+type Encoding = "base64" | "utf8" | "ascii";
+
 type MkdirOptions = {
 	NSURLIsExcludedFromBackupKey?: boolean // iOS only
 	NSFileProtectionKey?: string // IOS only
@@ -190,6 +192,16 @@ export function read(
 	position?: number,
 	encodingOrOptions?: any
 ): Promise<string>
+
+/**
+ * Android only
+ */
+export function readAssets(
+  filepath: string,
+  length?: number,
+  position?: number,
+  encoding?: Encoding
+): Promise<string>;
 
 /**
  * Android only

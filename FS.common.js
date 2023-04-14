@@ -30,6 +30,8 @@ var getJobId = () => {
 
 var normalizeFilePath = (path: string) => (path.startsWith('file://') ? path.slice(7) : path);
 
+type EncodingOptions = 'ascii'|'base64'|'utf8'
+
 type MkdirOptions = {
   NSURLIsExcludedFromBackupKey?: boolean; // iOS only
   NSFileProtectionKey?: string; // IOS only
@@ -332,6 +334,40 @@ var RNFS = {
     }
 
     return RNFSManager.read(normalizeFilePath(filepath), length, position).then((b64) => {
+      var contents;
+
+      if (options.encoding === 'utf8') {
+        contents = utf8.decode(base64.decode(b64));
+      } else if (options.encoding === 'ascii') {
+        contents = base64.decode(b64);
+      } else if (options.encoding === 'base64') {
+        contents = b64;
+      } else {
+        throw new Error('Invalid encoding type "' + String(options.encoding) + '"');
+      }
+
+      return contents;
+    });
+  },
+
+  // Android only
+  readAssets(filepath: string, length: number = 0, position: number = 0, encodingOrOptions?: EncodingOptions): Promise<string> {
+    if (!RNFSManager.readAssets) {
+      throw new Error('readAssets is not available on this platform');
+    }
+    var options = {
+      encoding: 'utf8'
+    };
+
+    if (encodingOrOptions) {
+      if (typeof encodingOrOptions === 'string') {
+        options.encoding = encodingOrOptions;
+      } else if (typeof encodingOrOptions === 'object') {
+        options = encodingOrOptions;
+      }
+    }
+
+    return RNFSManager.readAssets(normalizeFilePath(filepath), length, position).then((b64) => {
       var contents;
 
       if (options.encoding === 'utf8') {
