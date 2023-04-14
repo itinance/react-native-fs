@@ -26,8 +26,13 @@
 
   // set headers
   NSString *formBoundaryString = [self generateBoundaryString];
-  NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", formBoundaryString];
-  [req setValue:contentType forHTTPHeaderField:@"Content-Type"];
+  if (binaryStreamOnly){
+    NSString *contentType = @"application/x-www-form-urlencoded";
+    [req setValue:contentType forHTTPHeaderField:@"Content-Type"];
+  } else {
+    NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", formBoundaryString];
+    [req setValue:contentType forHTTPHeaderField:@"Content-Type"];
+  }
   for (NSString *key in _params.headers) {
     id val = [_params.headers objectForKey:key];
     if ([val respondsToSelector:@selector(stringValue)]) {
