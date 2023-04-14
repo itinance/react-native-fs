@@ -165,17 +165,14 @@
             if (self->_params.resumableCallback) {
                 self->_params.resumableCallback();
             }
-        } else {
-            NSError *error = [NSError errorWithDomain:@"RNFS"
-                                                 code:0 //used to pass an NSString @"Aborted" here, but it needs an NSInteger
-                                             userInfo:@{
-                                                        NSLocalizedDescriptionKey: @"Download has been aborted"
-                                                        }];
-
-            self->_params.errorCallback(error);
         }
+        NSError *error = [NSError errorWithDomain:@"RNFS"
+                                  code:0 //used to pass an NSString @"Aborted" here, but it needs an NSInteger
+                                  userInfo:@{
+                                  NSLocalizedDescriptionKey: @"Download has been aborted"
+        }];
+        self->_params.errorCallback(error);
     }];
-
   }
 }
 
