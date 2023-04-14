@@ -328,21 +328,9 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
       if (!algorithms.containsKey(algorithm)) throw new Exception("Invalid hash algorithm");
 
-      File file = new File(filepath);
-
-      if (file.isDirectory()) {
-        rejectFileIsDirectory(promise);
-        return;
-      }
-
-      if (!file.exists()) {
-        rejectFileNotFound(promise, filepath);
-        return;
-      }
-
       MessageDigest md = MessageDigest.getInstance(algorithms.get(algorithm));
 
-      FileInputStream inputStream = new FileInputStream(filepath);
+      InputStream inputStream = getInputStream(filepath);
       byte[] buffer = new byte[1024 * 10]; // 10 KB Buffer
 
       int read;
