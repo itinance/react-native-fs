@@ -766,7 +766,7 @@ The JavaScript will continue to work as usual when the download is done but now 
 
 **BE AWARE!** iOS will give about 30 sec. to run your code after `handleEventsForBackgroundURLSession` is called and until `completionHandler`
 is triggered so don't do anything that might take a long time (like unzipping), you will be able to do it after the user re-launces the app,
-otherwide iOS will terminate your app.
+otherwise iOS will terminate your app.
 
 
 ## Test / Demo app
