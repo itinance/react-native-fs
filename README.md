@@ -171,7 +171,7 @@ The `link` command also works for adding the native dependency on Windows:
 
 ### Adding Manually in Visual Studio
 
-Follow the instructions in the ['Linking Libraries'](https://github.com/Microsoft/react-native-windows/blob/master/docs/LinkingLibrariesWindows.md) documentation on the react-native-windows GitHub repo. For the first step of adding the project to the Visual Studio solution file, the path to the project should be `../node_modules/react-native-fs/windows/RNFS/RNFS.csproj`.
+Follow the instructions in the ['Linking Libraries'](https://github.com/Microsoft/react-native-windows/blob/master/current/docs/LinkingLibrariesWindows.md) documentation on the react-native-windows GitHub repo. For the first step of adding the project to the Visual Studio solution file, the path to the project should be `../node_modules/react-native-fs/windows/RNFS/RNFS.csproj`.
 
 ## Examples
 
