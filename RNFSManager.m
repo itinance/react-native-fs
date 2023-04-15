@@ -443,8 +443,10 @@ RCT_EXPORT_METHOD(copyFile:(NSString *)filepath
 {
   NSFileManager *manager = [NSFileManager defaultManager];
 
+  NSURL *filePathUrl = [NSURL URLWithString:[@"file:" stringByAppendingString:filepath]];
+  NSURL *destPathUrl = [NSURL URLWithString:[@"file:" stringByAppendingString:destPath]];
   NSError *error = nil;
-  BOOL success = [manager copyItemAtPath:filepath toPath:destPath error:&error];
+  BOOL success = [manager copyItemAtPath:filePathUrl toPath:destPathUrl error:&error];
 
   if (!success) {
     return [self reject:reject withError:error];
