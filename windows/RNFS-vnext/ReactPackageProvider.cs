@@ -7,7 +7,7 @@ namespace RNFSvnext
     {
         public void CreatePackage(IReactPackageBuilder packageBuilder)
         {
-            packageBuilder.AddAttributedModules();
+            packageBuilder.AddReflectionReactPackageProvider<ReactPackageProvider>();
         }
     }
 }

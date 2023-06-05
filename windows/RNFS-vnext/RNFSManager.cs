@@ -31,19 +31,86 @@ namespace RNFSvnext
         private readonly HttpClient _httpClient = new HttpClient();
 
         [ReactConstant]
-        public string RNFSMainBundlePath = Package.Current.InstalledLocation.Path;
+        public string RNFSMainBundlePath
+        {
+            get
+            {
+                try
+                {
+                    var mainBundlePath = Package.Current.InstalledLocation.Path;
+                    return mainBundlePath;
+                }
+                catch (Exception)
+                {
+                    return "";
+                }
+
+            }
+        }
 
         [ReactConstant]
-        public string RNFSCachesDirectoryPath = ApplicationData.Current.LocalCacheFolder.Path;
+        public string RNFSCachesDirectoryPath
+        {
+            get
+            {
+                try
+                {
+                    return ApplicationData.Current.LocalCacheFolder.Path;
+                }
+                catch (Exception)
+                {
+                    return "";
+                }
+            }
+        }
 
         [ReactConstant]
-        public string RNFSRoamingDirectoryPath = ApplicationData.Current.RoamingFolder.Path;
+        public string RNFSRoamingDirectoryPath
+        {
+            get
+            {
+                try
+                {
+                    return ApplicationData.Current.RoamingFolder.Path;
+                }
+                catch (Exception)
+                {
+                    return "";
+                }
+            }
+        }
 
         [ReactConstant]
-        public string RNFSDocumentDirectoryPath = ApplicationData.Current.LocalFolder.Path;
+        public string RNFSDocumentDirectoryPath
+        {
+            get
+            {
+                try
+                {
+                    return ApplicationData.Current.LocalFolder.Path;
+                }
+                catch (Exception)
+                {
+                    return "";
+                }
+            }
+        }
 
         [ReactConstant]
-        public string RNFSTemporaryDirectoryPath = ApplicationData.Current.TemporaryFolder.Path;
+        public string RNFSTemporaryDirectoryPath
+        {
+            get
+            {
+                try
+                {
+                    return ApplicationData.Current.TemporaryFolder.Path;
+                }
+                catch (Exception)
+                {
+                    return "";
+                }
+            }
+        }
 
         [ReactConstant]
         public int RNFSFileTypeRegular = 0;
