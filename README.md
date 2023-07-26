@@ -706,7 +706,7 @@ type UploadProgressCallbackResult = {
 
 Percentage can be computed easily by dividing `totalBytesSent` by `totalBytesExpectedToSend`.
 
-### (iOS only) `stopUpload(jobId: number): Promise<void>`
+### (iOS only) `stopUpload(jobId: number): void`
 
 Abort the current upload job with this ID.
 
