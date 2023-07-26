@@ -932,7 +932,8 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
     try
     {
         HttpResponseMessage response = co_await m_httpClient.SendRequestAsync(request, HttpCompletionOption::ResponseHeadersRead);
-        IReference<uint64_t> contentLength{ response.Content().Headers().ContentLength() };
+        auto contentLength = response.Content().Headers().ContentLength();
+
         {
             RN::JSValueObject headersMap;
             for (auto const& header : response.Headers())
@@ -944,7 +945,7 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
                 RN::JSValueObject{
                     { "jobId", jobId },
                     { "statusCode", (int)response.StatusCode() },
-                    { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
+                    { "contentLength", contentLength != nullptr ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
                     { "headers", std::move(headersMap) },
                 });
         }
@@ -959,8 +960,8 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
         IOutputStream outputStream{ stream.GetOutputStreamAt(0) };
 
         auto contentStream = co_await response.Content().ReadAsInputStreamAsync();
-        auto contentLengthForProgress = contentLength.Type() == PropertyType::UInt64 ? contentLength.Value() : -1;
-        
+        auto contentLengthForProgress = contentLength != nullptr ? contentLength.Value() : -1;
+
         Buffer buffer{ 8 * 1024 };
         uint32_t read = 0;
         int64_t initialProgressTime{ winrt::clock::now().time_since_epoch().count() / 10000 };
@@ -988,7 +989,7 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
                     m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"DownloadProgress",
                         RN::JSValueObject{
                             { "jobId", jobId },
-                            { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
+                            { "contentLength", contentLength != nullptr ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
                             { "bytesWritten", totalRead },
                         });
                     initialProgressTime = winrt::clock::now().time_since_epoch().count() / 10000;
@@ -999,7 +1000,7 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
                 m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"DownloadProgress",
                     RN::JSValueObject{
                         { "jobId", jobId },
-                        { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
+                        { "contentLength", contentLength != nullptr ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
                         { "bytesWritten", totalRead },
                     });
             }
@@ -1010,7 +1011,7 @@ IAsyncAction RNFSManager::ProcessDownloadRequestAsync(RN::ReactPromise<RN::JSVal
                     m_reactContext.CallJSFunction(L"RCTDeviceEventEmitter", L"emit", L"DownloadProgress",
                         RN::JSValueObject{
                             { "jobId", jobId },
-                            { "contentLength", contentLength.Type() == PropertyType::UInt64 ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
+                            { "contentLength", contentLength != nullptr ? RN::JSValue(contentLength.Value()) : RN::JSValue{nullptr} },
                             { "bytesWritten", totalRead },
                         });
                 }
