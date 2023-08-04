@@ -1,5 +1,17 @@
 # react-native-fs
 
+[react-native-fs]: https://github.com/itinance/react-native-fs
+
+_This is an up-to-date fork of [react-native-fs], upgraded to work with the latest RN, using new arch (with backward compatibility to the old arch). The documentation still needs revision, but in the nutshell its current version should work the same as the old [react-native-fs], you just install it from NPM as `npm install @dr.pogodin/react-native-fs` instead of `npm install react-native-fs`, and then import it like_
+```ts
+// Import this fork as (you can also import separate functions now):
+import * as RNFS from '@dr.pogodin/react-native-fs';
+
+// This was the old way:
+import RNFS from '@dr.pogodin/react-native-fs';
+```
+___
+
 Native filesystem access for react-native
 
 ## IMPORTANT

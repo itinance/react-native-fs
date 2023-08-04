@@ -1,0 +1,7 @@
+.*
+android/build
+build
+dr.pogodin-react-native-fs-*.tgz
+/example/
+ios/build
+node_modules

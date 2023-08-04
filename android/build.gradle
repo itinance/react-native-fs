@@ -1,34 +1,113 @@
-def safeExtGet(prop, fallback) {
-    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
-}
-
 buildscript {
-    repositories {
-        mavenCentral()
-    }
+  repositories {
+    google()
+    mavenCentral()
+  }
 
-    dependencies {
-        classpath 'com.android.tools.build:gradle:1.5.0'
-    }
+  dependencies {
+    classpath "com.android.tools.build:gradle:7.2.1"
+  }
 }
 
-apply plugin: 'com.android.library'
+def isNewArchitectureEnabled() {
+  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
+}
+
+apply plugin: "com.android.library"
+
+
+def appProject = rootProject.allprojects.find { it.plugins.hasPlugin('com.android.application') }
+
+if (isNewArchitectureEnabled()) {
+  apply plugin: "com.facebook.react"
+}
+
+def getExtOrDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["ReactNativeFs_" + name]
+}
+
+def getExtOrIntegerDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["ReactNativeFs_" + name]).toInteger()
+}
+
+def supportsNamespace() {
+  def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
+  def major = parsed[0].toInteger()
+  def minor = parsed[1].toInteger()
+
+  // Namespace support was added in 7.3.0
+  if (major == 7 && minor >= 3) {
+    return true
+  }
+
+  return major >= 8
+}
 
 android {
-    compileSdkVersion safeExtGet('compileSdkVersion', 26)
-    buildToolsVersion safeExtGet('buildToolsVersion', '26.0.3')
+  if (supportsNamespace()) {
+    namespace "com.drpogodin.reactnativefs"
 
-    defaultConfig {
-        minSdkVersion safeExtGet('minSdkVersion', 19)
-        targetSdkVersion safeExtGet('targetSdkVersion', 26)
-        versionCode 1
-        versionName "1.0"
+    sourceSets {
+      main {
+        manifest.srcFile "src/main/AndroidManifestNew.xml"
+      }
     }
-    lintOptions {
-        abortOnError false
+  }
+
+  compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
+
+  defaultConfig {
+    minSdkVersion getExtOrIntegerDefault("minSdkVersion")
+    targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+  }
+  buildTypes {
+    release {
+      minifyEnabled false
     }
+  }
+
+  lintOptions {
+    disable "GradleCompatible"
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+  sourceSets {
+    main {
+      if (isNewArchitectureEnabled()) {
+        java.srcDirs += [
+          "src/newarch",
+          // This is needed to build Kotlin project with NewArch enabled
+          "${project.buildDir}/generated/source/codegen/java"
+        ]
+      } else {
+        java.srcDirs += ["src/oldarch"]
+      }
+    }
+  }
 }
 
+repositories {
+  mavenCentral()
+  google()
+}
+
+
 dependencies {
-    implementation 'com.facebook.react:react-native:+'
+  // For < 0.71, this will be from the local maven repo
+  // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
+  //noinspection GradleDynamicVersion
+  implementation "com.facebook.react:react-native:+"
+}
+
+if (isNewArchitectureEnabled()) {
+  react {
+    jsRootDir = file("../src/")
+    libraryName = "ReactNativeFs"
+    codegenJavaPackageName = "com.drpogodin.reactnativefs"
+  }
 }

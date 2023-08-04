@@ -1,2 +1,0 @@
-Files in this folder are copied from the Microsoft.ReactNative.Cxx.UnitTests project.
-In future we will removed them in favor of better approach when it will be provided by react-native-windows project.
