@@ -734,10 +734,11 @@ public class ReactNativeFsModule extends ReactNativeFsSpec {
   }
 
   @ReactMethod
-  public void touch(String filepath, double mtime, double ctime, Promise promise) {
+  public void touch(String filepath, ReadableMap options, Promise promise) {
     try {
       File file = new File(filepath);
 
+      long mtime = (long)options.getDouble("mtime");
       // TODO: setLastModified() returns "true" on success, "false" otherwise,
       // thus instead of resolving with its result, we should throw if result is
       // false.

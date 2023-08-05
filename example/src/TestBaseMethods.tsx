@@ -116,6 +116,7 @@ const tests: { [name: string]: StatusOrEvaluator } = {
     } catch {
       return 'fail';
     }
+    return 'pass';
 
     /*  TODO: This would be the ideal test, but because isDirectory and isFile
         are functions, making this isEqual check falsy. We'll hovewer probably

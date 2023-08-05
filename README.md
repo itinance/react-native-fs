@@ -1,191 +1,90 @@
 # react-native-fs
 
+[React Native]: https://reactnative.dev/
 [react-native-fs]: https://github.com/itinance/react-native-fs
+[New Architecture]: https://reactnative.dev/docs/the-new-architecture/landing-page
+[Old Architecture]: https://reactnative.dev/docs/native-modules-intro
 
-_This is an up-to-date fork of [react-native-fs], upgraded to work with the latest RN, using new arch (with backward compatibility to the old arch). The documentation still needs revision, but in the nutshell its current version should work the same as the old [react-native-fs], you just install it from NPM as `npm install @dr.pogodin/react-native-fs` instead of `npm install react-native-fs`, and then import it like_
-```ts
-// Import this fork as (you can also import separate functions now):
-import * as RNFS from '@dr.pogodin/react-native-fs';
+[![Latest NPM Release](https://img.shields.io/npm/v/@dr.pogodin/react-native-fs.svg)](https://www.npmjs.com/package/@dr.pogodin/react-native-fs)
+[![NPM Downloads](https://img.shields.io/npm/dm/@dr.pogodin/react-native-fs.svg)](https://www.npmjs.com/package/@dr.pogodin/react-native-fs)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/birdofpreyru/react-native-fs/tree/master.svg?style=shield)](https://app.circleci.com/pipelines/github/birdofpreyru/react-native-fs)
+[![GitHub Repo stars](https://img.shields.io/github/stars/birdofpreyru/react-native-fs?style=social)](https://github.com/birdofpreyru/react-native-fs)
+[![Dr. Pogodin Studio](https://raw.githubusercontent.com/birdofpreyru/react-native-fs/master/.README/logo-dr-pogodin-studio.svg)](https://dr.pogodin.studio/docs/react-native-fs)
 
-// This was the old way:
-import RNFS from '@dr.pogodin/react-native-fs';
+File system access for [React Native] applications for Android, iOS,
+Mac (Catalyst), and Windows platforms. Supports both [new][New Architecture]
+and [old][Old Architecture] [RN][React Native] architectures.
+
+[![Sponsor](https://raw.githubusercontent.com/birdofpreyru/react-native-fs/master/.README/sponsor.svg)](https://github.com/sponsors/birdofpreyru)
+
+---
+
+_This is a work-in-progress fork of [react-native-fs], aiming to upgrade the library to the standards of the latest React Native v0.72, with support of the [New Architecture], backward compatibility to the [Old Architecture], clean-up and fixes of the library API and internal implementation, and further library development following the best industry practices._
+
+_To migrate from the legacy [react-native-fs] install this fork_
+```bash
+npm install --save @dr.pogodin/react-native-fs
 ```
-___
+_then upgrade its imports in the code:_
+```ts
+// The legacy RNFS was imported like this:
+import RNFS from 'react-native-fs';
 
-Native filesystem access for react-native
+// Instead, this fork should be imported like this:
+import * as RNFS from '@dr.pogodin/react-native-fs';
+// or (preferrably) you should import separate constants / functions you need
+// like:
+import {
+  TemporaryDirectoryPath,
+  writeFile,
+} from '@dr.pogodin/react-native-fs';
+```
+_When installing the library into a new project no additional steps are required._
 
-## IMPORTANT
 
-For RN < 0.57 and/or Gradle < 3 you MUST install react-native-fs at version @2.11.17!
+**IMPORTANT:** _Below is the original documentation for the library. It still has to be completely revised and updated. For now, for each constant / function that have been verified and tested to work in this fork there will be a **VERIFIED** note next to its description, certifying the state of its support in this fork._
 
-For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version >= @2.13.2!
-
-For RN >= 0.61 please install react-native-fs at version >= @2.16.0!
+---
 
 ## Table of Contents
-1. [Changelog](#Changelog)
-1. Usage
-    1. [iOS](#usage-ios)
-    1. [Android](#usage-android)
-    1. [Windows](#usage-windows)
-1. [Examples](#Examples)
-1. [API](#API)
-1. [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios)
-1. [Test / Demo App](#test--demo-app)
+- [Getting Started]
+- [API Reference]
+  - [Constants]
+    - [CachesDirectoryPath] &mdash; The absolute path to the caches directory.
+    - [DocumentDirectoryPath] &mdash; The absolute path to the document directory.
+    - [DownloadDirectoryPath] &mdash; (Android & Windows) The absolute path to
+      the download directory (on android and Windows only).
+    - [ExternalCachesDirectoryPath] &mdash; (Android) The absolute path to
+      the external caches directory.
+    - [ExternalDirectoryPath] &mdash; (Android) The absolute path to
+      the external files, shared directory.
+    - [ExternalStorageDirectoryPath] &mdash; (Android) The absolute path to
+      the external storage, shared directory.
+    - [LibraryDirectoryPath] &mdash; (iOS) The absolute path to
+      the NSLibraryDirectory.
+    - [MainBundlePath] &mdash; (non-Android) The absolute path to
+      the main bundle directory.
+    - [PicturesDirectoryPath] &mdash; The absolute path to the pictures directory.
+    - [RoamingDirectoryPath] &mdash; (Windows) The absolute path to the roaming
+      directory.
+    - [TemporaryDirectoryPath] &mdash; The absolute path to the temporary
+      directory.
+  - [copyFileAssets()] &mdash; (Android) Copies an asset file to
+    the given destination.
+the specified destination path
+- [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios)
+- [Test / Demo App](#test--demo-app)
 
-## Changelog
+## Getting Started
+[Getting Started]: #getting-started
 
-View the changelog [here](https://github.com/itinance/react-native-fs/blob/master/CHANGELOG.md).
-
-## Usage (iOS/macOS)
-
-First you need to install react-native-fs:
-
+Just install & use:
+```sh
+$ npm install --save @dr.pogodin/react-native-fs
 ```
-npm install react-native-fs --save
-```
-
-**Note:** If your react-native version is < 0.40 install with this tag instead:
-
-```
-npm install react-native-fs@2.0.1-rc.2 --save
-```
-
-As @a-koka pointed out, you should then update your package.json to
-`"react-native-fs": "2.0.1-rc.2"` (without the tilde)
-
-### Adding automatically with react-native link
-
-At the command line, in your project folder, type:
-
-`react-native link react-native-fs`
-
-Done! No need to worry about manually adding the library to your project.
-
-###  Adding with CocoaPods
-
- Add the RNFS pod to your list of application pods in your Podfile, using the path from the Podfile to the installed module:~~
-
-```
-pod 'RNFS', :path => '../node_modules/react-native-fs'
-```
-
-Install pods as usual:
-```
-pod install
-```
-
-### Adding Manually in XCode
-
-In XCode, in the project navigator, right click Libraries ➜ Add Files to [your project's name] Go to node_modules ➜ react-native-fs and add the .xcodeproj file
-
-In XCode, in the project navigator, select your project. Add the `lib*.a` from the RNFS project to your project's Build Phases ➜ Link Binary With Libraries. Click the .xcodeproj file you added before in the project navigator and go the Build Settings tab. Make sure 'All' is toggled on (instead of 'Basic'). Look for Header Search Paths and make sure it contains both `$(SRCROOT)/../react-native/React` and `$(SRCROOT)/../../React` - mark both as recursive.
-
-Run your project (Cmd+R)
-
-## Usage (Android)
-
-Android support is currently limited to only the `DocumentDirectory`. This maps to the app's `files` directory.
-
-Make alterations to the following files:
-
-* `android/settings.gradle`
-
-```gradle
-...
-include ':react-native-fs'
-project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/react-native-fs/android')
-```
-
-* `android/app/build.gradle`
-
-```gradle
-...
-dependencies {
-    ...
-    implementation project(':react-native-fs')
-}
-```
-
-* register module (in MainActivity.java)
-
-  * For react-native below 0.19.0 (use `cat ./node_modules/react-native/package.json | grep version`)
-
-```java
-import com.rnfs.RNFSPackage;  // <--- import
-
-public class MainActivity extends Activity implements DefaultHardwareBackBtnHandler {
-
-  ......
-
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    mReactRootView = new ReactRootView(this);
-
-    mReactInstanceManager = ReactInstanceManager.builder()
-      .setApplication(getApplication())
-      .setBundleAssetName("index.android.bundle")
-      .setJSMainModuleName("index.android")
-      .addPackage(new MainReactPackage())
-      .addPackage(new RNFSPackage())      // <------- add package
-      .setUseDeveloperSupport(BuildConfig.DEBUG)
-      .setInitialLifecycleState(LifecycleState.RESUMED)
-      .build();
-
-    mReactRootView.startReactApplication(mReactInstanceManager, "ExampleRN", null);
-
-    setContentView(mReactRootView);
-  }
-
-  ......
-
-}
-```
-
-  * For react-native 0.19.0 and higher
-```java
-import com.rnfs.RNFSPackage; // <------- add package
-
-public class MainActivity extends ReactActivity {
-   // ...
-    @Override
-    protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(
-        new MainReactPackage(), // <---- add comma
-        new RNFSPackage() // <---------- add package
-      );
-    }
-```
-
-  * For react-native 0.29.0 and higher ( in MainApplication.java )
-```java
-import com.rnfs.RNFSPackage; // <------- add package
-
-public class MainApplication extends Application implements ReactApplication {
-   // ...
-    @Override
-    protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(
-        new MainReactPackage(), // <---- add comma
-        new RNFSPackage() // <---------- add package
-      );
-    }
-```
-
-## Usage (Windows)
-
-### Adding automatically with react-native link
-
-The `link` command also works for adding the native dependency on Windows:
-
-`react-native link react-native-fs`
-
-### Adding Manually in Visual Studio
-
-Follow the instructions in the ['Linking Libraries'](https://github.com/Microsoft/react-native-windows/blob/master/docs/LinkingLibrariesWindows.md) documentation on the react-native-windows GitHub repo. For the first step of adding the project to the Visual Studio solution file, the path to the project should be `../node_modules/react-native-fs/windows/RNFS/RNFS.csproj`.
 
 ## Examples
+_These are legacy examples, and should be revised, there is an Example app in the `/example` folder of the codebase, you probably should rather check it than these examples._
 
 ### Basic
 
@@ -317,24 +216,111 @@ RNFS.uploadFiles({
 
 ```
 
-## API
+## API Reference
+[API Reference]: #api-reference
 
 ### Constants
+[Constants]: #constants
 
-The following constants are available on the `RNFS` export:
+#### CachesDirectoryPath
+[CachesDirectoryPath]: #cachesdirectorypath
+```ts
+const CachesDirectoryPath: string;
+```
+**VERIFIED:** Android.
 
-- `MainBundlePath` (`String`) The absolute path to the main bundle directory (not available on Android)
-- `CachesDirectoryPath` (`String`) The absolute path to the caches directory
-- `ExternalCachesDirectoryPath` (`String`) The absolute path to the external caches directory (android only)
-- `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
-- `DownloadDirectoryPath` (`String`) The absolute path to the download directory (on android and Windows only)
-- `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (falls back to Caching-Directory on Android)
-- `LibraryDirectoryPath` (`String`) The absolute path to the NSLibraryDirectory (iOS only)
-- `ExternalDirectoryPath` (`String`) The absolute path to the external files, shared directory (android only)
-- `ExternalStorageDirectoryPath` (`String`) The absolute path to the external storage, shared directory (android only)
-- `PicturesDirectoryPath` (`String`) The absolute path to the pictures directory (Windows only)
-- `RoamingDirectoryPath` (`String`) The absolute path to the roaming directory (Windows only)
+The absolute path to the caches directory.
 
+#### DocumentDirectoryPath
+[DocumentDirectoryPath]: #documentdirectorypath
+```ts
+const DocumentDirectoryPath: string;
+```
+**VERIFIED:** Android.
+
+The absolute path to the document directory.
+
+#### DownloadDirectoryPath
+[DownloadDirectoryPath]: #downloaddirectorypath
+```ts
+const DownloadDirectoryPath: string;
+```
+**VERIFIED:** Android.
+
+The absolute path to the download directory (on android and Windows only).
+
+#### ExternalCachesDirectoryPath
+[ExternalCachesDirectoryPath]: #externalcachesdirectorypath
+```ts
+const ExternalCachesDirectoryPath: string;
+```
+**VERIFIED:** Android.
+
+The absolute path to the external caches directory (android only).
+
+#### ExternalDirectoryPath
+[ExternalDirectoryPath]: #externaldirectorypath
+```ts
+const ExternalDirectoryPath: string;
+```
+**VERIFIED:** Android.
+
+The absolute path to the external files, shared directory (android only).
+
+#### ExternalStorageDirectoryPath
+[ExternalStorageDirectoryPath]: #externalstoragedirectorypath
+```ts
+const ExternalStorageDirectoryPath: string;
+```
+**VERIFIED:** Android.
+
+The absolute path to the external storage, shared directory (android only).
+
+#### LibraryDirectoryPath
+[LibraryDirectoryPath]: #librarydirectorypath
+```ts
+const LibraryDirectoryPath: string;
+```
+**VERIFIED:** **NOT SUPPORTED:** Android.
+
+The absolute path to the NSLibraryDirectory (iOS only).
+
+#### MainBundlePath
+[MainBundlePath]: #mainbundlepath
+```ts
+const MainBundlePath: string;
+```
+**VERIFIED:** **NOT SUPPORTED:** Android.
+
+The absolute path to the main bundle directory (not available on Android).
+
+#### PicturesDirectoryPath
+[PicturesDirectoryPath]: #picturesdirectorypath
+```ts
+const PicturesDirectoryPath: string;
+```
+**VERIFIED:** Android.
+
+The absolute path to the pictures directory.
+
+#### RoamingDirectoryPath
+[RoamingDirectoryPath]: #roamingdirectorypath
+```ts
+const RoamingDirectoryPath: string;
+```
+**VERIFIED:** **NOT SUPPORTED:** Android
+
+The absolute path to the roaming directory (Windows only).
+
+#### TemporaryDirectoryPath
+[TemporaryDirectoryPath]: #temporarydirectorypath
+```ts
+const TemporaryDirectoryPath: string;
+```
+**VERIFIED**: Android
+
+The absolute path to the temporary directory (falls back to Caching-Directory on
+Android).
 
 IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request permissions (on Android) to read and write on the external storage, here an example: [React Native Offical Doc](https://facebook.github.io/react-native/docs/permissionsandroid)
 
@@ -457,11 +443,22 @@ Copies the file located at `filepath` to `destPath`.
 
 Note: On Android and Windows copyFile will overwrite `destPath` if it already exists. On iOS an error will be thrown if the file already exists.
 
-### `copyFileAssets(filepath: string, destPath: string): Promise<void>`
+### copyFileAssets()
+[copyFileAssets()]: #copyfileassets
+```ts
+function copyFileAssets(from: string, to: string): Promise<void>
+```
+**VERIFIED:** Android
 
-Copies the file at `filepath` in the Android app's assets folder and copies it to the given `destPath ` path.
+Copies a file from the given path in the Android app's assets folder to
+the specified destination path, overwriting the file at destination, if
+it exists.
 
-Note: Android only. Will overwrite destPath if it already exists.
+- `from` &mdash; **string** &mdash; Source asset path (relative to the asset
+  folder's root).
+- `to` &mdash; **string** &mdash; Destination path.
+
+Resolves once completed.
 
 ### `copyFileRes(filename: string, destPath: string): Promise<void>`
 
@@ -781,10 +778,3 @@ The JavaScript will continue to work as usual when the download is done but now 
 **BE AWARE!** iOS will give about 30 sec. to run your code after `handleEventsForBackgroundURLSession` is called and until `completionHandler`
 is triggered so don't do anything that might take a long time (like unzipping), you will be able to do it after the user re-launces the app,
 otherwide iOS will terminate your app.
-
-
-## Test / Demo app
-
-Test app to demostrate the use of the module. Useful for testing and developing the module:
-
-https://github.com/cjdell/react-native-fs-test
