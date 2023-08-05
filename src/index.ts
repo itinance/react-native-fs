@@ -196,11 +196,8 @@ export const getFSInfo: () => Promise<FSInfoResult> = RNFS.getFSInfo;
 export const isResumable: (jobId: number) => Promise<boolean> =
   RNFS.isResumable;
 
-export function mkdir(
-  filepath: string,
-  options: MkdirOptions = {},
-): Promise<void> {
-  return RNFS.mkdir(normalizeFilePath(filepath), options);
+export function mkdir(path: string, options: MkdirOptions = {}): Promise<void> {
+  return RNFS.mkdir(normalizeFilePath(path), options);
 }
 
 export function moveFile(
@@ -511,6 +508,8 @@ const {
 } = RNFS.getConstants();
 
 export {
+  type MkdirOptions,
+  type ReadDirItem,
   MainBundlePath,
   CachesDirectoryPath,
   ExternalCachesDirectoryPath,

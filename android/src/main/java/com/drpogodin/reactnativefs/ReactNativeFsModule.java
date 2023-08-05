@@ -548,7 +548,7 @@ public class ReactNativeFsModule extends ReactNativeFsSpec {
         fileMap.putString("name", childFile);
         String path = directory.isEmpty() ? childFile : String.format("%s/%s", directory, childFile); // don't allow / at the start when directory is ""
         fileMap.putString("path", path);
-        int length = 0;
+        int length = -1;
         boolean isDirectory = true;
         try {
           AssetFileDescriptor assetFileDescriptor = assetManager.openFd(path);

@@ -83,7 +83,12 @@ const tests: { [name: string]: StatusOrEvaluator } = {
   },
   'readDirAssets()': async () => {
     try {
-      const assets = await readDirAssets('test');
+      let assets = await readDirAssets('test');
+
+      for (let i = 0; i < assets.length; ++i) {
+        const a = assets[i];
+        if (a?.isDirectory() || !a?.isFile()) return 'fail';
+      }
 
       const assets2 = assets.map((asset) => ({
         ctime: asset.ctime,
@@ -100,23 +105,28 @@ const tests: { [name: string]: StatusOrEvaluator } = {
             mtime: null,
             name: 'good-latin1.txt',
             path: 'test/good-latin1.txt',
-            size: 0,
+            size: -1,
           },
           {
             ctime: null,
             mtime: null,
             name: 'good-utf8.txt',
             path: 'test/good-utf8.txt',
-            size: 0,
+            size: -1,
           },
         ])
       ) {
         return 'fail';
       }
+
+      assets = await readDirAssets('');
+      const asset = assets.find((a) => a.name === 'test');
+      if (!asset?.isDirectory() || asset?.isFile()) return 'fail';
+
+      return 'pass';
     } catch {
       return 'fail';
     }
-    return 'pass';
 
     /*  TODO: This would be the ideal test, but because isDirectory and isFile
         are functions, making this isEqual check falsy. We'll hovewer probably

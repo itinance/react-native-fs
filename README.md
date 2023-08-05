@@ -71,7 +71,14 @@ _When installing the library into a new project no additional steps are required
       directory.
   - [copyFileAssets()] &mdash; (Android) Copies an asset file to
     the given destination.
-the specified destination path
+  - [exists()] &mdash; Checks if an item exists at the given path.
+  - [existsAssets()] &mdash; Checks if an item exists at the given path inside
+    the Android assets folder.
+  - [mkdir()] &mdash; Creates folder(s) at the given path.
+    - [MkdirOptions]
+  - [readDirAssets()] &mdash; (Android only) Reads the content of a folder at
+    the given path inside the Android assets folder.
+    - [ReadDirItem]
 - [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios)
 - [Test / Demo App](#test--demo-app)
 
@@ -324,6 +331,111 @@ Android).
 
 IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request permissions (on Android) to read and write on the external storage, here an example: [React Native Offical Doc](https://facebook.github.io/react-native/docs/permissionsandroid)
 
+### copyFileAssets()
+[copyFileAssets()]: #copyfileassets
+```ts
+function copyFileAssets(from: string, to: string): Promise<void>
+```
+**VERIFIED:** Android
+
+Copies a file from the given path in the Android app's assets folder to
+the specified destination path, overwriting the file at destination, if
+it exists.
+
+- `from` &mdash; **string** &mdash; Source asset path (relative to the asset
+  folder's root).
+- `to` &mdash; **string** &mdash; Destination path.
+- Resolves once completed.
+
+### exists()
+[exists()]: #exists
+```ts
+function exists(path: string): Promise<boolean>;
+```
+**VERIFIED:** Android
+
+Checks if an item exists at the given `path`.
+
+- `path` &mdash; **string** &mdash; Path.
+- Resolves to _true_ if the item exists; to _false_ otherwise.
+
+### existsAssets()
+[existsAssets()]: #existsassets
+```ts
+function existsAssets(path: string): Promise<boolean>;
+```
+**VERIFIED:** Android
+
+Android-only. Checks if an item exists at the given path in the Android assets
+folder.
+
+- `path` &mdash; **string** &mdash; Path, relative to the root of the Android
+  assets folder.
+- Resolves _true_ if the item exists; _false_ otherwise.
+
+### mkdir()
+[mkdir()]: #mkdir
+```ts
+function mkdir(path: string, options?: MkdirOptions): Promise<void>;
+```
+**VERIFIED:** Android.
+
+Creates folder(s) at `path`, and does not throw if already exists (similar to
+`mkdir -p` in Linux).
+
+- `path` &mdash; **string** &mdash; Path to create.
+- `options` &mdash; **[MkdirOptions]** | **undefined** &mdash; Optional.
+  Additional parameters.
+- Resolves once completed.
+
+#### MkdirOptions
+[MkdirOptions]: #mkdiroptions
+```ts
+type MkdirOptions = {
+  NSURLIsExcludedFromBackupKey?: boolean; // iOS only
+};
+```
+Type of extra options argument for [mkdir()].
+- `NSURLIsExcludedFromBackupKey` &mdash; **boolean** | **undefined** &mdash;
+  (iOS only) The  property can be provided to set this attribute on iOS platforms.
+  Apple will *reject* apps for storing offline cache data that does not have this
+  attribute.
+
+### readDirAssets()
+[readDirAssets()]: #readdirassets
+```ts
+function readDirAssets(path: string): Promise<ReadDirItem[]>;
+```
+**VERIFIED:** Android.
+
+(Android only) Reads the content of a folder at the given `path` inside
+the Android assets folder.
+
+- `path` &mdash; **string** &mdash; Folder path, relative to the root of
+  the `assets` folder.
+- Resolves to an array of [ReadDirItem] objects.
+
+#### ReadDirItem
+[ReadDirItem]: #readdiritem
+```ts
+type ReadDirItem = {
+  name: string;
+  path: string;
+  size: string;
+  isFile: () => boolean;
+  isDirectory: () => boolean;
+};
+```
+Type of result elements returned by the [readDirAssets()] function.
+
+- `name` &mdash; **string** &mdash; Item name.
+- `path` &mdash; **string** &mdash; Item path.
+- `size` &mdash; **string** &mdash; Size in bytes. Note that the size of files
+  compressed during the creation of the APK (such as JSON files) cannot be
+  determined. `size` will be set to -1 in this case.
+- `isFile` &mdash; **() => boolean** &mdash; Is this item a regular file?
+- `isDirectory` &mdash; **() => boolean** &mdash; Is this item a directory?
+
 ### `readDir(dirpath: string): Promise<ReadDirItem[]>`
 
 Reads the contents of `path`. This must be an absolute path. Use the above path constants to form a usable file path.
@@ -341,27 +453,6 @@ type ReadDirItem = {
   isDirectory: () => boolean;   // Is the item a directory?
 };
 ```
-
-### `readDirAssets(dirpath: string): Promise<ReadDirItem[]>`
-
-Reads the contents of `dirpath ` in the Android app's assets folder.
-`dirpath ` is the relative path to the file from the root of the `assets` folder.
-
-The returned promise resolves with an array of objects with the following properties:
-
-```js
-type ReadDirItem = {
-  name: string;     // The name of the item
-  path: string;     // The absolute path to the item
-  size: string;     // Size in bytes.
-  						// Note that the size of files compressed during the creation of the APK (such as JSON files) cannot be determined.
-  						// `size` will be set to -1 in this case.
-  isFile: () => boolean;        // Is the file just a file?
-  isDirectory: () => boolean;   // Is the file a directory?
-};
-```
-
-Note: Android only.
 
 ### `readdir(dirpath: string): Promise<string[]>`
 
@@ -443,23 +534,6 @@ Copies the file located at `filepath` to `destPath`.
 
 Note: On Android and Windows copyFile will overwrite `destPath` if it already exists. On iOS an error will be thrown if the file already exists.
 
-### copyFileAssets()
-[copyFileAssets()]: #copyfileassets
-```ts
-function copyFileAssets(from: string, to: string): Promise<void>
-```
-**VERIFIED:** Android
-
-Copies a file from the given path in the Android app's assets folder to
-the specified destination path, overwriting the file at destination, if
-it exists.
-
-- `from` &mdash; **string** &mdash; Source asset path (relative to the asset
-  folder's root).
-- `to` &mdash; **string** &mdash; Destination path.
-
-Resolves once completed.
-
 ### `copyFileRes(filename: string, destPath: string): Promise<void>`
 
 Copies the file named `filename` in the Android app's res folder and copies it to the given `destPath ` path. `res/drawable` is used as the source parent folder for image files, `res/raw` for everything else.
@@ -533,16 +607,6 @@ Unlinks the item at `filepath`. If the item does not exist, an error will be thr
 
 Also recursively deletes directories (works like Linux `rm -rf`).
 
-### `exists(filepath: string): Promise<boolean>`
-
-Check if the item exists at `filepath`. If the item does not exist, return false.
-
-### `existsAssets(filepath: string): Promise<boolean>`
-
-Check in the Android assets folder if the item exists. `filepath` is the relative path from the root of the assets folder. If the item does not exist, return false.
-
-Note: Android only.
-
 ### `existsRes(filename: string): Promise<boolean>`
 
 Check in the Android res folder if the item named `filename` exists. `res/drawable` is used as the parent folder for image files, `res/raw` for everything else. If the item does not exist, return false.
@@ -556,18 +620,6 @@ Reads the file at `path` and returns its checksum as determined by `algorithm`, 
 ### `touch(filepath: string, mtime?: Date, ctime?: Date): Promise<string>`
 
 Sets the modification timestamp `mtime` and creation timestamp `ctime` of the file at `filepath`. Setting `ctime` is supported on iOS and Windows, android always sets both timestamps to `mtime`.
-
-### `mkdir(filepath: string, options?: MkdirOptions): Promise<void>`
-
-```
-type MkdirOptions = {
-  NSURLIsExcludedFromBackupKey?: boolean; // iOS only
-};
-```
-
-Create a directory at `filepath`. Automatically creates parents and does not throw if already exists (works like Linux `mkdir -p`).
-
-(IOS only): The `NSURLIsExcludedFromBackupKey` property can be provided to set this attribute on iOS platforms. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
 ### `downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> }`
 
