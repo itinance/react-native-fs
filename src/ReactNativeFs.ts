@@ -1,5 +1,7 @@
 import { NativeModules, Platform } from 'react-native';
 
+import { type Spec } from './NativeReactNativeFs';
+
 const LINKING_ERROR =
   `The package '@dr.pogodin/react-native-fs' doesn't seem to be linked. Make sure: \n\n` +
   Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
@@ -24,4 +26,4 @@ const ReactNativeFs = ReactNativeFsModule
       },
     );
 
-export default ReactNativeFs;
+export default ReactNativeFs as Spec;

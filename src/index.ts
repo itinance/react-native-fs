@@ -1,8 +1,4 @@
-import {
-  type EmitterSubscription,
-  NativeEventEmitter,
-  Platform,
-} from 'react-native';
+import { type EmitterSubscription, NativeEventEmitter } from 'react-native';
 
 import RNFS from './ReactNativeFs';
 
@@ -12,6 +8,8 @@ import {
   type FSInfoResult,
   type FileOptions,
   type MkdirOptions,
+  type NativeDownloadFileOptions,
+  type NativeReadDirResItemT,
   type ReadDirItem,
   type StatResult,
   type UploadFileOptions,
@@ -33,7 +31,7 @@ let lastJobId = 0;
 
 // Internal functions.
 
-type ReadDirCommand = (path: string) => Promise<StatResult[]>;
+type ReadDirCommand = (path: string) => Promise<NativeReadDirResItemT[]>;
 
 /**
  * Generic function used by readDir and readDirAssets.
@@ -46,7 +44,7 @@ async function readDirGeneric(
 
   const { FileTypeDirectory, FileTypeRegular } = RNFS.getConstants();
 
-  return files.map((file: StatResult) => ({
+  return files.map((file) => ({
     ctime: (file.ctime && new Date((file.ctime as number) * 1000)) || null,
     mtime: (file.mtime && new Date((file.mtime as number) * 1000)) || null,
     name: file.name,
@@ -159,27 +157,29 @@ export function downloadFile(options: DownloadFileOptions): {
     );
   }
 
-  var bridgeOptions = {
+  var nativeOptions: NativeDownloadFileOptions = {
     jobId: jobId,
     fromUrl: options.fromUrl,
     toFile: normalizeFilePath(options.toFile),
-    headers: options.headers || {},
     background: !!options.background,
+    backgroundTimeout: options.backgroundTimeout || 3600000, // 1 hour
+    cacheable: !!options.cacheable,
+    connectionTimeout: options.connectionTimeout || 5000,
+    discretionary: !!options.discretionary,
+    headers: options.headers || {},
     progressDivider: options.progressDivider || 0,
     progressInterval: options.progressInterval || 0,
     readTimeout: options.readTimeout || 15000,
-    connectionTimeout: options.connectionTimeout || 5000,
-    backgroundTimeout: options.backgroundTimeout || 3600000, // 1 hour
-    hasBeginCallback: options.begin instanceof Function,
-    hasProgressCallback: options.progress instanceof Function,
-    hasResumableCallback: options.resumable instanceof Function,
+    hasBeginCallback: !!options.begin,
+    hasProgressCallback: !!options.progress,
+    hasResumableCallback: !!options.resumable,
   };
 
   return {
     jobId,
     promise: (async () => {
       try {
-        return await RNFS.downloadFile(bridgeOptions);
+        return await RNFS.downloadFile(nativeOptions);
       } finally {
         subscriptions.forEach((sub) => sub.remove());
       }
@@ -238,8 +238,8 @@ export function readDir(dirpath: string): Promise<ReadDirItem[]> {
 
 // Node style version (lowercase d). Returns just the names
 export async function readdir(dirpath: string): Promise<string[]> {
-  const files: StatResult[] = await RNFS.readDir(normalizeFilePath(dirpath));
-  return files.map((file: StatResult) => file.name || '');
+  const files = await RNFS.readDir(normalizeFilePath(dirpath));
+  return files.map((file) => file.name || '');
 }
 
 export async function stat(filepath: string): Promise<StatResult> {
@@ -265,7 +265,6 @@ export function touch(
   filepath: string,
   mtime?: Date,
   ctime?: Date,
-  _Creation?: boolean, // TODO: No idea why, probably just remove in future.
 ): Promise<void> {
   if (ctime && !(ctime instanceof Date)) {
     throw new Error('touch: Invalid value for argument `ctime`');
@@ -274,26 +273,10 @@ export function touch(
     throw new Error('touch: Invalid value for argument `mtime`');
   }
 
-  let ctimeTime: number | undefined = 0;
-  if (Platform.OS === 'ios' || Platform.OS === 'windows') {
-    ctimeTime = ctime && ctime.getTime();
-  }
-
-  if (Platform.OS === 'windows') {
-    var modifyCreationTime = !ctime ? false : true;
-    return RNFS.touch(
-      normalizeFilePath(filepath),
-      mtime && mtime.getTime(),
-      ctimeTime,
-      modifyCreationTime,
-    );
-  } else {
-    return RNFS.touch(
-      normalizeFilePath(filepath),
-      mtime && mtime.getTime(),
-      ctimeTime,
-    );
-  }
+  return RNFS.touch(normalizeFilePath(filepath), {
+    ctime: ctime && ctime.getTime(),
+    mtime: mtime && mtime.getTime(),
+  });
 }
 
 export function unlink(filepath: string): Promise<void> {
@@ -351,7 +334,7 @@ export function uploadFiles(options: UploadFileOptions): {
     );
   }
 
-  var bridgeOptions = {
+  var nativeOptions = {
     jobId: jobId,
     toUrl: options.toUrl,
     files: options.files,
@@ -369,7 +352,7 @@ export function uploadFiles(options: UploadFileOptions): {
 
   return {
     jobId,
-    promise: RNFS.uploadFiles(bridgeOptions).then((res: UploadResult) => {
+    promise: RNFS.uploadFiles(nativeOptions).then((res: UploadResult) => {
       subscriptions.forEach((sub) => sub.remove());
       return res;
     }),
@@ -395,7 +378,7 @@ export function writeFile(
   return RNFS.writeFile(
     normalizeFilePath(filepath),
     b64,
-    typeof encodingOrOptions === 'string' ? undefined : encodingOrOptions,
+    typeof encodingOrOptions === 'object' ? encodingOrOptions : {},
   );
 }
 
@@ -442,7 +425,7 @@ export function readFileRes(
   return readFileGeneric(filename, encodingOrOptions, RNFS.readFileRes);
 }
 
-export const scanFile: (path: string) => Promise<ReadDirItem[]> = RNFS.scanFile;
+export const scanFile = RNFS.scanFile;
 
 // TODO: Not documented!
 // setReadable for Android

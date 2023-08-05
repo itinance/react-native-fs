@@ -737,6 +737,10 @@ public class ReactNativeFsModule extends ReactNativeFsSpec {
   public void touch(String filepath, double mtime, double ctime, Promise promise) {
     try {
       File file = new File(filepath);
+
+      // TODO: setLastModified() returns "true" on success, "false" otherwise,
+      // thus instead of resolving with its result, we should throw if result is
+      // false.
       promise.resolve(file.setLastModified((long) mtime));
     } catch (Exception ex) {
       ex.printStackTrace();

@@ -82,34 +82,38 @@ const tests: { [name: string]: StatusOrEvaluator } = {
     }
   },
   'readDirAssets()': async () => {
-    const assets = await readDirAssets('test');
+    try {
+      const assets = await readDirAssets('test');
 
-    const assets2 = assets.map((asset) => ({
-      ctime: asset.ctime,
-      mtime: asset.mtime,
-      name: asset.name,
-      path: asset.path,
-      size: asset.size,
-    }));
+      const assets2 = assets.map((asset) => ({
+        ctime: asset.ctime,
+        mtime: asset.mtime,
+        name: asset.name,
+        path: asset.path,
+        size: asset.size,
+      }));
 
-    if (
-      !isEqual(assets2, [
-        {
-          ctime: null,
-          mtime: null,
-          name: 'good-latin1.txt',
-          path: 'test/good-latin1.txt',
-          size: 0,
-        },
-        {
-          ctime: null,
-          mtime: null,
-          name: 'good-utf8.txt',
-          path: 'test/good-utf8.txt',
-          size: 0,
-        },
-      ])
-    ) {
+      if (
+        !isEqual(assets2, [
+          {
+            ctime: null,
+            mtime: null,
+            name: 'good-latin1.txt',
+            path: 'test/good-latin1.txt',
+            size: 0,
+          },
+          {
+            ctime: null,
+            mtime: null,
+            name: 'good-utf8.txt',
+            path: 'test/good-utf8.txt',
+            size: 0,
+          },
+        ])
+      ) {
+        return 'fail';
+      }
+    } catch {
       return 'fail';
     }
 
@@ -143,8 +147,6 @@ const tests: { [name: string]: StatusOrEvaluator } = {
       return 'fail';
     }
     */
-
-    return 'pass';
   },
   'readFile() and writeFile()': async () => {
     const good = 'GÖÖÐ\n';

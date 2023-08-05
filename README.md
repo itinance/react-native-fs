@@ -427,6 +427,8 @@ Note: Android only.
 
 ### `writeFile(filepath: string, contents: string, encoding?: string): Promise<void>`
 
+`TODO: On iOS the third argument can also provide options object with NSFileProtectionKey`
+
 Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
 
 ### `appendFile(filepath: string, contents: string, encoding?: string): Promise<void>`

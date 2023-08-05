@@ -18,15 +18,41 @@ export type DownloadProgressCallbackResult = {
   bytesWritten: number; // The number of bytes written to the file so far
 };
 
+/**
+ * These are options expected by native implementations of downloadFile()
+ * function.
+ */
+export type NativeDownloadFileOptions = {
+  jobId: number;
+  fromUrl: string; // URL to download file from
+  toFile: string; // Local filesystem path to save the file to
+  background: boolean; // Continue the download in the background after the app terminates (iOS only)
+  backgroundTimeout: number; // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
+  cacheable: boolean; // Whether the download can be stored in the shared NSURLCache (iOS only)
+  connectionTimeout: number; // only supported on Android yet
+  discretionary: boolean; // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
+  headers: Headers; // An object of headers to be passed to the server
+  progressDivider: number;
+  progressInterval: number;
+  readTimeout: number; // supported on Android and iOS
+  hasBeginCallback: boolean;
+  hasProgressCallback: boolean;
+  hasResumableCallback: boolean;
+};
+
 export type DownloadFileOptions = {
   fromUrl: string; // URL to download file from
   toFile: string; // Local filesystem path to save the file to
-  headers?: Headers; // An object of headers to be passed to the server
   background?: boolean; // Continue the download in the background after the app terminates (iOS only)
-  discretionary?: boolean; // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
+  backgroundTimeout?: number; // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
   cacheable?: boolean; // Whether the download can be stored in the shared NSURLCache (iOS only)
-  progressInterval?: number;
+  connectionTimeout?: number; // only supported on Android yet
+  discretionary?: boolean; // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
+  headers?: Headers; // An object of headers to be passed to the server
   progressDivider?: number;
+  progressInterval?: number;
+  readTimeout?: number; // supported on Android and iOS
+
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
 
@@ -35,24 +61,6 @@ export type DownloadFileOptions = {
   // resumable. Should be double-checked, if we have this argument,
   // or drop it.
   resumable?: (res: unknown) => void; // only supported on iOS yet
-
-  connectionTimeout?: number; // only supported on Android yet
-  readTimeout?: number; // supported on Android and iOS
-  backgroundTimeout?: number; // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
-};
-
-type NativeDownloadFileOptions = {
-  fromUrl: string; // URL to download file from
-  toFile: string; // Local filesystem path to save the file to
-  headers?: Headers; // An object of headers to be passed to the server
-  background?: boolean; // Continue the download in the background after the app terminates (iOS only)
-  discretionary?: boolean; // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
-  cacheable?: boolean; // Whether the download can be stored in the shared NSURLCache (iOS only)
-  progressInterval?: number;
-  progressDivider?: number;
-  connectionTimeout?: number; // only supported on Android yet
-  readTimeout?: number; // supported on Android and iOS
-  backgroundTimeout?: number; // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
 };
 
 export type DownloadResult = {
@@ -87,7 +95,7 @@ export type ReadDirItem = {
   mtime?: Date | null; // The last modified date of the file
   name?: string; // The name of the item
   path: string; // The absolute path to the item
-  size: string; // Size in bytes.
+  size: number; // Size in bytes.
 
   // TODO: Can't these be just values rather than methods?
   // Ok.. the reason these are functions is that currently the library
@@ -110,7 +118,7 @@ export type StatResult = {
   name?: string; // The name of the item.
 
   path: string; // The absolute path to the item
-  size: string; // Size in bytes
+  size: number; // Size in bytes
   mode: number; // UNIX file mode
   ctime: Date | number; // Created date
   mtime: Date | number; // Last modified date
@@ -128,23 +136,26 @@ export type StatResult = {
   type?: number;
 };
 
-type NativeStatResult = {
-  // TODO: why is this not documented?
-  name?: string; // The name of the item.
+export type NativeReadDirResItemT = {
+  ctime: number;
+  mtime: number;
+  name: string;
+  path: string;
+  size: number;
+  type: string;
+};
 
-  path: string; // The absolute path to the item
-  size: string; // Size in bytes
-  mode: number; // UNIX file mode
+type NativeStatResult = {
   ctime: number; // Created date
   mtime: number; // Last modified date
+  size: number; // Size in bytes
+  type: string;
+  mode: number; // UNIX file mode
 
   // In case of content uri this is the pointed file path,
   // otherwise is the same as path.
+  // TODO: This is not implemented on iOS
   originalFilepath: string;
-
-  // TODO: This is temporary addition,
-  // to make the code compile.
-  type?: number;
 };
 
 export type UploadFileItem = {
@@ -193,6 +204,11 @@ export type UploadResult = {
   body: string; // The HTTP response body
 };
 
+type TouchOptions = {
+  ctime?: number;
+  mtime?: number;
+};
+
 export interface Spec extends TurboModule {
   readonly getConstants: () => {
     // System paths.
@@ -206,8 +222,10 @@ export interface Spec extends TurboModule {
     TemporaryDirectoryPath: string;
 
     // File system entity types.
-    FileTypeRegular: number;
-    FileTypeDirectory: number;
+    // TODO: At least on iOS there more file types we don't capture here:
+    // https://developer.apple.com/documentation/foundation/nsfileattributetype?language=objc
+    FileTypeRegular: string;
+    FileTypeDirectory: string;
 
     // TODO: It was not declared in JS layer,
     // but it is exported constant on Android. Do we need it?
@@ -241,12 +259,12 @@ export interface Spec extends TurboModule {
   readFile(path: string): Promise<string>;
 
   // TODO: Not sure about the type of result here.
-  readDir(path: string): Promise<NativeStatResult[]>;
+  readDir(path: string): Promise<NativeReadDirResItemT[]>;
 
   stat(path: string): Promise<NativeStatResult>;
   stopDownload(jobId: number): void;
   stopUpload(jobId: number): void;
-  touch(path: string, mtime: number, ctime: number): Promise<number>;
+  touch(path: string, options: TouchOptions): Promise<void>;
   unlink(path: string): Promise<void>;
   uploadFiles(options: NativeUploadFileOptions): Promise<UploadResult>;
   write(path: string, b64: string, position: number): Promise<void>;
@@ -260,8 +278,8 @@ export interface Spec extends TurboModule {
   getAllExternalFilesDirs(): Promise<string[]>;
   readFileAssets(path: string): Promise<string>;
   readFileRes(path: string): Promise<string>;
-  readDirAssets(path: string): Promise<NativeStatResult[]>;
-  scanFile(path: string): Promise<NativeStatResult[]>;
+  readDirAssets(path: string): Promise<NativeReadDirResItemT[]>;
+  scanFile(path: string): Promise<string>;
 
   setReadable(
     filepath: string,
