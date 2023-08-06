@@ -18,7 +18,7 @@ import {
 } from './NativeReactNativeFs';
 
 import {
-  type Encoding,
+  type EncodingT,
   type EncodingOptions,
   decode,
   encode,
@@ -225,12 +225,12 @@ export async function read(
 }
 
 export type ReadFileOptionsT = {
-  encoding?: Encoding;
+  encoding?: EncodingT;
 };
 
 export function readFile(
   path: string,
-  encodingOrOptions?: Encoding | ReadFileOptionsT,
+  encodingOrOptions?: EncodingT | ReadFileOptionsT,
 ): Promise<string> {
   return readFileGeneric(path, encodingOrOptions, RNFS.readFile);
 }
@@ -282,8 +282,8 @@ export function touch(
   });
 }
 
-export function unlink(filepath: string): Promise<void> {
-  return RNFS.unlink(normalizeFilePath(filepath));
+export function unlink(path: string): Promise<void> {
+  return RNFS.unlink(normalizeFilePath(path));
 }
 
 export function uploadFiles(options: UploadFileOptions): {
@@ -373,14 +373,14 @@ export function write(
 }
 
 type WriteFileOptionsT = {
-  encoding?: Encoding;
+  encoding?: EncodingT;
   NSFileProtectionKey?: string;
 };
 
 export function writeFile(
   path: string,
   content: string,
-  encodingOrOptions?: Encoding | WriteFileOptionsT,
+  encodingOrOptions?: EncodingT | WriteFileOptionsT,
 ): Promise<void> {
   const b64 = encode(content, toEncoding(encodingOrOptions));
   return RNFS.writeFile(
@@ -423,10 +423,10 @@ export async function readDirAssets(
 }
 
 export function readFileAssets(
-  filepath: string,
+  path: string,
   encodingOrOptions?: EncodingOptions,
 ): Promise<string> {
-  return readFileGeneric(filepath, encodingOrOptions, RNFS.readFileAssets);
+  return readFileGeneric(path, encodingOrOptions, RNFS.readFileAssets);
 }
 
 export function readFileRes(
@@ -522,7 +522,7 @@ const {
 } = RNFS.getConstants();
 
 export {
-  type Encoding,
+  type EncodingT,
   type MkdirOptions,
   type ReadDirAssetsResItemT,
   type ReadDirItem,

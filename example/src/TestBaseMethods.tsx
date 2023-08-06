@@ -210,6 +210,10 @@ const tests: { [name: string]: StatusOrEvaluator } = {
       if (!(await exists(filePath))) return 'fail';
       await unlink(dirPath);
       if (await exists(filePath)) return 'fail';
+      try {
+        await unlink(dirPath);
+        return 'fail';
+      } catch {}
       return 'pass';
     } catch {
       return 'fail';

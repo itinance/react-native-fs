@@ -225,11 +225,20 @@ RNFS.uploadFiles({
   - [mkdir()] &mdash; Creates folder(s) at the given path.
   - [readDirAssets()] &mdash; (Android only) Reads the content of a folder at
     the given path inside the Android assets folder.
-  - [readFile()] &mdash; Reads the file at `path` and return its content as
+  - [readFile()] &mdash; Reads the file at a path and return its content as
     a string.
+  - [readFileAssets()] &mdash; Android-only. Reads the file at a path in
+    the Android app's assets folder.
+and return its contents.
 - [Types]
+  - [EncodingT] &mdash; Union of valid file encoding values.
   - [MkdirOptions] &mdash; Extra options for [mkdir()].
   - [ReadDirAssetsResItemT] &mdash; Elements returned by [readDirAssets()].
+  - [ReadFileOptionsT] &mdash; The type of extra options argument of
+    the [readFile()] function.
+  - [unlink()] &mdash; Unlinks (removes) a file or directory with files.
+  - [WriteFileOptionsT] &mdash; The type of extra options argument of
+    the [writeFile()] function.
 - [Legacy] &mdash; Everything else inherited from the original library,
   but not yet correctly verified to work and match the documentation.
 
@@ -415,7 +424,7 @@ the Android assets folder.
 ### readFile()
 [readFile()]: #readfile
 ```ts
-function readFile(path: string, encodingOrOptions?: Encoding | ReadFileOptionsT): Promise<string>;
+function readFile(path: string, encodingOrOptions?: EncodingT | ReadFileOptionsT): Promise<string>;
 ```
 **VERIFIED:** Android.
 
@@ -431,15 +440,45 @@ of 1-to-4 bytes of the source file).
 **BEWARE:** You will take quite a performance hit if you are reading big files.
 
 - `path` &mdash; **string** &mdash; File path.
-- `encoding` &mdash; [Encoding] | [ReadFileOptionsT] &mdash; Optional.
+- `encoding` &mdash; [EncodingT] | [ReadFileOptionsT] &mdash; Optional.
   File encoding, or extra options.
 - Resolves to **string** &mdash; the content read from the file, and transformed
   according to the given encoding.
 
+### readFileAssets()
+[readFileAssets()]: #readfileassets
+```ts
+function readFileAssets(path:string, encoding?: EncodingT | ReadFileOptionsT): Promise<string>;
+```
+**VERIFIED:** Android.
+
+Android-only. Reads the file at `path` in the Android app's assets folder
+and return its contents. `encoding` can be one of `utf8` (default), `ascii`,
+`base64`. Use `base64` for reading binary files.
+
+- `path` &mdash; **string** &mdash; Asset path.
+- `encoding` &mdash; [EncodingT] | [ReadFileOptionsT] | **undefined** &mdash;
+  Optional. Encoding, or extra options object, which currently only supports
+  specifying the encoding.
+- Resolves to **string** &mdash; the asset content.
+
+### unlink()
+[unlink()]: #unlink
+```ts
+function unlink(path: string): Promise<void>;
+```
+**VERIFIED:** Android.
+
+Unlinks (removes) the item at `path`. If the item does not exist, an error will
+be thrown. Also recursively deletes directories (works like Linux `rm -rf`).
+
+- `path` &mdash; **string** &mdash; Item path.
+- Resolves once done.
+
 ### writeFile()
 [writeFile()]: #writefile
 ```ts
-function writeFile(path: string, content: string, encodingOrOptions?: Encoding | WriteFileOptionsT): Promise<void>
+function writeFile(path: string, content: string, encodingOrOptions?: EncodingT | WriteFileOptionsT): Promise<void>
 ```
 **VERIFIED:** Android.
 
@@ -457,17 +496,17 @@ turned into a group of 1-to-4 bytes in the written file).
 
 - `path` &mdash; **string** &mdash; File path.
 - `content` &mdash; **string** &mdash; Data to write into the file.
-- `encodingOrOptions` &mdash; [Encoding] | [WriteFileOptionsT] &mdash; Data
+- `encodingOrOptions` &mdash; [EncodingT] | [WriteFileOptionsT] &mdash; Data
   encoding, or extra options.
 - Resolves once completed.
 
 ## Types
 [Types]: #types
 
-### Encoding
-[Encoding]: #encoding
+### EncodingT
+[EncodingT]: #encodingt
 ```ts
-type Encoding = 'ascii' | 'base64' | `utf8`;
+type EncodingT = 'ascii' | 'base64' | `utf8`;
 ```
 **VERIFIED**: Android.
 
@@ -516,21 +555,21 @@ Type of result elements returned by the [readDirAssets()] function.
 [ReadFileOptionsT]: #readfileoptionst
 ```ts
 type ReadFileOptionsT = {
-  encoding?: Encoding;
+  encoding?: EncodingT;
 };
 ```
 **VERIFIED:** Android
 
 The type of extra options argument of the [readFile()] function.
 
-- `encoding` &mdash; [Encoding] | **undefined** &mdash; Optional. File encoding.
+- `encoding` &mdash; [EncodingT] | **undefined** &mdash; Optional. File encoding.
   Defaults `utf8`.
 
 ### WriteFileOptionsT
 [WriteFileOptionsT]: #writefileoptionst
 ```ts
 type WriteFileOptionsT = {
-  encoding?: Encoding;
+  encoding?: EncodingT;
   NSFileProtectionKey?: string;
 };
 ```
@@ -538,7 +577,7 @@ type WriteFileOptionsT = {
 
 The type of extra options argument of the [writeFile()] function.
 
-- `encoding` &mdash; [Encoding] | **undefined** &mdash; Optional. File encoding
+- `encoding` &mdash; [EncodingT] | **undefined** &mdash; Optional. File encoding
   to use. Defaults `utf8`.
 - `NSFileProtectionKey` &mdash; **string** | **undefined** &mdash; Optional.
   iOS-only. See: https://developer.apple.com/documentation/foundation/nsfileprotectionkey
@@ -595,14 +634,6 @@ type StatResult = {
 Reads `length` bytes from the given `position` of the file at `path` and returns contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
 Note: reading big files piece by piece using this method may be useful in terms of performance.
-
-### `readFileAssets(filepath:string, encoding?: string): Promise<string>`
-
-Reads the file at `path` in the Android app's assets folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
-
-`filepath` is the relative path to the file from the root of the `assets` folder.
-
-Note: Android only.
 
 ### `readFileRes(filename:string, encoding?: string): Promise<string>`
 
@@ -702,12 +733,6 @@ The promise will on success return the final destination of the file, as it was 
 *Not available on Mac Catalyst.*
 
 Copies a video from assets-library, that is prefixed with 'assets-library://asset/asset.MOV?...' to a specific destination.
-
-### `unlink(filepath: string): Promise<void>`
-
-Unlinks the item at `filepath`. If the item does not exist, an error will be thrown.
-
-Also recursively deletes directories (works like Linux `rm -rf`).
 
 ### `existsRes(filename: string): Promise<boolean>`
 

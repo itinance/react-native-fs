@@ -11,8 +11,8 @@ export function normalizeFilePath(path: string): string {
 }
 
 type ReadFileCommand = (path: string) => Promise<string>;
-export type Encoding = 'ascii' | 'base64' | 'utf8';
-export type EncodingOptions = Encoding | { encoding?: Encoding };
+export type EncodingT = 'ascii' | 'base64' | 'utf8';
+export type EncodingOptions = EncodingT | { encoding?: EncodingT };
 
 /**
  * Reduces `encodingOrOptions` argument to encoding value,
@@ -20,7 +20,7 @@ export type EncodingOptions = Encoding | { encoding?: Encoding };
  * @param encodingOrOptions
  * @returns
  */
-export function toEncoding(encodingOrOptions?: EncodingOptions): Encoding {
+export function toEncoding(encodingOrOptions?: EncodingOptions): EncodingT {
   const res =
     typeof encodingOrOptions === 'string'
       ? encodingOrOptions
@@ -46,7 +46,7 @@ export function toEncoding(encodingOrOptions?: EncodingOptions): Encoding {
  * @param encoding Encoding. Defaults `utf8`.
  * @return Result string.
  */
-export function decode(b64: string, encoding: Encoding = 'utf8'): string {
+export function decode(b64: string, encoding: EncodingT = 'utf8'): string {
   if (encoding === 'base64') return b64;
 
   const buffer = Buffer.from(b64, 'base64');
@@ -76,7 +76,7 @@ export function decode(b64: string, encoding: Encoding = 'utf8'): string {
  * @param encoding Encoding to use. Defaults to `utf8`.
  * @return Base64-encoded string.
  */
-export function encode(datum: string, encoding: Encoding = 'utf8') {
+export function encode(datum: string, encoding: EncodingT = 'utf8') {
   if (encoding === 'base64') return datum;
 
   let buffer;
