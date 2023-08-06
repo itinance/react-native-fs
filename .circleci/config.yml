@@ -1,0 +1,50 @@
+defaults: &defaults
+  docker:
+    - image: cimg/node:lts
+
+version: 2
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: node-modules-{{ checksum "package-lock.json" }}-{{ checksum "example/package-lock.json" }}
+      - run: npm install
+      - run: npm run bootstrap
+      - save_cache:
+          key: node-modules-{{ checksum "package-lock.json" }}-{{ checksum "example/package-lock.json" }}
+          paths:
+            - node_modules
+            - example/node_modules
+      - run: npm test
+      - persist_to_workspace:
+          root: .
+          paths:
+            - node_modules
+
+  release:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+      - run: npm publish --access public
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - test:
+          filters:
+            tags:
+              only: /.*/
+      - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-(alpha|beta)\.[0-9]+)?/
+          requires:
+            - test
