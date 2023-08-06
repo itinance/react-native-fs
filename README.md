@@ -291,7 +291,7 @@ The absolute path to the external caches directory (android only).
 ```ts
 const ExternalDirectoryPath: string;
 ```
-**VERIFIED:** Android, iOS, macOS, Windows.
+**VERIFIED:** Android, iOS (empty?), macOS (empty?), Windows.
 
 The absolute path to the external files, shared directory (android only).
 
@@ -300,7 +300,7 @@ The absolute path to the external files, shared directory (android only).
 ```ts
 const ExternalStorageDirectoryPath: string;
 ```
-**VERIFIED:** Android, iOS, macOS, Windows (empty?).
+**VERIFIED:** Android, iOS (empty?), macOS (empty?), Windows (empty?).
 
 The absolute path to the external storage, shared directory (android only).
 
