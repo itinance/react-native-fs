@@ -234,6 +234,7 @@ RNFS.uploadFiles({
     a string.
   - [readFileAssets()] &mdash; Android-only. Reads the file at a path in
     the Android app's assets folder.
+  - [unlink()] &mdash; Unlinks (removes) a file or directory with files.
 and return its contents.
 - [Types]
   - [EncodingT] &mdash; Union of valid file encoding values.
@@ -241,7 +242,6 @@ and return its contents.
   - [ReadDirAssetsResItemT] &mdash; Elements returned by [readDirAssets()].
   - [ReadFileOptionsT] &mdash; The type of extra options argument of
     the [readFile()] function.
-  - [unlink()] &mdash; Unlinks (removes) a file or directory with files.
   - [WriteFileOptionsT] &mdash; The type of extra options argument of
     the [writeFile()] function.
 - [Legacy] &mdash; Everything else inherited from the original library,
