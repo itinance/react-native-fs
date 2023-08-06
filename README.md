@@ -250,7 +250,7 @@ and return its contents.
 ```ts
 const CachesDirectoryPath: string;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android, iOS, macOS.
 
 The absolute path to the caches directory.
 
@@ -259,7 +259,7 @@ The absolute path to the caches directory.
 ```ts
 const DocumentDirectoryPath: string;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android, iOS, macOS.
 
 The absolute path to the document directory.
 
@@ -268,7 +268,7 @@ The absolute path to the document directory.
 ```ts
 const DownloadDirectoryPath: string;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
 
 The absolute path to the download directory (on android and Windows only).
 
@@ -277,7 +277,7 @@ The absolute path to the download directory (on android and Windows only).
 ```ts
 const ExternalCachesDirectoryPath: string;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
 
 The absolute path to the external caches directory (android only).
 
@@ -286,7 +286,7 @@ The absolute path to the external caches directory (android only).
 ```ts
 const ExternalDirectoryPath: string;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android, iOS, macOS.
 
 The absolute path to the external files, shared directory (android only).
 
@@ -295,7 +295,7 @@ The absolute path to the external files, shared directory (android only).
 ```ts
 const ExternalStorageDirectoryPath: string;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android, iOS, macOS.
 
 The absolute path to the external storage, shared directory (android only).
 
@@ -304,7 +304,7 @@ The absolute path to the external storage, shared directory (android only).
 ```ts
 const LibraryDirectoryPath: string;
 ```
-**VERIFIED:** **NOT SUPPORTED:** Android.
+**VERIFIED:** iOS, macOS. **NOT SUPPORTED:** Android.
 
 The absolute path to the NSLibraryDirectory (iOS only).
 
@@ -313,7 +313,7 @@ The absolute path to the NSLibraryDirectory (iOS only).
 ```ts
 const MainBundlePath: string;
 ```
-**VERIFIED:** **NOT SUPPORTED:** Android.
+**VERIFIED:** iOS, macOS. **NOT SUPPORTED:** Android.
 
 The absolute path to the main bundle directory (not available on Android).
 
@@ -322,7 +322,7 @@ The absolute path to the main bundle directory (not available on Android).
 ```ts
 const PicturesDirectoryPath: string;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
 
 The absolute path to the pictures directory.
 
@@ -331,7 +331,7 @@ The absolute path to the pictures directory.
 ```ts
 const RoamingDirectoryPath: string;
 ```
-**VERIFIED:** **NOT SUPPORTED:** Android
+**VERIFIED:** **NOT SUPPORTED:** Android, iOS, macOS.
 
 The absolute path to the roaming directory (Windows only).
 
@@ -340,7 +340,7 @@ The absolute path to the roaming directory (Windows only).
 ```ts
 const TemporaryDirectoryPath: string;
 ```
-**VERIFIED**: Android
+**VERIFIED**: Android, iOS, macOS.
 
 The absolute path to the temporary directory (falls back to Caching-Directory on
 Android).
@@ -355,7 +355,7 @@ IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request p
 ```ts
 function copyFileAssets(from: string, to: string): Promise<void>
 ```
-**VERIFIED:** Android
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
 
 Copies a file from the given path in the Android app's assets folder to
 the specified destination path, overwriting the file at destination, if
@@ -371,7 +371,7 @@ it exists.
 ```ts
 function exists(path: string): Promise<boolean>;
 ```
-**VERIFIED:** Android
+**VERIFIED:** Android, iOS, macOS.
 
 Checks if an item exists at the given `path`.
 
@@ -383,7 +383,7 @@ Checks if an item exists at the given `path`.
 ```ts
 function existsAssets(path: string): Promise<boolean>;
 ```
-**VERIFIED:** Android
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
 
 Android-only. Checks if an item exists at the given path in the Android assets
 folder.
@@ -397,7 +397,7 @@ folder.
 ```ts
 function mkdir(path: string, options?: MkdirOptions): Promise<void>;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android, iOS, macOS.
 
 Creates folder(s) at `path`, and does not throw if already exists (similar to
 `mkdir -p` in Linux).
@@ -412,7 +412,7 @@ Creates folder(s) at `path`, and does not throw if already exists (similar to
 ```ts
 function readDirAssets(path: string): Promise<ReadDirItem[]>;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
 
 (Android only) Reads the content of a folder at the given `path` inside
 the Android assets folder.
@@ -426,7 +426,7 @@ the Android assets folder.
 ```ts
 function readFile(path: string, encodingOrOptions?: EncodingT | ReadFileOptionsT): Promise<string>;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android, iOS, macOS.
 
 Reads the file at `path` and return its content as a string.
 
@@ -450,7 +450,7 @@ of 1-to-4 bytes of the source file).
 ```ts
 function readFileAssets(path:string, encoding?: EncodingT | ReadFileOptionsT): Promise<string>;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
 
 Android-only. Reads the file at `path` in the Android app's assets folder
 and return its contents. `encoding` can be one of `utf8` (default), `ascii`,
@@ -467,7 +467,7 @@ and return its contents. `encoding` can be one of `utf8` (default), `ascii`,
 ```ts
 function unlink(path: string): Promise<void>;
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android, iOS, macOS.
 
 Unlinks (removes) the item at `path`. If the item does not exist, an error will
 be thrown. Also recursively deletes directories (works like Linux `rm -rf`).
@@ -480,7 +480,7 @@ be thrown. Also recursively deletes directories (works like Linux `rm -rf`).
 ```ts
 function writeFile(path: string, content: string, encodingOrOptions?: EncodingT | WriteFileOptionsT): Promise<void>
 ```
-**VERIFIED:** Android.
+**VERIFIED:** Android, iOS, macOS.
 
 Write the `content` to the file at `path`, overwritting it if exists already.
 
@@ -508,8 +508,6 @@ turned into a group of 1-to-4 bytes in the written file).
 ```ts
 type EncodingT = 'ascii' | 'base64' | `utf8`;
 ```
-**VERIFIED**: Android.
-
 Union of valid file encoding values.
 
 ### MkdirOptions
@@ -519,8 +517,6 @@ type MkdirOptions = {
   NSURLIsExcludedFromBackupKey?: boolean; // iOS only
 };
 ```
-**VERIFIED:** Android.
-
 Type of extra options argument for [mkdir()].
 - `NSURLIsExcludedFromBackupKey` &mdash; **boolean** | **undefined** &mdash;
   (iOS only) The  property can be provided to set this attribute on iOS platforms.
@@ -539,8 +535,6 @@ type ReadDirAssetsResItemT = {
   isDirectory: () => boolean;
 };
 ```
-**VERIFIED:** Android.
-
 Type of result elements returned by the [readDirAssets()] function.
 
 - `name` &mdash; **string** &mdash; Item name.
@@ -558,8 +552,6 @@ type ReadFileOptionsT = {
   encoding?: EncodingT;
 };
 ```
-**VERIFIED:** Android
-
 The type of extra options argument of the [readFile()] function.
 
 - `encoding` &mdash; [EncodingT] | **undefined** &mdash; Optional. File encoding.
@@ -573,8 +565,6 @@ type WriteFileOptionsT = {
   NSFileProtectionKey?: string;
 };
 ```
-**VERIFIED:** Android.
-
 The type of extra options argument of the [writeFile()] function.
 
 - `encoding` &mdash; [EncodingT] | **undefined** &mdash; Optional. File encoding
