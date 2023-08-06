@@ -1,0 +1,2 @@
+- Dr. Sergey Pogodin <doc@pogodin.studio> (https://dr.pogodin.studio)
+- Johannes Lumpe <johannes@lum.pe> (https://github.com/johanneslumpe)

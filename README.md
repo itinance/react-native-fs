@@ -1,179 +1,72 @@
 # react-native-fs
 
-Native filesystem access for react-native
+[React Native]: https://reactnative.dev/
+[react-native-fs]: https://github.com/itinance/react-native-fs
+[New Architecture]: https://reactnative.dev/docs/the-new-architecture/landing-page
+[Old Architecture]: https://reactnative.dev/docs/native-modules-intro
 
-## IMPORTANT
+[![Latest NPM Release](https://img.shields.io/npm/v/@dr.pogodin/react-native-fs.svg)](https://www.npmjs.com/package/@dr.pogodin/react-native-fs)
+[![NPM Downloads](https://img.shields.io/npm/dm/@dr.pogodin/react-native-fs.svg)](https://www.npmjs.com/package/@dr.pogodin/react-native-fs)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/birdofpreyru/react-native-fs/tree/master.svg?style=shield)](https://app.circleci.com/pipelines/github/birdofpreyru/react-native-fs)
+[![GitHub Repo stars](https://img.shields.io/github/stars/birdofpreyru/react-native-fs?style=social)](https://github.com/birdofpreyru/react-native-fs)
+[![Dr. Pogodin Studio](https://raw.githubusercontent.com/birdofpreyru/react-native-fs/master/.README/logo-dr-pogodin-studio.svg)](https://dr.pogodin.studio/docs/react-native-fs)
 
-For RN < 0.57 and/or Gradle < 3 you MUST install react-native-fs at version @2.11.17!
+File system access for [React Native] applications for Android, iOS,
+Mac (Catalyst), and Windows platforms. Supports both [new][New Architecture]
+and [old][Old Architecture] [RN][React Native] architectures.
 
-For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version >= @2.13.2!
+[![Sponsor](https://raw.githubusercontent.com/birdofpreyru/react-native-fs/master/.README/sponsor.svg)](https://github.com/sponsors/birdofpreyru)
 
-For RN >= 0.61 please install react-native-fs at version >= @2.16.0!
+---
+
+_This is a work-in-progress fork of [react-native-fs], aiming to upgrade the library to the standards of the latest React Native v0.72, with support of the [New Architecture], backward compatibility to the [Old Architecture], clean-up and fixes of the library API and internal implementation, and further library development following the best industry practices._
+
+_To migrate from the legacy [react-native-fs] install this fork_
+```bash
+npm install --save @dr.pogodin/react-native-fs
+```
+_then upgrade its imports in the code:_
+```ts
+// The legacy RNFS was imported like this:
+import RNFS from 'react-native-fs';
+
+// Instead, this fork should be imported like this:
+import * as RNFS from '@dr.pogodin/react-native-fs';
+// or (preferrably) you should import separate constants / functions you need
+// like:
+import {
+  TemporaryDirectoryPath,
+  writeFile,
+} from '@dr.pogodin/react-native-fs';
+```
+_When installing the library into a new project no additional steps are required._
+
+
+**IMPORTANT:** _Below is the original documentation for the library. It still has to be completely revised and updated. For now, for each constant / function that have been verified and tested to work in this fork there will be a **VERIFIED** note next to its description, certifying the state of its support in this fork._
+
+---
 
 ## Table of Contents
-1. [Changelog](#Changelog)
-1. Usage
-    1. [iOS](#usage-ios)
-    1. [Android](#usage-android)
-    1. [Windows](#usage-windows)
-1. [Examples](#Examples)
-1. [API](#API)
-1. [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios)
-1. [Test / Demo App](#test--demo-app)
+- [Getting Started]
+- [API Reference]
+- [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios)
+- [Test / Demo App](#test--demo-app)
 
-## Changelog
+## Getting Started
+[Getting Started]: #getting-started
 
-View the changelog [here](https://github.com/itinance/react-native-fs/blob/master/CHANGELOG.md).
-
-## Usage (iOS/macOS)
-
-First you need to install react-native-fs:
-
-```
-npm install react-native-fs --save
+Just install & use:
+```sh
+$ npm install --save @dr.pogodin/react-native-fs
 ```
 
-**Note:** If your react-native version is < 0.40 install with this tag instead:
-
+NOTE: Windows auto-link command (at least as it was needed for example project to install the lib hosted in the parent folder):
+```sh
+npx react-native autolink-windows --sln "windows\ReactNativeFsExample.sln" --proj "windows\ReactNativeFsExample\ReactNativeFsExample.vcxproj"
 ```
-npm install react-native-fs@2.0.1-rc.2 --save
-```
-
-As @a-koka pointed out, you should then update your package.json to
-`"react-native-fs": "2.0.1-rc.2"` (without the tilde)
-
-### Adding automatically with react-native link
-
-At the command line, in your project folder, type:
-
-`react-native link react-native-fs`
-
-Done! No need to worry about manually adding the library to your project.
-
-###  Adding with CocoaPods
-
- Add the RNFS pod to your list of application pods in your Podfile, using the path from the Podfile to the installed module:~~
-
-```
-pod 'RNFS', :path => '../node_modules/react-native-fs'
-```
-
-Install pods as usual:
-```
-pod install
-```
-
-### Adding Manually in XCode
-
-In XCode, in the project navigator, right click Libraries ➜ Add Files to [your project's name] Go to node_modules ➜ react-native-fs and add the .xcodeproj file
-
-In XCode, in the project navigator, select your project. Add the `lib*.a` from the RNFS project to your project's Build Phases ➜ Link Binary With Libraries. Click the .xcodeproj file you added before in the project navigator and go the Build Settings tab. Make sure 'All' is toggled on (instead of 'Basic'). Look for Header Search Paths and make sure it contains both `$(SRCROOT)/../react-native/React` and `$(SRCROOT)/../../React` - mark both as recursive.
-
-Run your project (Cmd+R)
-
-## Usage (Android)
-
-Android support is currently limited to only the `DocumentDirectory`. This maps to the app's `files` directory.
-
-Make alterations to the following files:
-
-* `android/settings.gradle`
-
-```gradle
-...
-include ':react-native-fs'
-project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/react-native-fs/android')
-```
-
-* `android/app/build.gradle`
-
-```gradle
-...
-dependencies {
-    ...
-    implementation project(':react-native-fs')
-}
-```
-
-* register module (in MainActivity.java)
-
-  * For react-native below 0.19.0 (use `cat ./node_modules/react-native/package.json | grep version`)
-
-```java
-import com.rnfs.RNFSPackage;  // <--- import
-
-public class MainActivity extends Activity implements DefaultHardwareBackBtnHandler {
-
-  ......
-
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    mReactRootView = new ReactRootView(this);
-
-    mReactInstanceManager = ReactInstanceManager.builder()
-      .setApplication(getApplication())
-      .setBundleAssetName("index.android.bundle")
-      .setJSMainModuleName("index.android")
-      .addPackage(new MainReactPackage())
-      .addPackage(new RNFSPackage())      // <------- add package
-      .setUseDeveloperSupport(BuildConfig.DEBUG)
-      .setInitialLifecycleState(LifecycleState.RESUMED)
-      .build();
-
-    mReactRootView.startReactApplication(mReactInstanceManager, "ExampleRN", null);
-
-    setContentView(mReactRootView);
-  }
-
-  ......
-
-}
-```
-
-  * For react-native 0.19.0 and higher
-```java
-import com.rnfs.RNFSPackage; // <------- add package
-
-public class MainActivity extends ReactActivity {
-   // ...
-    @Override
-    protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(
-        new MainReactPackage(), // <---- add comma
-        new RNFSPackage() // <---------- add package
-      );
-    }
-```
-
-  * For react-native 0.29.0 and higher ( in MainApplication.java )
-```java
-import com.rnfs.RNFSPackage; // <------- add package
-
-public class MainApplication extends Application implements ReactApplication {
-   // ...
-    @Override
-    protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(
-        new MainReactPackage(), // <---- add comma
-        new RNFSPackage() // <---------- add package
-      );
-    }
-```
-
-## Usage (Windows)
-
-### Adding automatically with react-native link
-
-The `link` command also works for adding the native dependency on Windows:
-
-`react-native link react-native-fs`
-
-### Adding Manually in Visual Studio
-
-Follow the instructions in the ['Linking Libraries'](https://github.com/Microsoft/react-native-windows/blob/master/docs/LinkingLibrariesWindows.md) documentation on the react-native-windows GitHub repo. For the first step of adding the project to the Visual Studio solution file, the path to the project should be `../node_modules/react-native-fs/windows/RNFS/RNFS.csproj`.
 
 ## Examples
+_These are legacy examples, and should be revised, there is an Example app in the `/example` folder of the codebase, you probably should rather check it than these examples._
 
 ### Basic
 
@@ -305,26 +198,391 @@ RNFS.uploadFiles({
 
 ```
 
-## API
+## API Reference
+[API Reference]: #api-reference
 
-### Constants
+- [Constants]
+  - [CachesDirectoryPath] &mdash; The absolute path to the caches directory.
+  - [DocumentDirectoryPath] &mdash; The absolute path to the document directory.
+  - [DownloadDirectoryPath] &mdash; (Android & Windows) The absolute path to
+    the download directory (on android and Windows only).
+  - [ExternalCachesDirectoryPath] &mdash; (Android) The absolute path to
+    the external caches directory.
+  - [ExternalDirectoryPath] &mdash; (Android) The absolute path to
+    the external files, shared directory.
+  - [ExternalStorageDirectoryPath] &mdash; (Android) The absolute path to
+    the external storage, shared directory.
+  - [LibraryDirectoryPath] &mdash; (iOS) The absolute path to
+    the NSLibraryDirectory.
+  - [MainBundlePath] &mdash; (non-Android) The absolute path to
+    the main bundle directory.
+  - [PicturesDirectoryPath] &mdash; The absolute path to the pictures directory.
+  - [RoamingDirectoryPath] &mdash; (Windows) The absolute path to the roaming
+    directory.
+  - [TemporaryDirectoryPath] &mdash; The absolute path to the temporary
+    directory.
+- [Functions]
+  - [copyFileAssets()] &mdash; (Android) Copies an asset file to
+    the given destination.
+  - [exists()] &mdash; Checks if an item exists at the given path.
+  - [existsAssets()] &mdash; Checks if an item exists at the given path inside
+    the Android assets folder.
+  - [mkdir()] &mdash; Creates folder(s) at the given path.
+  - [readDirAssets()] &mdash; (Android only) Reads the content of a folder at
+    the given path inside the Android assets folder.
+  - [readFile()] &mdash; Reads the file at a path and return its content as
+    a string.
+  - [readFileAssets()] &mdash; Android-only. Reads the file at a path in
+    the Android app's assets folder.
+and return its contents.
+- [Types]
+  - [EncodingT] &mdash; Union of valid file encoding values.
+  - [MkdirOptions] &mdash; Extra options for [mkdir()].
+  - [ReadDirAssetsResItemT] &mdash; Elements returned by [readDirAssets()].
+  - [ReadFileOptionsT] &mdash; The type of extra options argument of
+    the [readFile()] function.
+  - [unlink()] &mdash; Unlinks (removes) a file or directory with files.
+  - [WriteFileOptionsT] &mdash; The type of extra options argument of
+    the [writeFile()] function.
+- [Legacy] &mdash; Everything else inherited from the original library,
+  but not yet correctly verified to work and match the documentation.
 
-The following constants are available on the `RNFS` export:
+## Constants
+[Constants]: #constants
 
-- `MainBundlePath` (`String`) The absolute path to the main bundle directory (not available on Android)
-- `CachesDirectoryPath` (`String`) The absolute path to the caches directory
-- `ExternalCachesDirectoryPath` (`String`) The absolute path to the external caches directory (android only)
-- `DocumentDirectoryPath`  (`String`) The absolute path to the document directory
-- `DownloadDirectoryPath` (`String`) The absolute path to the download directory (on android and Windows only)
-- `TemporaryDirectoryPath` (`String`) The absolute path to the temporary directory (falls back to Caching-Directory on Android)
-- `LibraryDirectoryPath` (`String`) The absolute path to the NSLibraryDirectory (iOS only)
-- `ExternalDirectoryPath` (`String`) The absolute path to the external files, shared directory (android only)
-- `ExternalStorageDirectoryPath` (`String`) The absolute path to the external storage, shared directory (android only)
-- `PicturesDirectoryPath` (`String`) The absolute path to the pictures directory (Windows only)
-- `RoamingDirectoryPath` (`String`) The absolute path to the roaming directory (Windows only)
+### CachesDirectoryPath
+[CachesDirectoryPath]: #cachesdirectorypath
+```ts
+const CachesDirectoryPath: string;
+```
+**VERIFIED:** Android, iOS, macOS, Windows.
 
+The absolute path to the caches directory.
+
+### DocumentDirectoryPath
+[DocumentDirectoryPath]: #documentdirectorypath
+```ts
+const DocumentDirectoryPath: string;
+```
+**VERIFIED:** Android, iOS, macOS, Windows.
+
+The absolute path to the document directory.
+
+### DownloadDirectoryPath
+[DownloadDirectoryPath]: #downloaddirectorypath
+```ts
+const DownloadDirectoryPath: string;
+```
+**VERIFIED:** Android, Windows. **NOT SUPPORTED:** iOS, macOS.
+
+The absolute path to the download directory (on android and Windows only).
+
+### ExternalCachesDirectoryPath
+[ExternalCachesDirectoryPath]: #externalcachesdirectorypath
+```ts
+const ExternalCachesDirectoryPath: string;
+```
+**VERIFIED:** Android, Windows (empty?). **NOT SUPPORTED:** iOS, macOS.
+
+The absolute path to the external caches directory (android only).
+
+### ExternalDirectoryPath
+[ExternalDirectoryPath]: #externaldirectorypath
+```ts
+const ExternalDirectoryPath: string;
+```
+**VERIFIED:** Android, iOS (empty?), macOS (empty?), Windows.
+
+The absolute path to the external files, shared directory (android only).
+
+### ExternalStorageDirectoryPath
+[ExternalStorageDirectoryPath]: #externalstoragedirectorypath
+```ts
+const ExternalStorageDirectoryPath: string;
+```
+**VERIFIED:** Android, iOS (empty?), macOS (empty?), Windows (empty?).
+
+The absolute path to the external storage, shared directory (android only).
+
+### LibraryDirectoryPath
+[LibraryDirectoryPath]: #librarydirectorypath
+```ts
+const LibraryDirectoryPath: string;
+```
+**VERIFIED:** iOS, macOS, Windows (empty?). **NOT SUPPORTED:** Android.
+
+The absolute path to the NSLibraryDirectory (iOS only).
+
+### MainBundlePath
+[MainBundlePath]: #mainbundlepath
+```ts
+const MainBundlePath: string;
+```
+**VERIFIED:** iOS, macOS, Windows. **NOT SUPPORTED:** Android.
+
+The absolute path to the main bundle directory (not available on Android).
+
+### PicturesDirectoryPath
+[PicturesDirectoryPath]: #picturesdirectorypath
+```ts
+const PicturesDirectoryPath: string;
+```
+**VERIFIED:** Android, Windows. **NOT SUPPORTED:** iOS, macOS.
+
+The absolute path to the pictures directory.
+
+### RoamingDirectoryPath
+[RoamingDirectoryPath]: #roamingdirectorypath
+```ts
+const RoamingDirectoryPath: string;
+```
+**VERIFIED:** Windows. **NOT SUPPORTED:** Android, iOS, macOS.
+
+The absolute path to the roaming directory (Windows only).
+
+### TemporaryDirectoryPath
+[TemporaryDirectoryPath]: #temporarydirectorypath
+```ts
+const TemporaryDirectoryPath: string;
+```
+**VERIFIED**: Android, iOS, macOS, Windows.
+
+The absolute path to the temporary directory (falls back to Caching-Directory on
+Android).
 
 IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request permissions (on Android) to read and write on the external storage, here an example: [React Native Offical Doc](https://facebook.github.io/react-native/docs/permissionsandroid)
+
+## Functions
+[Functions]: #functions
+
+### copyFileAssets()
+[copyFileAssets()]: #copyfileassets
+```ts
+function copyFileAssets(from: string, to: string): Promise<void>
+```
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS, Windows.
+
+Copies a file from the given path in the Android app's assets folder to
+the specified destination path, overwriting the file at destination, if
+it exists.
+
+- `from` &mdash; **string** &mdash; Source asset path (relative to the asset
+  folder's root).
+- `to` &mdash; **string** &mdash; Destination path.
+- Resolves once completed.
+
+### exists()
+[exists()]: #exists
+```ts
+function exists(path: string): Promise<boolean>;
+```
+**VERIFIED:** Android, iOS, macOS, Windows.
+
+Checks if an item exists at the given `path`.
+
+- `path` &mdash; **string** &mdash; Path.
+- Resolves to _true_ if the item exists; to _false_ otherwise.
+
+### existsAssets()
+[existsAssets()]: #existsassets
+```ts
+function existsAssets(path: string): Promise<boolean>;
+```
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS, Windows.
+
+Android-only. Checks if an item exists at the given path in the Android assets
+folder.
+
+- `path` &mdash; **string** &mdash; Path, relative to the root of the Android
+  assets folder.
+- Resolves _true_ if the item exists; _false_ otherwise.
+
+### mkdir()
+[mkdir()]: #mkdir
+```ts
+function mkdir(path: string, options?: MkdirOptions): Promise<void>;
+```
+**VERIFIED:** Android, iOS, macOS, Windows.
+
+Creates folder(s) at `path`, and does not throw if already exists (similar to
+`mkdir -p` in Linux).
+
+- `path` &mdash; **string** &mdash; Path to create.
+- `options` &mdash; **[MkdirOptions]** | **undefined** &mdash; Optional.
+  Additional parameters.
+- Resolves once completed.
+
+### readDirAssets()
+[readDirAssets()]: #readdirassets
+```ts
+function readDirAssets(path: string): Promise<ReadDirItem[]>;
+```
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS, Windows.
+
+(Android only) Reads the content of a folder at the given `path` inside
+the Android assets folder.
+
+- `path` &mdash; **string** &mdash; Folder path, relative to the root of
+  the `assets` folder.
+- Resolves to an array of [ReadDirAssetsResItemT] objects.
+
+### readFile()
+[readFile()]: #readfile
+```ts
+function readFile(path: string, encodingOrOptions?: EncodingT | ReadFileOptionsT): Promise<string>;
+```
+**VERIFIED:** Android, iOS, macOS, Windows.
+
+Reads the file at `path` and return its content as a string.
+
+**NOTE:** For `base64` encoding this function will return file content encoded
+into Base64 format; for `ascii` it will fill each character of the result string
+with the code of corresponding byte in the file; and for `utf8` (default)
+it will assume the source file is UTF8-encoded, and it will decode it into
+the result string (thus each result character will be corresponding to a group
+of 1-to-4 bytes of the source file).
+
+**BEWARE:** You will take quite a performance hit if you are reading big files.
+
+- `path` &mdash; **string** &mdash; File path.
+- `encoding` &mdash; [EncodingT] | [ReadFileOptionsT] &mdash; Optional.
+  File encoding, or extra options.
+- Resolves to **string** &mdash; the content read from the file, and transformed
+  according to the given encoding.
+
+### readFileAssets()
+[readFileAssets()]: #readfileassets
+```ts
+function readFileAssets(path:string, encoding?: EncodingT | ReadFileOptionsT): Promise<string>;
+```
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS, Windows.
+
+Android-only. Reads the file at `path` in the Android app's assets folder
+and return its contents. `encoding` can be one of `utf8` (default), `ascii`,
+`base64`. Use `base64` for reading binary files.
+
+- `path` &mdash; **string** &mdash; Asset path.
+- `encoding` &mdash; [EncodingT] | [ReadFileOptionsT] | **undefined** &mdash;
+  Optional. Encoding, or extra options object, which currently only supports
+  specifying the encoding.
+- Resolves to **string** &mdash; the asset content.
+
+### unlink()
+[unlink()]: #unlink
+```ts
+function unlink(path: string): Promise<void>;
+```
+**VERIFIED:** Android, iOS, macOS, Windows.
+
+Unlinks (removes) the item at `path`. If the item does not exist, an error will
+be thrown. Also recursively deletes directories (works like Linux `rm -rf`).
+
+- `path` &mdash; **string** &mdash; Item path.
+- Resolves once done.
+
+### writeFile()
+[writeFile()]: #writefile
+```ts
+function writeFile(path: string, content: string, encodingOrOptions?: EncodingT | WriteFileOptionsT): Promise<void>
+```
+**VERIFIED:** Android, iOS, macOS, Windows.
+
+Write the `content` to the file at `path`, overwritting it if exists already.
+
+**NOTE:** With `base64` encoding value this function will assume that given
+`content` is Base64-encoded already, and it will be decoded into the file;
+for `ascii` encoding each character of `content` will be written to one byte
+in the file, and the function will fail if any character is outside
+the U+0000 to U+00FF range (keep in mind, that regular JS strings have
+two-byte characters); and for `utf8` encoding (default) it will encode
+`content` characters (which can be from U+0000 to U+FFFF in this case)
+into the corresponding UTF8 code (_i.e._ each source character will be
+turned into a group of 1-to-4 bytes in the written file).
+
+- `path` &mdash; **string** &mdash; File path.
+- `content` &mdash; **string** &mdash; Data to write into the file.
+- `encodingOrOptions` &mdash; [EncodingT] | [WriteFileOptionsT] &mdash; Data
+  encoding, or extra options.
+- Resolves once completed.
+
+## Types
+[Types]: #types
+
+### EncodingT
+[EncodingT]: #encodingt
+```ts
+type EncodingT = 'ascii' | 'base64' | `utf8`;
+```
+Union of valid file encoding values.
+
+### MkdirOptions
+[MkdirOptions]: #mkdiroptions
+```ts
+type MkdirOptions = {
+  NSURLIsExcludedFromBackupKey?: boolean; // iOS only
+};
+```
+Type of extra options argument for [mkdir()].
+- `NSURLIsExcludedFromBackupKey` &mdash; **boolean** | **undefined** &mdash;
+  (iOS only) The  property can be provided to set this attribute on iOS platforms.
+  Apple will *reject* apps for storing offline cache data that does not have this
+  attribute.
+
+
+### ReadDirAssetsResItemT
+[ReadDirAssetsResItemT]: #readdirassetsresitemt
+```ts
+type ReadDirAssetsResItemT = {
+  name: string;
+  path: string;
+  size: string;
+  isFile: () => boolean;
+  isDirectory: () => boolean;
+};
+```
+Type of result elements returned by the [readDirAssets()] function.
+
+- `name` &mdash; **string** &mdash; Item name.
+- `path` &mdash; **string** &mdash; Item path.
+- `size` &mdash; **string** &mdash; Size in bytes. Note that the size of files
+  compressed during the creation of the APK (such as JSON files) cannot be
+  determined. `size` will be set to -1 in this case.
+- `isFile` &mdash; **() => boolean** &mdash; Is this item a regular file?
+- `isDirectory` &mdash; **() => boolean** &mdash; Is this item a directory?
+
+### ReadFileOptionsT
+[ReadFileOptionsT]: #readfileoptionst
+```ts
+type ReadFileOptionsT = {
+  encoding?: EncodingT;
+};
+```
+The type of extra options argument of the [readFile()] function.
+
+- `encoding` &mdash; [EncodingT] | **undefined** &mdash; Optional. File encoding.
+  Defaults `utf8`.
+
+### WriteFileOptionsT
+[WriteFileOptionsT]: #writefileoptionst
+```ts
+type WriteFileOptionsT = {
+  encoding?: EncodingT;
+  NSFileProtectionKey?: string;
+};
+```
+The type of extra options argument of the [writeFile()] function.
+
+- `encoding` &mdash; [EncodingT] | **undefined** &mdash; Optional. File encoding
+  to use. Defaults `utf8`.
+- `NSFileProtectionKey` &mdash; **string** | **undefined** &mdash; Optional.
+  iOS-only. See: https://developer.apple.com/documentation/foundation/nsfileprotectionkey
+
+## Legacy
+[Legacy]: #legacy
+Below is the original documentation for all other methods and types inherited
+from the original library. They are present in the codebase, but haven't been
+tested to work after refactoring for the new version of the library, and a few
+of them were commented out and marked as not yet supported on some platforms.
 
 ### `readDir(dirpath: string): Promise<ReadDirItem[]>`
 
@@ -343,27 +601,6 @@ type ReadDirItem = {
   isDirectory: () => boolean;   // Is the item a directory?
 };
 ```
-
-### `readDirAssets(dirpath: string): Promise<ReadDirItem[]>`
-
-Reads the contents of `dirpath ` in the Android app's assets folder.
-`dirpath ` is the relative path to the file from the root of the `assets` folder.
-
-The returned promise resolves with an array of objects with the following properties:
-
-```js
-type ReadDirItem = {
-  name: string;     // The name of the item
-  path: string;     // The absolute path to the item
-  size: string;     // Size in bytes.
-  						// Note that the size of files compressed during the creation of the APK (such as JSON files) cannot be determined.
-  						// `size` will be set to -1 in this case.
-  isFile: () => boolean;        // Is the file just a file?
-  isDirectory: () => boolean;   // Is the file a directory?
-};
-```
-
-Note: Android only.
 
 ### `readdir(dirpath: string): Promise<string[]>`
 
@@ -387,35 +624,17 @@ type StatResult = {
 };
 ```
 
-### `readFile(filepath: string, encoding?: string): Promise<string>`
-
-Reads the file at `path` and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
-
-Note: you will take quite a performance hit if you are reading big files
-
 ### `read(filepath: string, length = 0, position = 0, encodingOrOptions?: any): Promise<string>`
 
 Reads `length` bytes from the given `position` of the file at `path` and returns contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
 Note: reading big files piece by piece using this method may be useful in terms of performance.
 
-### `readFileAssets(filepath:string, encoding?: string): Promise<string>`
-
-Reads the file at `path` in the Android app's assets folder and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
-
-`filepath` is the relative path to the file from the root of the `assets` folder.
-
-Note: Android only.
-
 ### `readFileRes(filename:string, encoding?: string): Promise<string>`
 
 Reads the file named `filename` in the Android app's `res` folder and return contents. Only the file name (not folder) needs to be specified. The file type will be detected from the extension and automatically located within `res/drawable` (for image files) or `res/raw` (for everything else). `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
 Note: Android only.
-
-### `writeFile(filepath: string, contents: string, encoding?: string): Promise<void>`
-
-Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
 
 ### `appendFile(filepath: string, contents: string, encoding?: string): Promise<void>`
 
@@ -442,12 +661,6 @@ Note: Windows only. This method is recommended when directories need to be copie
 Copies the file located at `filepath` to `destPath`.
 
 Note: On Android and Windows copyFile will overwrite `destPath` if it already exists. On iOS an error will be thrown if the file already exists.
-
-### `copyFileAssets(filepath: string, destPath: string): Promise<void>`
-
-Copies the file at `filepath` in the Android app's assets folder and copies it to the given `destPath ` path.
-
-Note: Android only. Will overwrite destPath if it already exists.
 
 ### `copyFileRes(filename: string, destPath: string): Promise<void>`
 
@@ -516,22 +729,6 @@ The promise will on success return the final destination of the file, as it was 
 
 Copies a video from assets-library, that is prefixed with 'assets-library://asset/asset.MOV?...' to a specific destination.
 
-### `unlink(filepath: string): Promise<void>`
-
-Unlinks the item at `filepath`. If the item does not exist, an error will be thrown.
-
-Also recursively deletes directories (works like Linux `rm -rf`).
-
-### `exists(filepath: string): Promise<boolean>`
-
-Check if the item exists at `filepath`. If the item does not exist, return false.
-
-### `existsAssets(filepath: string): Promise<boolean>`
-
-Check in the Android assets folder if the item exists. `filepath` is the relative path from the root of the assets folder. If the item does not exist, return false.
-
-Note: Android only.
-
 ### `existsRes(filename: string): Promise<boolean>`
 
 Check in the Android res folder if the item named `filename` exists. `res/drawable` is used as the parent folder for image files, `res/raw` for everything else. If the item does not exist, return false.
@@ -545,18 +742,6 @@ Reads the file at `path` and returns its checksum as determined by `algorithm`, 
 ### `touch(filepath: string, mtime?: Date, ctime?: Date): Promise<string>`
 
 Sets the modification timestamp `mtime` and creation timestamp `ctime` of the file at `filepath`. Setting `ctime` is supported on iOS and Windows, android always sets both timestamps to `mtime`.
-
-### `mkdir(filepath: string, options?: MkdirOptions): Promise<void>`
-
-```
-type MkdirOptions = {
-  NSURLIsExcludedFromBackupKey?: boolean; // iOS only
-};
-```
-
-Create a directory at `filepath`. Automatically creates parents and does not throw if already exists (works like Linux `mkdir -p`).
-
-(IOS only): The `NSURLIsExcludedFromBackupKey` property can be provided to set this attribute on iOS platforms. Apple will *reject* apps for storing offline cache data that does not have this attribute.
 
 ### `downloadFile(options: DownloadFileOptions): { jobId: number, promise: Promise<DownloadResult> }`
 
@@ -767,10 +952,3 @@ The JavaScript will continue to work as usual when the download is done but now 
 **BE AWARE!** iOS will give about 30 sec. to run your code after `handleEventsForBackgroundURLSession` is called and until `completionHandler`
 is triggered so don't do anything that might take a long time (like unzipping), you will be able to do it after the user re-launces the app,
 otherwide iOS will terminate your app.
-
-
-## Test / Demo app
-
-Test app to demostrate the use of the module. Useful for testing and developing the module:
-
-https://github.com/cjdell/react-native-fs-test
