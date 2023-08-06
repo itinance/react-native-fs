@@ -90,6 +90,20 @@ export type MkdirOptions = {
   NSFileProtectionKey?: string;
 };
 
+export type ReadDirAssetsResItemT = {
+  name: string;
+  path: string;
+  size: number;
+
+  // TODO: Can't these be just values rather than methods?
+  // Ok.. the reason these are functions is that currently the library
+  // receives from native side "type" field, and then in JS side it compares
+  // it with system-dependent constant values for directory and file...
+  // in other words... this is an unnecessary complication.
+  isDirectory: () => boolean; // Is the file a directory?
+  isFile: () => boolean; // Is the file just a file?
+};
+
 // TODO: When it is used as return type of Androids readDirAssets()
 // it is not so good, as there are no mtime and ctime fields in that case.
 // Should have a dedicated type for that.

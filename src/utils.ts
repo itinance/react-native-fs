@@ -12,7 +12,7 @@ export function normalizeFilePath(path: string): string {
 
 type ReadFileCommand = (path: string) => Promise<string>;
 export type Encoding = 'ascii' | 'base64' | 'utf8';
-export type EncodingOptions = Encoding | { encoding: Encoding };
+export type EncodingOptions = Encoding | { encoding?: Encoding };
 
 /**
  * Reduces `encodingOrOptions` argument to encoding value,

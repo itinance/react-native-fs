@@ -10,6 +10,7 @@ import {
   type MkdirOptions,
   type NativeDownloadFileOptions,
   type NativeReadDirResItemT,
+  type ReadDirAssetsResItemT,
   type ReadDirItem,
   type StatResult,
   type UploadFileOptions,
@@ -17,6 +18,7 @@ import {
 } from './NativeReactNativeFs';
 
 import {
+  type Encoding,
   type EncodingOptions,
   decode,
   encode,
@@ -222,11 +224,15 @@ export async function read(
   return decode(b64, toEncoding(encodingOrOptions));
 }
 
+export type ReadFileOptionsT = {
+  encoding?: Encoding;
+};
+
 export function readFile(
-  filepath: string,
-  encodingOrOptions?: EncodingOptions,
+  path: string,
+  encodingOrOptions?: Encoding | ReadFileOptionsT,
 ): Promise<string> {
-  return readFileGeneric(filepath, encodingOrOptions, RNFS.readFile);
+  return readFileGeneric(path, encodingOrOptions, RNFS.readFile);
 }
 
 export function readDir(dirpath: string): Promise<ReadDirItem[]> {
@@ -366,14 +372,19 @@ export function write(
   return RNFS.write(normalizeFilePath(filepath), b64, position);
 }
 
+type WriteFileOptionsT = {
+  encoding?: Encoding;
+  NSFileProtectionKey?: string;
+};
+
 export function writeFile(
-  filepath: string,
-  contents: string,
-  encodingOrOptions?: EncodingOptions & FileOptions,
+  path: string,
+  content: string,
+  encodingOrOptions?: Encoding | WriteFileOptionsT,
 ): Promise<void> {
-  const b64 = encode(contents, toEncoding(encodingOrOptions));
+  const b64 = encode(content, toEncoding(encodingOrOptions));
   return RNFS.writeFile(
-    normalizeFilePath(filepath),
+    normalizeFilePath(path),
     b64,
     typeof encodingOrOptions === 'object' ? encodingOrOptions : {},
   );
@@ -404,8 +415,11 @@ export function hash(filepath: string, algorithm: string): Promise<string> {
   return RNFS.hash(normalizeFilePath(filepath), algorithm);
 }
 
-export function readDirAssets(dirpath: string): Promise<ReadDirItem[]> {
-  return readDirGeneric(dirpath, RNFS.readDirAssets);
+export async function readDirAssets(
+  path: string,
+): Promise<ReadDirAssetsResItemT[]> {
+  const res = await readDirGeneric(path, RNFS.readDirAssets);
+  return res as ReadDirAssetsResItemT[];
 }
 
 export function readFileAssets(
@@ -508,8 +522,11 @@ const {
 } = RNFS.getConstants();
 
 export {
+  type Encoding,
   type MkdirOptions,
+  type ReadDirAssetsResItemT,
   type ReadDirItem,
+  type WriteFileOptionsT,
   MainBundlePath,
   CachesDirectoryPath,
   ExternalCachesDirectoryPath,

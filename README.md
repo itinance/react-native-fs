@@ -49,36 +49,6 @@ _When installing the library into a new project no additional steps are required
 ## Table of Contents
 - [Getting Started]
 - [API Reference]
-  - [Constants]
-    - [CachesDirectoryPath] &mdash; The absolute path to the caches directory.
-    - [DocumentDirectoryPath] &mdash; The absolute path to the document directory.
-    - [DownloadDirectoryPath] &mdash; (Android & Windows) The absolute path to
-      the download directory (on android and Windows only).
-    - [ExternalCachesDirectoryPath] &mdash; (Android) The absolute path to
-      the external caches directory.
-    - [ExternalDirectoryPath] &mdash; (Android) The absolute path to
-      the external files, shared directory.
-    - [ExternalStorageDirectoryPath] &mdash; (Android) The absolute path to
-      the external storage, shared directory.
-    - [LibraryDirectoryPath] &mdash; (iOS) The absolute path to
-      the NSLibraryDirectory.
-    - [MainBundlePath] &mdash; (non-Android) The absolute path to
-      the main bundle directory.
-    - [PicturesDirectoryPath] &mdash; The absolute path to the pictures directory.
-    - [RoamingDirectoryPath] &mdash; (Windows) The absolute path to the roaming
-      directory.
-    - [TemporaryDirectoryPath] &mdash; The absolute path to the temporary
-      directory.
-  - [copyFileAssets()] &mdash; (Android) Copies an asset file to
-    the given destination.
-  - [exists()] &mdash; Checks if an item exists at the given path.
-  - [existsAssets()] &mdash; Checks if an item exists at the given path inside
-    the Android assets folder.
-  - [mkdir()] &mdash; Creates folder(s) at the given path.
-    - [MkdirOptions]
-  - [readDirAssets()] &mdash; (Android only) Reads the content of a folder at
-    the given path inside the Android assets folder.
-    - [ReadDirItem]
 - [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios)
 - [Test / Demo App](#test--demo-app)
 
@@ -226,10 +196,47 @@ RNFS.uploadFiles({
 ## API Reference
 [API Reference]: #api-reference
 
-### Constants
+- [Constants]
+  - [CachesDirectoryPath] &mdash; The absolute path to the caches directory.
+  - [DocumentDirectoryPath] &mdash; The absolute path to the document directory.
+  - [DownloadDirectoryPath] &mdash; (Android & Windows) The absolute path to
+    the download directory (on android and Windows only).
+  - [ExternalCachesDirectoryPath] &mdash; (Android) The absolute path to
+    the external caches directory.
+  - [ExternalDirectoryPath] &mdash; (Android) The absolute path to
+    the external files, shared directory.
+  - [ExternalStorageDirectoryPath] &mdash; (Android) The absolute path to
+    the external storage, shared directory.
+  - [LibraryDirectoryPath] &mdash; (iOS) The absolute path to
+    the NSLibraryDirectory.
+  - [MainBundlePath] &mdash; (non-Android) The absolute path to
+    the main bundle directory.
+  - [PicturesDirectoryPath] &mdash; The absolute path to the pictures directory.
+  - [RoamingDirectoryPath] &mdash; (Windows) The absolute path to the roaming
+    directory.
+  - [TemporaryDirectoryPath] &mdash; The absolute path to the temporary
+    directory.
+- [Functions]
+  - [copyFileAssets()] &mdash; (Android) Copies an asset file to
+    the given destination.
+  - [exists()] &mdash; Checks if an item exists at the given path.
+  - [existsAssets()] &mdash; Checks if an item exists at the given path inside
+    the Android assets folder.
+  - [mkdir()] &mdash; Creates folder(s) at the given path.
+  - [readDirAssets()] &mdash; (Android only) Reads the content of a folder at
+    the given path inside the Android assets folder.
+  - [readFile()] &mdash; Reads the file at `path` and return its content as
+    a string.
+- [Types]
+  - [MkdirOptions] &mdash; Extra options for [mkdir()].
+  - [ReadDirAssetsResItemT] &mdash; Elements returned by [readDirAssets()].
+- [Legacy] &mdash; Everything else inherited from the original library,
+  but not yet correctly verified to work and match the documentation.
+
+## Constants
 [Constants]: #constants
 
-#### CachesDirectoryPath
+### CachesDirectoryPath
 [CachesDirectoryPath]: #cachesdirectorypath
 ```ts
 const CachesDirectoryPath: string;
@@ -238,7 +245,7 @@ const CachesDirectoryPath: string;
 
 The absolute path to the caches directory.
 
-#### DocumentDirectoryPath
+### DocumentDirectoryPath
 [DocumentDirectoryPath]: #documentdirectorypath
 ```ts
 const DocumentDirectoryPath: string;
@@ -247,7 +254,7 @@ const DocumentDirectoryPath: string;
 
 The absolute path to the document directory.
 
-#### DownloadDirectoryPath
+### DownloadDirectoryPath
 [DownloadDirectoryPath]: #downloaddirectorypath
 ```ts
 const DownloadDirectoryPath: string;
@@ -256,7 +263,7 @@ const DownloadDirectoryPath: string;
 
 The absolute path to the download directory (on android and Windows only).
 
-#### ExternalCachesDirectoryPath
+### ExternalCachesDirectoryPath
 [ExternalCachesDirectoryPath]: #externalcachesdirectorypath
 ```ts
 const ExternalCachesDirectoryPath: string;
@@ -265,7 +272,7 @@ const ExternalCachesDirectoryPath: string;
 
 The absolute path to the external caches directory (android only).
 
-#### ExternalDirectoryPath
+### ExternalDirectoryPath
 [ExternalDirectoryPath]: #externaldirectorypath
 ```ts
 const ExternalDirectoryPath: string;
@@ -274,7 +281,7 @@ const ExternalDirectoryPath: string;
 
 The absolute path to the external files, shared directory (android only).
 
-#### ExternalStorageDirectoryPath
+### ExternalStorageDirectoryPath
 [ExternalStorageDirectoryPath]: #externalstoragedirectorypath
 ```ts
 const ExternalStorageDirectoryPath: string;
@@ -283,7 +290,7 @@ const ExternalStorageDirectoryPath: string;
 
 The absolute path to the external storage, shared directory (android only).
 
-#### LibraryDirectoryPath
+### LibraryDirectoryPath
 [LibraryDirectoryPath]: #librarydirectorypath
 ```ts
 const LibraryDirectoryPath: string;
@@ -292,7 +299,7 @@ const LibraryDirectoryPath: string;
 
 The absolute path to the NSLibraryDirectory (iOS only).
 
-#### MainBundlePath
+### MainBundlePath
 [MainBundlePath]: #mainbundlepath
 ```ts
 const MainBundlePath: string;
@@ -301,7 +308,7 @@ const MainBundlePath: string;
 
 The absolute path to the main bundle directory (not available on Android).
 
-#### PicturesDirectoryPath
+### PicturesDirectoryPath
 [PicturesDirectoryPath]: #picturesdirectorypath
 ```ts
 const PicturesDirectoryPath: string;
@@ -310,7 +317,7 @@ const PicturesDirectoryPath: string;
 
 The absolute path to the pictures directory.
 
-#### RoamingDirectoryPath
+### RoamingDirectoryPath
 [RoamingDirectoryPath]: #roamingdirectorypath
 ```ts
 const RoamingDirectoryPath: string;
@@ -319,7 +326,7 @@ const RoamingDirectoryPath: string;
 
 The absolute path to the roaming directory (Windows only).
 
-#### TemporaryDirectoryPath
+### TemporaryDirectoryPath
 [TemporaryDirectoryPath]: #temporarydirectorypath
 ```ts
 const TemporaryDirectoryPath: string;
@@ -330,6 +337,9 @@ The absolute path to the temporary directory (falls back to Caching-Directory on
 Android).
 
 IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request permissions (on Android) to read and write on the external storage, here an example: [React Native Offical Doc](https://facebook.github.io/react-native/docs/permissionsandroid)
+
+## Functions
+[Functions]: #functions
 
 ### copyFileAssets()
 [copyFileAssets()]: #copyfileassets
@@ -388,19 +398,6 @@ Creates folder(s) at `path`, and does not throw if already exists (similar to
   Additional parameters.
 - Resolves once completed.
 
-#### MkdirOptions
-[MkdirOptions]: #mkdiroptions
-```ts
-type MkdirOptions = {
-  NSURLIsExcludedFromBackupKey?: boolean; // iOS only
-};
-```
-Type of extra options argument for [mkdir()].
-- `NSURLIsExcludedFromBackupKey` &mdash; **boolean** | **undefined** &mdash;
-  (iOS only) The  property can be provided to set this attribute on iOS platforms.
-  Apple will *reject* apps for storing offline cache data that does not have this
-  attribute.
-
 ### readDirAssets()
 [readDirAssets()]: #readdirassets
 ```ts
@@ -413,12 +410,89 @@ the Android assets folder.
 
 - `path` &mdash; **string** &mdash; Folder path, relative to the root of
   the `assets` folder.
-- Resolves to an array of [ReadDirItem] objects.
+- Resolves to an array of [ReadDirAssetsResItemT] objects.
 
-#### ReadDirItem
-[ReadDirItem]: #readdiritem
+### readFile()
+[readFile()]: #readfile
 ```ts
-type ReadDirItem = {
+function readFile(path: string, encodingOrOptions?: Encoding | ReadFileOptionsT): Promise<string>;
+```
+**VERIFIED:** Android.
+
+Reads the file at `path` and return its content as a string.
+
+**NOTE:** For `base64` encoding this function will return file content encoded
+into Base64 format; for `ascii` it will fill each character of the result string
+with the code of corresponding byte in the file; and for `utf8` (default)
+it will assume the source file is UTF8-encoded, and it will decode it into
+the result string (thus each result character will be corresponding to a group
+of 1-to-4 bytes of the source file).
+
+**BEWARE:** You will take quite a performance hit if you are reading big files.
+
+- `path` &mdash; **string** &mdash; File path.
+- `encoding` &mdash; [Encoding] | [ReadFileOptionsT] &mdash; Optional.
+  File encoding, or extra options.
+- Resolves to **string** &mdash; the content read from the file, and transformed
+  according to the given encoding.
+
+### writeFile()
+[writeFile()]: #writefile
+```ts
+function writeFile(path: string, content: string, encodingOrOptions?: Encoding | WriteFileOptionsT): Promise<void>
+```
+**VERIFIED:** Android.
+
+Write the `content` to the file at `path`, overwritting it if exists already.
+
+**NOTE:** With `base64` encoding value this function will assume that given
+`content` is Base64-encoded already, and it will be decoded into the file;
+for `ascii` encoding each character of `content` will be written to one byte
+in the file, and the function will fail if any character is outside
+the U+0000 to U+00FF range (keep in mind, that regular JS strings have
+two-byte characters); and for `utf8` encoding (default) it will encode
+`content` characters (which can be from U+0000 to U+FFFF in this case)
+into the corresponding UTF8 code (_i.e._ each source character will be
+turned into a group of 1-to-4 bytes in the written file).
+
+- `path` &mdash; **string** &mdash; File path.
+- `content` &mdash; **string** &mdash; Data to write into the file.
+- `encodingOrOptions` &mdash; [Encoding] | [WriteFileOptionsT] &mdash; Data
+  encoding, or extra options.
+- Resolves once completed.
+
+## Types
+[Types]: #types
+
+### Encoding
+[Encoding]: #encoding
+```ts
+type Encoding = 'ascii' | 'base64' | `utf8`;
+```
+**VERIFIED**: Android.
+
+Union of valid file encoding values.
+
+### MkdirOptions
+[MkdirOptions]: #mkdiroptions
+```ts
+type MkdirOptions = {
+  NSURLIsExcludedFromBackupKey?: boolean; // iOS only
+};
+```
+**VERIFIED:** Android.
+
+Type of extra options argument for [mkdir()].
+- `NSURLIsExcludedFromBackupKey` &mdash; **boolean** | **undefined** &mdash;
+  (iOS only) The  property can be provided to set this attribute on iOS platforms.
+  Apple will *reject* apps for storing offline cache data that does not have this
+  attribute.
+
+
+### ReadDirAssetsResItemT
+[ReadDirAssetsResItemT]: #readdirassetsresitemt
+```ts
+type ReadDirAssetsResItemT = {
   name: string;
   path: string;
   size: string;
@@ -426,6 +500,8 @@ type ReadDirItem = {
   isDirectory: () => boolean;
 };
 ```
+**VERIFIED:** Android.
+
 Type of result elements returned by the [readDirAssets()] function.
 
 - `name` &mdash; **string** &mdash; Item name.
@@ -435,6 +511,44 @@ Type of result elements returned by the [readDirAssets()] function.
   determined. `size` will be set to -1 in this case.
 - `isFile` &mdash; **() => boolean** &mdash; Is this item a regular file?
 - `isDirectory` &mdash; **() => boolean** &mdash; Is this item a directory?
+
+### ReadFileOptionsT
+[ReadFileOptionsT]: #readfileoptionst
+```ts
+type ReadFileOptionsT = {
+  encoding?: Encoding;
+};
+```
+**VERIFIED:** Android
+
+The type of extra options argument of the [readFile()] function.
+
+- `encoding` &mdash; [Encoding] | **undefined** &mdash; Optional. File encoding.
+  Defaults `utf8`.
+
+### WriteFileOptionsT
+[WriteFileOptionsT]: #writefileoptionst
+```ts
+type WriteFileOptionsT = {
+  encoding?: Encoding;
+  NSFileProtectionKey?: string;
+};
+```
+**VERIFIED:** Android.
+
+The type of extra options argument of the [writeFile()] function.
+
+- `encoding` &mdash; [Encoding] | **undefined** &mdash; Optional. File encoding
+  to use. Defaults `utf8`.
+- `NSFileProtectionKey` &mdash; **string** | **undefined** &mdash; Optional.
+  iOS-only. See: https://developer.apple.com/documentation/foundation/nsfileprotectionkey
+
+## Legacy
+[Legacy]: #legacy
+Below is the original documentation for all other methods and types inherited
+from the original library. They are present in the codebase, but haven't been
+tested to work after refactoring for the new version of the library, and a few
+of them were commented out and marked as not yet supported on some platforms.
 
 ### `readDir(dirpath: string): Promise<ReadDirItem[]>`
 
@@ -476,12 +590,6 @@ type StatResult = {
 };
 ```
 
-### `readFile(filepath: string, encoding?: string): Promise<string>`
-
-Reads the file at `path` and return contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
-
-Note: you will take quite a performance hit if you are reading big files
-
 ### `read(filepath: string, length = 0, position = 0, encodingOrOptions?: any): Promise<string>`
 
 Reads `length` bytes from the given `position` of the file at `path` and returns contents. `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
@@ -501,12 +609,6 @@ Note: Android only.
 Reads the file named `filename` in the Android app's `res` folder and return contents. Only the file name (not folder) needs to be specified. The file type will be detected from the extension and automatically located within `res/drawable` (for image files) or `res/raw` (for everything else). `encoding` can be one of `utf8` (default), `ascii`, `base64`. Use `base64` for reading binary files.
 
 Note: Android only.
-
-### `writeFile(filepath: string, contents: string, encoding?: string): Promise<void>`
-
-`TODO: On iOS the third argument can also provide options object with NSFileProtectionKey`
-
-Write the `contents` to `filepath`. `encoding` can be one of `utf8` (default), `ascii`, `base64`. `options` optionally takes an object specifying the file's properties, like mode etc.
 
 ### `appendFile(filepath: string, contents: string, encoding?: string): Promise<void>`
 

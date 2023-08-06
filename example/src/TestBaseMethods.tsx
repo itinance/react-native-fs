@@ -91,8 +91,6 @@ const tests: { [name: string]: StatusOrEvaluator } = {
       }
 
       const assets2 = assets.map((asset) => ({
-        ctime: asset.ctime,
-        mtime: asset.mtime,
         name: asset.name,
         path: asset.path,
         size: asset.size,
@@ -101,15 +99,11 @@ const tests: { [name: string]: StatusOrEvaluator } = {
       if (
         !isEqual(assets2, [
           {
-            ctime: null,
-            mtime: null,
             name: 'good-latin1.txt',
             path: 'test/good-latin1.txt',
             size: -1,
           },
           {
-            ctime: null,
-            mtime: null,
             name: 'good-utf8.txt',
             path: 'test/good-utf8.txt',
             size: -1,
