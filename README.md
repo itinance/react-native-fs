@@ -60,6 +60,11 @@ Just install & use:
 $ npm install --save @dr.pogodin/react-native-fs
 ```
 
+NOTE: Windows auto-link command (at least as it was needed for example project to install the lib hosted in the parent folder):
+```sh
+npx react-native autolink-windows --sln "windows\ReactNativeFsExample.sln" --proj "windows\ReactNativeFsExample\ReactNativeFsExample.vcxproj"
+```
+
 ## Examples
 _These are legacy examples, and should be revised, there is an Example app in the `/example` folder of the codebase, you probably should rather check it than these examples._
 
@@ -250,7 +255,7 @@ and return its contents.
 ```ts
 const CachesDirectoryPath: string;
 ```
-**VERIFIED:** Android, iOS, macOS.
+**VERIFIED:** Android, iOS, macOS, Windows.
 
 The absolute path to the caches directory.
 
@@ -259,7 +264,7 @@ The absolute path to the caches directory.
 ```ts
 const DocumentDirectoryPath: string;
 ```
-**VERIFIED:** Android, iOS, macOS.
+**VERIFIED:** Android, iOS, macOS, Windows.
 
 The absolute path to the document directory.
 
@@ -268,7 +273,7 @@ The absolute path to the document directory.
 ```ts
 const DownloadDirectoryPath: string;
 ```
-**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
+**VERIFIED:** Android, Windows. **NOT SUPPORTED:** iOS, macOS.
 
 The absolute path to the download directory (on android and Windows only).
 
@@ -277,7 +282,7 @@ The absolute path to the download directory (on android and Windows only).
 ```ts
 const ExternalCachesDirectoryPath: string;
 ```
-**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
+**VERIFIED:** Android, Windows (empty?). **NOT SUPPORTED:** iOS, macOS.
 
 The absolute path to the external caches directory (android only).
 
@@ -286,7 +291,7 @@ The absolute path to the external caches directory (android only).
 ```ts
 const ExternalDirectoryPath: string;
 ```
-**VERIFIED:** Android, iOS, macOS.
+**VERIFIED:** Android, iOS, macOS, Windows.
 
 The absolute path to the external files, shared directory (android only).
 
@@ -295,7 +300,7 @@ The absolute path to the external files, shared directory (android only).
 ```ts
 const ExternalStorageDirectoryPath: string;
 ```
-**VERIFIED:** Android, iOS, macOS.
+**VERIFIED:** Android, iOS, macOS, Windows (empty?).
 
 The absolute path to the external storage, shared directory (android only).
 
@@ -304,7 +309,7 @@ The absolute path to the external storage, shared directory (android only).
 ```ts
 const LibraryDirectoryPath: string;
 ```
-**VERIFIED:** iOS, macOS. **NOT SUPPORTED:** Android.
+**VERIFIED:** iOS, macOS, Windows (empty?). **NOT SUPPORTED:** Android.
 
 The absolute path to the NSLibraryDirectory (iOS only).
 
@@ -313,7 +318,7 @@ The absolute path to the NSLibraryDirectory (iOS only).
 ```ts
 const MainBundlePath: string;
 ```
-**VERIFIED:** iOS, macOS. **NOT SUPPORTED:** Android.
+**VERIFIED:** iOS, macOS, Windows. **NOT SUPPORTED:** Android.
 
 The absolute path to the main bundle directory (not available on Android).
 
@@ -322,7 +327,7 @@ The absolute path to the main bundle directory (not available on Android).
 ```ts
 const PicturesDirectoryPath: string;
 ```
-**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
+**VERIFIED:** Android, Windows. **NOT SUPPORTED:** iOS, macOS.
 
 The absolute path to the pictures directory.
 
@@ -331,7 +336,7 @@ The absolute path to the pictures directory.
 ```ts
 const RoamingDirectoryPath: string;
 ```
-**VERIFIED:** **NOT SUPPORTED:** Android, iOS, macOS.
+**VERIFIED:** Windows. **NOT SUPPORTED:** Android, iOS, macOS.
 
 The absolute path to the roaming directory (Windows only).
 
@@ -340,7 +345,7 @@ The absolute path to the roaming directory (Windows only).
 ```ts
 const TemporaryDirectoryPath: string;
 ```
-**VERIFIED**: Android, iOS, macOS.
+**VERIFIED**: Android, iOS, macOS, Windows.
 
 The absolute path to the temporary directory (falls back to Caching-Directory on
 Android).
@@ -355,7 +360,7 @@ IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request p
 ```ts
 function copyFileAssets(from: string, to: string): Promise<void>
 ```
-**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS, Windows.
 
 Copies a file from the given path in the Android app's assets folder to
 the specified destination path, overwriting the file at destination, if
@@ -371,7 +376,7 @@ it exists.
 ```ts
 function exists(path: string): Promise<boolean>;
 ```
-**VERIFIED:** Android, iOS, macOS.
+**VERIFIED:** Android, iOS, macOS, Windows.
 
 Checks if an item exists at the given `path`.
 
@@ -383,7 +388,7 @@ Checks if an item exists at the given `path`.
 ```ts
 function existsAssets(path: string): Promise<boolean>;
 ```
-**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS, Windows.
 
 Android-only. Checks if an item exists at the given path in the Android assets
 folder.
@@ -397,7 +402,7 @@ folder.
 ```ts
 function mkdir(path: string, options?: MkdirOptions): Promise<void>;
 ```
-**VERIFIED:** Android, iOS, macOS.
+**VERIFIED:** Android, iOS, macOS, Windows.
 
 Creates folder(s) at `path`, and does not throw if already exists (similar to
 `mkdir -p` in Linux).
@@ -412,7 +417,7 @@ Creates folder(s) at `path`, and does not throw if already exists (similar to
 ```ts
 function readDirAssets(path: string): Promise<ReadDirItem[]>;
 ```
-**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS, Windows.
 
 (Android only) Reads the content of a folder at the given `path` inside
 the Android assets folder.
@@ -426,7 +431,7 @@ the Android assets folder.
 ```ts
 function readFile(path: string, encodingOrOptions?: EncodingT | ReadFileOptionsT): Promise<string>;
 ```
-**VERIFIED:** Android, iOS, macOS.
+**VERIFIED:** Android, iOS, macOS, Windows.
 
 Reads the file at `path` and return its content as a string.
 
@@ -450,7 +455,7 @@ of 1-to-4 bytes of the source file).
 ```ts
 function readFileAssets(path:string, encoding?: EncodingT | ReadFileOptionsT): Promise<string>;
 ```
-**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS.
+**VERIFIED:** Android. **NOT SUPPORTED:** iOS, macOS, Windows.
 
 Android-only. Reads the file at `path` in the Android app's assets folder
 and return its contents. `encoding` can be one of `utf8` (default), `ascii`,
@@ -467,7 +472,7 @@ and return its contents. `encoding` can be one of `utf8` (default), `ascii`,
 ```ts
 function unlink(path: string): Promise<void>;
 ```
-**VERIFIED:** Android, iOS, macOS.
+**VERIFIED:** Android, iOS, macOS, Windows.
 
 Unlinks (removes) the item at `path`. If the item does not exist, an error will
 be thrown. Also recursively deletes directories (works like Linux `rm -rf`).
@@ -480,7 +485,7 @@ be thrown. Also recursively deletes directories (works like Linux `rm -rf`).
 ```ts
 function writeFile(path: string, content: string, encodingOrOptions?: EncodingT | WriteFileOptionsT): Promise<void>
 ```
-**VERIFIED:** Android, iOS, macOS.
+**VERIFIED:** Android, iOS, macOS, Windows.
 
 Write the `content` to the file at `path`, overwritting it if exists already.
 
