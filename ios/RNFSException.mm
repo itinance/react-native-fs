@@ -1,8 +1,8 @@
-#import "RNException.h"
+#import "RNFSException.h"
 
 static NSString * const ERROR_DOMAIN = @"RNFS";
 
-@implementation RNException;
+@implementation RNFSException;
 
 - (id) initWithName:(NSString*)name details:(NSString*)details
 {
@@ -11,7 +11,7 @@ static NSString * const ERROR_DOMAIN = @"RNFS";
 }
 
 /**
- * Creates a new NSError object based on this RNException
+ * Creates a new NSError object based on this RNFSException
  */
 - (NSError*) error
 {
@@ -22,7 +22,7 @@ static NSString * const ERROR_DOMAIN = @"RNFS";
   ];
 }
 
-- (RNException*) log
+- (RNFSException*) log
 {
   NSLog(@"%@: %@", self.name, self.reason);
   return self;
@@ -40,29 +40,29 @@ static NSString * const ERROR_DOMAIN = @"RNFS";
   reject(self.name, reason, [self error]);
 }
 
-+ (RNException*) from: (NSException*)exception
++ (RNFSException*) from: (NSException*)exception
 {
-  return [[RNException alloc]
+  return [[RNFSException alloc]
           initWithName: exception.name
           reason: exception.reason
           userInfo: exception.userInfo
   ];
 }
 
-+ (RNException*) name: (NSString*)name
++ (RNFSException*) name: (NSString*)name
 {
-  return [[RNException alloc] initWithName:name details:nil];
+  return [[RNFSException alloc] initWithName:name details:nil];
 }
 
-+ (RNException*) name: (NSString*)name details:(NSString*)details
++ (RNFSException*) name: (NSString*)name details:(NSString*)details
 {
-  return [[RNException alloc] initWithName:name details:details];
+  return [[RNFSException alloc] initWithName:name details:details];
 }
 
-+ (RNException*) NOT_IMPLEMENTED
++ (RNFSException*) NOT_IMPLEMENTED
 {
   return [
-    [RNException alloc]
+    [RNFSException alloc]
     initWithName:@"NOT_IMPLEMENTED"
     details:@"This method is not implemented for iOS"
   ];

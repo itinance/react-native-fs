@@ -55,7 +55,7 @@ target 'ReactNativeFsExample' do
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false
+      :mac_catalyst_enabled => ENV['MAC_CATALYST'] == '1'
     )
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
   end

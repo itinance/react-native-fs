@@ -1,16 +1,16 @@
 #import <React/RCTBridgeModule.h>
 
-@interface RNException : NSException
+@interface RNFSException : NSException
 - (id) initWithName: (NSString*)name details: (NSString*)details;
 - (NSError*) error;
-- (RNException*) log;
+- (RNFSException*) log;
 - (void) reject:(RCTPromiseRejectBlock)reject;
 - (void) reject:(RCTPromiseRejectBlock)reject details:(NSString*)details;
-+ (RNException*) from: (NSException*)exception;
-+ (RNException*) name: (NSString*)name;
-+ (RNException*) name: (NSString*)name details: (NSString*)details;
++ (RNFSException*) from: (NSException*)exception;
++ (RNFSException*) name: (NSString*)name;
++ (RNFSException*) name: (NSString*)name details: (NSString*)details;
 
-+ (RNException*) NOT_IMPLEMENTED;
++ (RNFSException*) NOT_IMPLEMENTED;
 
 @property(readonly) NSInteger code;
 @end
