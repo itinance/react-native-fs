@@ -20,8 +20,8 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libReactNativeFs.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libReactNativeFs.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		6321E9672A7D4C3500762564 /* RNException.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RNException.mm; sourceTree = "<group>"; };
-		6321E9682A7D4C3500762564 /* RNException.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNException.h; sourceTree = "<group>"; };
+		6321E9672A7D4C3500762564 /* RNFSException.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RNFSException.mm; sourceTree = "<group>"; };
+		6321E9682A7D4C3500762564 /* RNFSException.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNFSException.h; sourceTree = "<group>"; };
 		633BCE662A7D375E00263BFD /* Downloader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Downloader.h; sourceTree = "<group>"; };
 		633BCE672A7D375E00263BFD /* NSArray+Map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSArray+Map.h"; sourceTree = "<group>"; };
 		633BCE6A2A7D376400263BFD /* Uploader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Uploader.h; sourceTree = "<group>"; };
@@ -54,8 +54,8 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-				6321E9682A7D4C3500762564 /* RNException.h */,
-				6321E9672A7D4C3500762564 /* RNException.mm */,
+				6321E9682A7D4C3500762564 /* RNFSException.h */,
+				6321E9672A7D4C3500762564 /* RNFSException.mm */,
 				633BCE6D2A7D380900263BFD /* Downloader.mm */,
 				633BCE6C2A7D380900263BFD /* NSArray+Map.mm */,
 				633BCE6E2A7D380900263BFD /* Uploader.mm */,

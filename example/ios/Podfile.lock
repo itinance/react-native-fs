@@ -2,7 +2,7 @@ PODS:
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
-  - dr-pogodin-react-native-fs (2.21.0-alpha.1):
+  - dr-pogodin-react-native-fs (2.21.0-alpha.2):
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - RCTRequired
@@ -1259,7 +1259,7 @@ SPEC CHECKSUMS:
   boost: 57d2868c099736d80fcd648bf211b4431e51a558
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
-  dr-pogodin-react-native-fs: bbb9988de39ebd12dde9c3d05c210002ca3eb57c
+  dr-pogodin-react-native-fs: 2ea0bcb4cc87ad09f8929476acf38cdea5f5e75a
   FBLazyVector: 4cce221dd782d3ff7c4172167bba09d58af67ccb
   Flipper: 6edb735e6c3e332975d1b17956bcc584eccf5818
   Flipper-Boost-iOSX: fd1e2b8cbef7e662a122412d7ac5f5bea715403c
@@ -1314,6 +1314,6 @@ SPEC CHECKSUMS:
   Yoga: 8796b55dba14d7004f980b54bcc9833ee45b28ce
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 590fe0a5893c85a8f75660561157ee1d2cee82db
+PODFILE CHECKSUM: 37e3e3cd5f6e9261215fe1830262c52d2266ce15
 
 COCOAPODS: 1.12.1
