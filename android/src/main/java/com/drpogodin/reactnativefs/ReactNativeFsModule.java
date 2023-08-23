@@ -968,7 +968,7 @@ public class ReactNativeFsModule extends ReactNativeFsSpec {
       if (!isDirectoryAllowed && file.isDirectory()) {
         throw new IORejectionException("EISDIR", "EISDIR: illegal operation on a directory, read '" + filepath + "'");
       }
-      uri = Uri.parse("file://" + filepath);
+      uri = Uri.fromFile(file);
     }
     return uri;
   }
@@ -1080,8 +1080,8 @@ public class ReactNativeFsModule extends ReactNativeFsSpec {
 }
 
 /**
- * TODO: This is the original module file 
- * 
+ * TODO: This is the original module file
+ *
 -
 -
 -
