@@ -22,7 +22,7 @@ type StatResult = {
 	path: string // The absolute path to the item
 	size: number // Size in bytes
 	mode: number // UNIX file mode
-	ctime: number // Created date
+	ctime: Date // Created date
 	mtime: number // Last modified date
 	originalFilepath: string // In case of content uri this is the pointed file path, otherwise is the same as path
 	isFile: () => boolean // Is the file just a file?
