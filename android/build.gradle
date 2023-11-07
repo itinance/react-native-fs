@@ -15,6 +15,11 @@ buildscript {
 apply plugin: 'com.android.library'
 
 android {
+    def agpVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+    if (agpVersion.tokenize('.')[0].toInteger() >= 7) {
+        namespace "com.rnfs"
+    }
+
     compileSdkVersion safeExtGet('compileSdkVersion', 26)
     buildToolsVersion safeExtGet('buildToolsVersion', '26.0.3')
 
