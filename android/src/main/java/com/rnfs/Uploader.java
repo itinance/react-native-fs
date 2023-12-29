@@ -9,6 +9,8 @@ import com.facebook.react.bridge.NoSuchKeyException;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
+import java.security.SecureRandom;
+import java.util.Base64;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -47,12 +49,30 @@ public class Uploader extends AsyncTask<UploadParams, int[], UploadResult> {
         return res;
     }
 
+    public static String generateBoundaryId() {
+            int length = 32;
+
+            String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_";
+            
+            SecureRandom random = new SecureRandom();
+
+            StringBuilder boundaryId = new StringBuilder(length);
+
+            for (int i = 0; i < length; i++) {
+                int randomIndex = random.nextInt(characters.length());
+                boundaryId.append(characters.charAt(randomIndex));
+            }
+
+            return boundaryId.toString();
+    }
+
     private void upload(UploadParams params, UploadResult result) throws Exception {
         HttpURLConnection connection = null;
         DataOutputStream request = null;
         String crlf = "\r\n";
+        String boundaryId = generateBoundaryId();
         String twoHyphens = "--";
-        String boundary = "*****";
+        String boundary = boundaryId;
         String tail = crlf + twoHyphens + boundary + twoHyphens + crlf;
         String metaData = "", stringData = "";
         String[] fileHeader;
