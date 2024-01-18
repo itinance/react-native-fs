@@ -323,6 +323,8 @@ The following constants are available on the `RNFS` export:
 - `PicturesDirectoryPath` (`String`) The absolute path to the pictures directory (Windows only)
 - `RoamingDirectoryPath` (`String`) The absolute path to the roaming directory (Windows only)
 
+**IMPORTANT**: `DocumentDirectoryPath` (iOS) will include an ID in the path that changes each build e.g `...Application/BCE32988-4C51-483B-892B-16671E3771C2/Documents`. 
+Use relative paths and resolve the full path at runtime to avoid files not being found on new builds.
 
 IMPORTANT: when using `ExternalStorageDirectoryPath` it's necessary to request permissions (on Android) to read and write on the external storage, here an example: [React Native Offical Doc](https://facebook.github.io/react-native/docs/permissionsandroid)
 
