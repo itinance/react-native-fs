@@ -17,6 +17,7 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion safeExtGet('compileSdkVersion', 26)
     buildToolsVersion safeExtGet('buildToolsVersion', '26.0.3')
+    namespace "com.rnfs"
 
     defaultConfig {
         minSdkVersion safeExtGet('minSdkVersion', 19)
