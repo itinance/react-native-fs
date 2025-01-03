@@ -265,8 +265,7 @@ var files = [
   }
 ];
 
-var upload
-= (response) => {
+var uploadBegin = (response) => {
   var jobId = response.jobId;
   console.log('UPLOAD HAS BEGUN! JobId: ' + jobId);
 };
