@@ -294,8 +294,8 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
 }
 
 RCT_EXPORT_METHOD(read:(NSString *)filepath
-                  length: (NSInteger *)length
-                  position: (NSInteger *)position
+                  length: (NSInteger)length
+                  position: (NSInteger)position
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
