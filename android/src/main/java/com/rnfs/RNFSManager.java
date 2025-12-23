@@ -975,7 +975,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       return;
     }
 
-    promise.reject(null, ex.getMessage());
+    promise.reject("RNFS_GENERIC_ERROR", ex != null ? ex.getMessage() : "File system error");
   }
 
   private void rejectFileNotFound(Promise promise, String filepath) {
