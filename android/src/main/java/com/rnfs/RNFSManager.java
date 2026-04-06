@@ -186,7 +186,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void write(String filepath, String base64Content, int position, Promise promise) {
+  public void write(String filepath, String base64Content, double position, Promise promise) {
     try {
       byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
 
@@ -196,7 +196,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         outputStream.close();
       } else {
         RandomAccessFile file = new RandomAccessFile(filepath, "rw");
-        file.seek(position);
+        file.seek((long) position);
         file.write(bytes);
         file.close();
       }
@@ -234,11 +234,11 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void read(String filepath, int length, int position, Promise promise) {
+  public void read(String filepath, int length, double position, Promise promise) {
     try {
       InputStream inputStream = getInputStream(filepath);
       byte[] buffer = new byte[length];
-      inputStream.skip(position);
+      inputStream.skip((long) position);
       int bytesRead = inputStream.read(buffer, 0, length);
 
       String base64Content = Base64.encodeToString(buffer, 0, bytesRead, Base64.NO_WRAP);
@@ -975,7 +975,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       return;
     }
 
-    promise.reject(null, ex.getMessage());
+    promise.reject("EUNSPECIFIED", ex.getMessage());
   }
 
   private void rejectFileNotFound(Promise promise, String filepath) {

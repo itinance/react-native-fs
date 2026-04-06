@@ -175,7 +175,7 @@ RCT_EXPORT_METHOD(appendFile:(NSString *)filepath
 
 RCT_EXPORT_METHOD(write:(NSString *)filepath
                   contents:(NSString *)base64Content
-                  position:(NSInteger)position
+                  position:(NSNumber *)position
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -197,8 +197,8 @@ RCT_EXPORT_METHOD(write:(NSString *)filepath
   @try {
     NSFileHandle *fH = [NSFileHandle fileHandleForUpdatingAtPath:filepath];
 
-    if (position >= 0) {
-      [fH seekToFileOffset:position];
+    if ([position unsignedLongLongValue] >= 0) {
+      [fH seekToFileOffset: [position unsignedLongLongValue]];
     } else {
       [fH seekToEndOfFile];
     }
@@ -294,8 +294,8 @@ RCT_EXPORT_METHOD(readFile:(NSString *)filepath
 }
 
 RCT_EXPORT_METHOD(read:(NSString *)filepath
-                  length: (NSInteger *)length
-                  position: (NSInteger *)position
+                  length: (NSNumber *)length
+                  position: (NSNumber *)position
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -324,11 +324,11 @@ RCT_EXPORT_METHOD(read:(NSString *)filepath
     }
 
     // Seek to the position if there is one.
-    [file seekToFileOffset: (int)position];
+    [file seekToFileOffset: [position unsignedLongLongValue]];
 
     NSData *content;
-    if ((int)length > 0) {
-        content = [file readDataOfLength: (int)length];
+    if ([length intValue] > 0) {
+        content = [file readDataOfLength: [length intValue]];
     } else {
         content = [file readDataToEndOfFile];
     }
