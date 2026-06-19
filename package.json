@@ -42,5 +42,9 @@
     "react-native-windows": {
       "optional": true
     }
-  }
+  },
+  "bugs": {
+    "url": "git@github.com:itinance/react-native-fs/issues"
+  },
+  "homepage": "git@github.com:itinance/react-native-fs#readme"
 }
